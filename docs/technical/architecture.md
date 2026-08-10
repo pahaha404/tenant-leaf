@@ -26,4 +26,4 @@
 - 앱은 AI 제공자 API 키를 보관하지 않는다.
 - API 서버의 HTTP 요청 안에서 무거운 AI 분석을 끝내지 않는다.
 - AI 결과는 `AIObservation`이며, `ChecklistResult`의 최종 판정이 아니다.
-- 계약 변경은 `packages/shared-types`와 `docs/api-spec.md`를 같은 변경 묶음에서 갱신한다.
+- 계약 변경은 `packages/shared-types`와 `docs/technical/api-spec.md`를 같은 변경 묶음에서 갱신한다.

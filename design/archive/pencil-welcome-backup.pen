@@ -1,0 +1,2903 @@
+{
+  "version": "2.17",
+  "children": [
+    {
+      "type": "frame",
+      "id": "YKsGt",
+      "x": 0,
+      "y": 0,
+      "name": "Welcome to pen.dev",
+      "clip": true,
+      "width": 1000,
+      "height": 1458,
+      "layout": "none",
+      "children": [
+        {
+          "type": "text",
+          "id": "Lmqy1",
+          "x": 38,
+          "y": 297,
+          "name": "Start here",
+          "fill": "#ff8303ff",
+          "textGrowth": "fixed-width-height",
+          "width": 923,
+          "height": 307,
+          "content": "Ask agent to \ndesign something",
+          "lineHeight": 1.399999976158142,
+          "textAlign": "center",
+          "fontFamily": "Noto Sans",
+          "fontSize": 100,
+          "fontWeight": "500",
+          "letterSpacing": -4
+        },
+        {
+          "type": "path",
+          "id": "AmD9T",
+          "x": 267.8010819142764,
+          "y": 632,
+          "rotation": -45,
+          "geometry": "M7 0l0 14m7-7l-7 7-7-7",
+          "width": 366,
+          "height": 366,
+          "stroke": "#ff8302ff",
+          "strokeWidth": 50,
+          "strokeLinejoin": "round",
+          "strokeLinecap": "round"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "OmOql",
+      "x": 1100,
+      "y": 0,
+      "name": "Design System · 세입세잎",
+      "width": 760,
+      "height": 844,
+      "fill": "$canvas",
+      "cornerRadius": 28,
+      "layout": "vertical",
+      "gap": 20,
+      "padding": 32,
+      "children": [
+        {
+          "type": "text",
+          "id": "drvZa",
+          "name": "Design System Title",
+          "fill": "$ink",
+          "content": "세입세잎 · 디자인 시스템",
+          "fontFamily": "$font",
+          "fontSize": 28,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "K8ASex",
+          "name": "Design System Subtitle",
+          "fill": "$muted",
+          "content": "안심을 주는 초록, 행동을 돕는 오렌지, 잎사귀 캐릭터의 둥근 선",
+          "fontFamily": "$font",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "iDkag",
+          "name": "Color Tokens",
+          "width": "fill_container",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "BjTvZ",
+              "name": "Primary",
+              "width": 124,
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 16,
+                  "id": "oqngO",
+                  "name": "Primary Swatch",
+                  "fill": "$brand-green",
+                  "width": 124,
+                  "height": 76,
+                  "stroke": "$line",
+                  "strokeWidth": 1
+                },
+                {
+                  "type": "text",
+                  "id": "U8KMN",
+                  "name": "Primary Label",
+                  "fill": "$ink",
+                  "content": "Primary",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "GmNP8",
+              "name": "Deep",
+              "width": 124,
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 16,
+                  "id": "cy3jL",
+                  "name": "Deep Swatch",
+                  "fill": "$brand-deep",
+                  "width": 124,
+                  "height": 76,
+                  "stroke": "$line",
+                  "strokeWidth": 1
+                },
+                {
+                  "type": "text",
+                  "id": "Vjv3n",
+                  "name": "Deep Label",
+                  "fill": "$ink",
+                  "content": "Deep",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "v70Zk",
+              "name": "Soft",
+              "width": 124,
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 16,
+                  "id": "wYvgB",
+                  "name": "Soft Swatch",
+                  "fill": "$brand-soft",
+                  "width": 124,
+                  "height": 76,
+                  "stroke": "$line",
+                  "strokeWidth": 1
+                },
+                {
+                  "type": "text",
+                  "id": "DCQm9",
+                  "name": "Soft Label",
+                  "fill": "$ink",
+                  "content": "Soft",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "kKfdx",
+              "name": "Action",
+              "width": 124,
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 16,
+                  "id": "KGILC",
+                  "name": "Action Swatch",
+                  "fill": "$accent-orange",
+                  "width": 124,
+                  "height": 76,
+                  "stroke": "$line",
+                  "strokeWidth": 1
+                },
+                {
+                  "type": "text",
+                  "id": "olZAx",
+                  "name": "Action Label",
+                  "fill": "$ink",
+                  "content": "Action",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "MI5oE",
+              "name": "Canvas",
+              "width": 124,
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "rectangle",
+                  "cornerRadius": 16,
+                  "id": "IjpoV",
+                  "name": "Canvas Swatch",
+                  "fill": "$canvas",
+                  "width": 124,
+                  "height": 76,
+                  "stroke": "$line",
+                  "strokeWidth": 1
+                },
+                {
+                  "type": "text",
+                  "id": "T8Y1B",
+                  "name": "Canvas Label",
+                  "fill": "$ink",
+                  "content": "Canvas",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Wl3DQ",
+          "name": "Type Scale",
+          "width": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 20,
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "layout": "vertical",
+          "gap": 8,
+          "padding": 20,
+          "children": [
+            {
+              "type": "text",
+              "id": "NIsSS",
+              "name": "Type Heading",
+              "fill": "$ink",
+              "content": "처음 보는 집도, 차근차근",
+              "fontFamily": "$font",
+              "fontSize": 24,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "fXYj1",
+              "name": "Type Body",
+              "fill": "$muted",
+              "content": "명확한 문장과 충분한 여백으로 점검 과정을 안내합니다.",
+              "fontFamily": "$font",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "W3Mkh",
+          "name": "Components",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "children": [
+            {
+              "type": "text",
+              "id": "tHDQZ",
+              "name": "Components Label",
+              "fill": "$brand-deep",
+              "content": "COMPONENTS",
+              "fontFamily": "$font",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "DYJP9",
+              "name": "Button Samples",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "p7Vmhx",
+                  "name": "Primary Button",
+                  "fill": "$brand-green",
+                  "cornerRadius": 14,
+                  "padding": [
+                    12,
+                    18
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "FLZgo",
+                      "name": "Primary Button Text",
+                      "fill": "#FFFFFF",
+                      "content": "Primary",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "aOCUh",
+                  "name": "Soft Button",
+                  "fill": "$brand-soft",
+                  "cornerRadius": 14,
+                  "padding": [
+                    12,
+                    18
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "XobFX",
+                      "name": "Soft Button Text",
+                      "fill": "$brand-deep",
+                      "content": "Soft",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "t1AYjK",
+                  "name": "Alert Chip",
+                  "fill": "$accent-orange",
+                  "cornerRadius": 14,
+                  "padding": [
+                    12,
+                    18
+                  ],
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "qBrDA",
+                      "name": "Alert Chip Text",
+                      "fill": "#FFFFFF",
+                      "content": "Alert",
+                      "fontFamily": "$font",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "tRBfe",
+          "name": "Design Principles",
+          "width": "fill_container",
+          "fill": "#FDF7F2",
+          "cornerRadius": 20,
+          "layout": "vertical",
+          "gap": 10,
+          "padding": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "VbfQb",
+              "name": "01 · Calm",
+              "gap": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "rWio9",
+                  "name": "01 · Calm Dot",
+                  "fill": "$accent-orange",
+                  "width": 10,
+                  "height": 10
+                },
+                {
+                  "type": "text",
+                  "id": "TuyS3",
+                  "name": "01 · Calm Text",
+                  "fill": "$ink",
+                  "content": "초록의 안정감으로 낯선 집을 살펴봐요.",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "JoPiM",
+              "name": "02 · Clear",
+              "gap": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "p7AFjV",
+                  "name": "02 · Clear Dot",
+                  "fill": "$accent-orange",
+                  "width": 10,
+                  "height": 10
+                },
+                {
+                  "type": "text",
+                  "id": "q2By15",
+                  "name": "02 · Clear Text",
+                  "fill": "$ink",
+                  "content": "한 번에 한 가지 행동만 또렷하게 안내해요.",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "zycv6",
+              "name": "03 · Friendly",
+              "gap": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "lF5z8",
+                  "name": "03 · Friendly Dot",
+                  "fill": "$accent-orange",
+                  "width": 10,
+                  "height": 10
+                },
+                {
+                  "type": "text",
+                  "id": "rkHMd",
+                  "name": "03 · Friendly Text",
+                  "fill": "$ink",
+                  "content": "새잎이의 둥근 표정으로 부담을 낮춰요.",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "acG0I",
+      "x": 1940,
+      "y": 0,
+      "name": "01 · 온보딩",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$canvas",
+      "cornerRadius": 32,
+      "layout": "vertical",
+      "gap": 18,
+      "padding": [
+        32,
+        24,
+        28,
+        24
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "vwUbd",
+          "name": "Onboarding Header",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "MNcDx",
+              "name": "Brand",
+              "fill": "$brand-green",
+              "content": "세입세잎",
+              "fontFamily": "$font",
+              "fontSize": 18,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "eX664",
+              "name": "Skip",
+              "fill": "$muted",
+              "content": "건너뛰기",
+              "fontFamily": "$font",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "OMLdz",
+          "name": "새잎이 Character",
+          "width": "fill_container",
+          "height": 288,
+          "fill": "$brand-soft",
+          "cornerRadius": 28
+        },
+        {
+          "type": "text",
+          "id": "TnWxB",
+          "name": "Onboarding Eyebrow",
+          "fill": "$accent-orange",
+          "content": "첫 자취, 더 든든하게",
+          "fontFamily": "$font",
+          "fontSize": 13,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "igPZH",
+          "name": "Onboarding Title",
+          "fill": "$ink",
+          "content": "집을 보기 전, 세입세잎이",
+          "fontFamily": "$font",
+          "fontSize": 27,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "iXiDA",
+          "name": "Onboarding Body",
+          "fill": "$muted",
+          "content": "내 취향에 맞춘 체크리스트와 AI 점검 가이드로 놓치지 않게 도와드려요.",
+          "lineHeight": 1.55,
+          "fontFamily": "$font",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "veiWZ",
+          "name": "Onboarding Progress",
+          "gap": 6,
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 8,
+              "id": "L7Q3l",
+              "name": "Current",
+              "fill": "$brand-green",
+              "width": 28,
+              "height": 8
+            },
+            {
+              "type": "rectangle",
+              "cornerRadius": 8,
+              "id": "czbJD",
+              "name": "Next",
+              "fill": "$line",
+              "width": 8,
+              "height": 8
+            },
+            {
+              "type": "rectangle",
+              "cornerRadius": 8,
+              "id": "Go8kX",
+              "name": "Next 2",
+              "fill": "$line",
+              "width": 8,
+              "height": 8
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "fdakU",
+          "name": "Onboarding CTA",
+          "width": "fill_container",
+          "fill": "$brand-green",
+          "cornerRadius": 16,
+          "padding": 16,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "w4Op4v",
+              "name": "Onboarding CTA Text",
+              "fill": "#FFFFFF",
+              "content": "내 매물 등록하고 시작하기",
+              "fontFamily": "$font",
+              "fontSize": 16,
+              "fontWeight": "700"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "aTMmn",
+      "x": 2386,
+      "y": 0,
+      "name": "02 · 홈",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$canvas",
+      "cornerRadius": 32,
+      "layout": "vertical",
+      "gap": 16,
+      "padding": [
+        28,
+        20,
+        24,
+        20
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "F612Pn",
+          "name": "Home Header",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "i7FaOm",
+              "name": "Home Greeting",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "J66W2",
+                  "name": "Greeting Small",
+                  "fill": "$muted",
+                  "content": "오늘도 안전한 집 찾기",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "OAumK",
+                  "name": "Greeting Title",
+                  "fill": "$ink",
+                  "content": "안녕하세요, 한솔님",
+                  "fontFamily": "$font",
+                  "fontSize": 23,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "fkY9A",
+              "name": "Notification",
+              "width": 42,
+              "height": 42,
+              "fill": "$surface",
+              "cornerRadius": 21,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "I0Ggbt",
+                  "name": "Notification Icon",
+                  "width": 19,
+                  "height": 19,
+                  "icon": "bell",
+                  "library": "lucide",
+                  "fill": "$brand-deep"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "h6MMvS",
+          "name": "Home Score Card",
+          "width": "fill_container",
+          "fill": "$brand-green",
+          "cornerRadius": 24,
+          "layout": "vertical",
+          "gap": 12,
+          "padding": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "T6Xu55",
+              "name": "Score Top",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "GVCMX",
+                  "name": "Score Label",
+                  "fill": "#FFFFFF",
+                  "content": "나의 안심 준비도",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "icon",
+                  "id": "xeiIn",
+                  "name": "Score Leaf",
+                  "width": 24,
+                  "height": 24,
+                  "icon": "sprout",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "e1zxug",
+              "name": "Score Number",
+              "fill": "#FFFFFF",
+              "content": "72점",
+              "fontFamily": "$font",
+              "fontSize": 42,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "AsgPZ",
+              "name": "Score Caption",
+              "fill": "#DDF2E2",
+              "content": "매물 1개를 등록하면 맞춤 점검이 시작돼요.",
+              "fontFamily": "$font",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "jZFzF",
+          "name": "Quick Actions",
+          "width": "fill_container",
+          "gap": 12,
+          "children": [
+            {
+              "type": "frame",
+              "id": "M4RSi",
+              "name": "Register",
+              "width": "fill_container",
+              "fill": "$accent-orange",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "ZSRRo",
+                  "name": "Register Icon",
+                  "width": 24,
+                  "height": 24,
+                  "icon": "plus",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                },
+                {
+                  "type": "text",
+                  "id": "Bkwby",
+                  "name": "Register Label",
+                  "fill": "#FFFFFF",
+                  "content": "매물 등록",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Bl1KA",
+              "name": "Checklist",
+              "width": "fill_container",
+              "fill": "$brand-soft",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": 10,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "VzvVP",
+                  "name": "Checklist Icon",
+                  "width": 24,
+                  "height": 24,
+                  "icon": "clipboard-check",
+                  "library": "lucide",
+                  "fill": "$brand-deep"
+                },
+                {
+                  "type": "text",
+                  "id": "TjDYX",
+                  "name": "Checklist Label",
+                  "fill": "$brand-deep",
+                  "content": "점검 준비",
+                  "fontFamily": "$font",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "GCLBX",
+          "name": "Recent Label",
+          "fill": "$ink",
+          "content": "최근 본 매물",
+          "fontFamily": "$font",
+          "fontSize": 16,
+          "fontWeight": "700"
+        },
+        {
+          "type": "frame",
+          "id": "SU4xm",
+          "name": "Recent Listing",
+          "width": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 20,
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "gap": 14,
+          "padding": 14,
+          "children": [
+            {
+              "type": "frame",
+              "id": "JC08N",
+              "name": "Listing Thumbnail",
+              "width": 72,
+              "height": 72,
+              "fill": "$brand-soft",
+              "cornerRadius": 16,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "aQLNO",
+                  "name": "Listing House Icon",
+                  "width": 28,
+                  "height": 28,
+                  "icon": "house",
+                  "library": "lucide",
+                  "fill": "$brand-green"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "HtUM0",
+              "name": "Listing Info",
+              "layout": "vertical",
+              "gap": 4,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "hlLvs",
+                  "name": "Listing Name",
+                  "fill": "$ink",
+                  "content": "망원동 투룸",
+                  "fontFamily": "$font",
+                  "fontSize": 15,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "orcNU",
+                  "name": "Listing Detail",
+                  "fill": "$muted",
+                  "content": "월세 65 · 2층 · 18㎡",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "x3gBp",
+                  "name": "Listing Chip",
+                  "fill": "$brand-soft",
+                  "cornerRadius": 10,
+                  "padding": [
+                    5,
+                    9
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "rH9Yg",
+                      "name": "Listing Chip Text",
+                      "fill": "$brand-deep",
+                      "content": "점검 3/8 완료",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "UzFky",
+          "name": "Home Bottom Navigation",
+          "width": "fill_container",
+          "fill": "$surface",
+          "cornerRadius": 18,
+          "stroke": "$line",
+          "strokeWidth": 1,
+          "padding": [
+            12,
+            20
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "eN3Dn",
+              "name": "Nav Home",
+              "layout": "vertical",
+              "gap": 3,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "H7XAn9",
+                  "name": "Nav Home Icon",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "house",
+                  "library": "lucide",
+                  "fill": "$brand-green"
+                },
+                {
+                  "type": "text",
+                  "id": "XmIlT",
+                  "name": "Nav Home Label",
+                  "fill": "$brand-green",
+                  "content": "홈",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Te04G",
+              "name": "Nav List",
+              "layout": "vertical",
+              "gap": 3,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "ucrSv",
+                  "name": "Nav List Icon",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "list-checks",
+                  "library": "lucide",
+                  "fill": "$muted"
+                },
+                {
+                  "type": "text",
+                  "id": "g1iXN",
+                  "name": "Nav List Label",
+                  "fill": "$muted",
+                  "content": "점검",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "wuEkS",
+              "name": "Nav Report",
+              "layout": "vertical",
+              "gap": 3,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "N6URm",
+                  "name": "Nav Report Icon",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "chart-no-axes-column",
+                  "library": "lucide",
+                  "fill": "$muted"
+                },
+                {
+                  "type": "text",
+                  "id": "Q9bQTc",
+                  "name": "Nav Report Label",
+                  "fill": "$muted",
+                  "content": "리포트",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "iXyO6",
+              "name": "Nav Profile",
+              "layout": "vertical",
+              "gap": 3,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "ibUfH",
+                  "name": "Nav Profile Icon",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "user-round",
+                  "library": "lucide",
+                  "fill": "$muted"
+                },
+                {
+                  "type": "text",
+                  "id": "SvNdR",
+                  "name": "Nav Profile Label",
+                  "fill": "$muted",
+                  "content": "리포트",
+                  "fontFamily": "$font",
+                  "fontSize": 10,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 8,
+          "id": "wKkpz",
+          "layoutPosition": "absolute",
+          "x": 20,
+          "y": 20,
+          "name": "Home Accent Bar",
+          "fill": "#F47D31",
+          "width": 350,
+          "height": 8
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "cd04Y",
+      "x": 2832,
+      "y": 0,
+      "name": "03 · 매물 등록",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$canvas",
+      "cornerRadius": 32,
+      "layout": "vertical",
+      "gap": 18,
+      "padding": [
+        28,
+        20,
+        24,
+        20
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "tSluN",
+          "name": "Register Header",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "xaADZ",
+              "name": "Back Button",
+              "width": 40,
+              "height": 40,
+              "fill": "$surface",
+              "cornerRadius": 20,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "zR8wV",
+                  "name": "Back Icon",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "arrow-left",
+                  "library": "lucide",
+                  "fill": "$ink"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "dFyoj",
+              "name": "Register Header Title",
+              "fill": "$ink",
+              "content": "매물 등록",
+              "fontFamily": "$font",
+              "fontSize": 18,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "mSR2Q",
+              "name": "Register Step",
+              "fill": "$brand-green",
+              "content": "1 / 2",
+              "fontFamily": "$font",
+              "fontSize": 13,
+              "fontWeight": "700"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "j3hNG",
+          "name": "Register Title",
+          "fill": "$ink",
+          "content": "어떤 집을 보고 있나요?",
+          "fontFamily": "$font",
+          "fontSize": 25,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "GNC6n",
+          "name": "Register Description",
+          "fill": "$muted",
+          "content": "주소와 기본 정보를 입력하면 맞춤 점검표를 준비해요.",
+          "fontFamily": "$font",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "vRBYP",
+          "name": "Property Form",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 14,
+          "children": [
+            {
+              "type": "frame",
+              "id": "Iqzj5",
+              "name": "Address Field",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 16,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 12,
+              "padding": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "jh8Zi",
+                  "name": "Address Icon",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "map-pin",
+                  "library": "lucide",
+                  "fill": "$brand-green"
+                },
+                {
+                  "type": "frame",
+                  "id": "U7K7M",
+                  "name": "Address Field Text",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "HAruA",
+                      "name": "Address Label",
+                      "fill": "$muted",
+                      "content": "주소",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "sxudb",
+                      "name": "Address Value",
+                      "fill": "$ink",
+                      "content": "서울시 마포구 망원동",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "dG6LL",
+                  "name": "Address Chevron",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "$muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TCEHq",
+              "name": "Type Field",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 16,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 12,
+              "padding": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "e8abwW",
+                  "name": "Type Icon",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "house",
+                  "library": "lucide",
+                  "fill": "$brand-green"
+                },
+                {
+                  "type": "frame",
+                  "id": "Vu5dA",
+                  "name": "Type Field Text",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "kGCuB",
+                      "name": "Type Label",
+                      "fill": "$muted",
+                      "content": "주거 형태",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Qh3sJ",
+                      "name": "Type Value",
+                      "fill": "$ink",
+                      "content": "투룸 · 월세",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "xAmPI",
+                  "name": "Type Chevron",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "$muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Sj7On",
+              "name": "Visit Field",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 16,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 12,
+              "padding": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "hSO5R",
+                  "name": "Visit Icon",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "calendar-days",
+                  "library": "lucide",
+                  "fill": "$brand-green"
+                },
+                {
+                  "type": "frame",
+                  "id": "U1R76z",
+                  "name": "Visit Field Text",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "wCWQg",
+                      "name": "Visit Label",
+                      "fill": "$muted",
+                      "content": "방문 예정일",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "wz7lt",
+                      "name": "Visit Value",
+                      "fill": "$ink",
+                      "content": "8월 17일 (토)",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "cjqDm",
+                  "name": "Visit Chevron",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "$muted"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "hoNXV",
+          "name": "Register Notice",
+          "width": "fill_container",
+          "fill": "#FFF4EC",
+          "cornerRadius": 16,
+          "gap": 10,
+          "padding": 14,
+          "children": [
+            {
+              "type": "icon",
+              "id": "o0fJ28",
+              "name": "Notice Icon",
+              "width": 18,
+              "height": 18,
+              "icon": "sparkles",
+              "library": "lucide",
+              "fill": "$accent-orange"
+            },
+            {
+              "type": "text",
+              "id": "Q2NQUZ",
+              "name": "Notice Text",
+              "fill": "$ink",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "등록 후 ‘물 새는 흔적’ 등 집 상태에 맞는 점검 항목을 자동으로 정리해 드려요.",
+              "lineHeight": 1.45,
+              "fontFamily": "$font",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "Lw87F",
+          "name": "Register CTA",
+          "width": "fill_container",
+          "fill": "$brand-green",
+          "cornerRadius": 16,
+          "padding": 16,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "v8TuXt",
+              "name": "Register CTA Text",
+              "fill": "#FFFFFF",
+              "content": "매물 등록하기",
+              "fontFamily": "$font",
+              "fontSize": 16,
+              "fontWeight": "700"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "KWNHj",
+      "x": 3278,
+      "y": 0,
+      "name": "04 · 점검 준비",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$canvas",
+      "cornerRadius": 32,
+      "layout": "vertical",
+      "gap": 16,
+      "padding": [
+        28,
+        20,
+        24,
+        20
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "X7cj1",
+          "name": "Preparation Header",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "jvfRm",
+              "name": "Preparation Header Title",
+              "fill": "$ink",
+              "content": "점검 준비",
+              "fontFamily": "$font",
+              "fontSize": 18,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "Wd4zo",
+              "name": "Preparation Count",
+              "fill": "$brand-green",
+              "content": "3 / 8 완료",
+              "fontFamily": "$font",
+              "fontSize": 13,
+              "fontWeight": "700"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "f5wNn",
+          "name": "Preparation Progress Bar",
+          "width": "fill_container",
+          "height": 8,
+          "fill": "$line",
+          "cornerRadius": 8,
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 8,
+              "id": "lroF2",
+              "name": "Preparation Progress Fill",
+              "fill": "$brand-green",
+              "width": 132,
+              "height": 8
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "gqgaL",
+          "name": "Preparation Title",
+          "fill": "$ink",
+          "content": "방문 전에 확인해요",
+          "fontFamily": "$font",
+          "fontSize": 24,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "DhNxi",
+          "name": "Preparation Description",
+          "fill": "$muted",
+          "content": "세입세잎이 오늘의 점검 순서를 준비했어요.",
+          "fontFamily": "$font",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "dHsfH",
+          "name": "Preparation Checklist",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 10,
+          "children": [
+            {
+              "type": "frame",
+              "id": "RSUdS",
+              "name": "Light Check Item",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 18,
+              "stroke": "$brand-green",
+              "strokeWidth": 1,
+              "gap": 12,
+              "padding": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "jNR3t",
+                  "name": "Light Icon Circle",
+                  "width": 38,
+                  "height": 38,
+                  "fill": "$brand-soft",
+                  "cornerRadius": 19,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "LB27V",
+                      "name": "Light Icon",
+                      "width": 19,
+                      "height": 19,
+                      "icon": "sun",
+                      "library": "lucide",
+                      "fill": "$brand-green"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "QO5SP",
+                  "name": "Light Check Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "hCwTE",
+                      "name": "Light Check Title",
+                      "fill": "$ink",
+                      "content": "채광 확인",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "XgZkY",
+                      "name": "Light Check Sub",
+                      "fill": "$muted",
+                      "content": "창문 방향과 주변 건물을 살펴봐요",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "Va7PM",
+                  "name": "Light Status",
+                  "width": 19,
+                  "height": 19,
+                  "icon": "circle-check",
+                  "library": "lucide",
+                  "fill": "$brand-green"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "T1hha",
+              "name": "Water Check Item",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 18,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 12,
+              "padding": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "B26vE",
+                  "name": "Water Icon Circle",
+                  "width": 38,
+                  "height": 38,
+                  "fill": "#F5F7F5",
+                  "cornerRadius": 19,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "IC7Cj",
+                      "name": "Water Icon",
+                      "width": 19,
+                      "height": 19,
+                      "icon": "droplets",
+                      "library": "lucide",
+                      "fill": "$brand-green"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "tujpB",
+                  "name": "Water Check Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "FGUKr",
+                      "name": "Water Check Title",
+                      "fill": "$ink",
+                      "content": "수압 · 누수 확인",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "U9WJ4",
+                      "name": "Water Check Sub",
+                      "fill": "$muted",
+                      "content": "수도, 싱크대 아래를 확인해요",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "P96H1P",
+                  "name": "Water Status",
+                  "width": 19,
+                  "height": 19,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "$muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ouQGZ",
+              "name": "Wall Check Item",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 18,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 12,
+              "padding": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "NuMbA",
+                  "name": "Wall Icon Circle",
+                  "width": 38,
+                  "height": 38,
+                  "fill": "#F5F7F5",
+                  "cornerRadius": 19,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Yzyix",
+                      "name": "Wall Icon",
+                      "width": 19,
+                      "height": 19,
+                      "icon": "scan-search",
+                      "library": "lucide",
+                      "fill": "$brand-green"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "HoQsp",
+                  "name": "Wall Check Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "kcwEN",
+                      "name": "Wall Check Title",
+                      "fill": "$ink",
+                      "content": "벽면 · 곰팡이 확인",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "UFcYI",
+                      "name": "Wall Check Sub",
+                      "fill": "$muted",
+                      "content": "모서리와 벽지 들뜸을 살펴봐요",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "CwV7t",
+                  "name": "Wall Status",
+                  "width": 19,
+                  "height": 19,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "$muted"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "zShBM",
+              "name": "Contract Check Item",
+              "width": "fill_container",
+              "fill": "$surface",
+              "cornerRadius": 18,
+              "stroke": "$line",
+              "strokeWidth": 1,
+              "gap": 12,
+              "padding": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "I0LEu",
+                  "name": "Contract Icon Circle",
+                  "width": 38,
+                  "height": 38,
+                  "fill": "#F5F7F5",
+                  "cornerRadius": 19,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "PbwsG",
+                      "name": "Contract Icon",
+                      "width": 19,
+                      "height": 19,
+                      "icon": "file-text",
+                      "library": "lucide",
+                      "fill": "$brand-green"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "qzjxG",
+                  "name": "Contract Check Text",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Q1wOj2",
+                      "name": "Contract Check Title",
+                      "fill": "$ink",
+                      "content": "계약 전 확인",
+                      "fontFamily": "$font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "g3fKk5",
+                      "name": "Contract Check Sub",
+                      "fill": "$muted",
+                      "content": "등기부와 관리비를 마지막으로 확인해요",
+                      "fontFamily": "$font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "d0Zz8",
+                  "name": "Contract Status",
+                  "width": 19,
+                  "height": 19,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "$muted"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "K7INY",
+          "name": "Start Inspection CTA",
+          "width": "fill_container",
+          "fill": "$brand-green",
+          "cornerRadius": 16,
+          "gap": 8,
+          "padding": 16,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "KpwFH",
+              "name": "Start Inspection Icon",
+              "width": 19,
+              "height": 19,
+              "icon": "glasses",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            },
+            {
+              "type": "text",
+              "id": "u55Jg",
+              "name": "Start Inspection CTA Text",
+              "fill": "#FFFFFF",
+              "content": "스마트 글래스 점검 시작",
+              "fontFamily": "$font",
+              "fontSize": 16,
+              "fontWeight": "700"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "Obomz",
+      "x": 3724,
+      "y": 0,
+      "name": "05 · 실시간 점검",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "#111A15",
+      "cornerRadius": 32,
+      "layout": "vertical",
+      "gap": 14,
+      "padding": [
+        24,
+        20,
+        22,
+        20
+      ],
+      "children": [
+        {
+          "type": "frame",
+          "id": "DnZ5p",
+          "name": "Live Header",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "QGLEH",
+              "name": "Close Live",
+              "width": 38,
+              "height": 38,
+              "fill": "#FFFFFF22",
+              "cornerRadius": 19,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "CrD2t",
+                  "name": "Close Icon",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "x",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "bewr5",
+              "name": "Live Title",
+              "fill": "#FFFFFF",
+              "content": "스마트 글래스 점검",
+              "fontFamily": "$font",
+              "fontSize": 16,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "Mnl4e",
+              "name": "Live More",
+              "width": 38,
+              "height": 38,
+              "fill": "#FFFFFF22",
+              "cornerRadius": 19,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "mxflj",
+                  "name": "More Icon",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "ellipsis",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "nhZqe",
+          "name": "Live Camera View",
+          "clip": true,
+          "width": "fill_container",
+          "height": 416,
+          "fill": "#2C4034",
+          "cornerRadius": 24,
+          "layout": "none",
+          "children": [
+            {
+              "type": "rectangle",
+              "id": "pvuQ1",
+              "x": 0,
+              "y": 0,
+              "name": "Wall Surface",
+              "fill": "#D9D0C3",
+              "width": 350,
+              "height": 416
+            },
+            {
+              "type": "rectangle",
+              "cornerRadius": 4,
+              "id": "G36RD",
+              "x": 220,
+              "y": 40,
+              "name": "Window Light",
+              "fill": "#DDF3E8",
+              "width": 110,
+              "height": 230
+            },
+            {
+              "type": "rectangle",
+              "cornerRadius": 4,
+              "id": "S4WBz",
+              "x": 216,
+              "y": 36,
+              "name": "Window Frame",
+              "fill": "#FFFFFF00",
+              "width": 118,
+              "height": 238,
+              "stroke": "#A7B1AC",
+              "strokeWidth": 7
+            },
+            {
+              "type": "path",
+              "id": "yO3oO",
+              "x": 48,
+              "y": 164,
+              "name": "Detected Crack",
+              "geometry": "M4 40l26-16 20 7 26-25 26 12 22-14",
+              "viewBox": [
+                0,
+                0,
+                128,
+                58
+              ],
+              "fill": "#00000000",
+              "width": 128,
+              "height": 58,
+              "stroke": "#A94D35",
+              "strokeWidth": 4,
+              "strokeLinecap": "round"
+            },
+            {
+              "type": "frame",
+              "id": "WJzuI",
+              "x": 24,
+              "y": 218,
+              "name": "Crack Alert",
+              "width": 215,
+              "fill": "#18352AEE",
+              "cornerRadius": 14,
+              "layout": "vertical",
+              "gap": 5,
+              "padding": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "YQX5b",
+                  "name": "Crack Alert Title",
+                  "fill": "#FFB082",
+                  "content": "하자 감지 · 벽면 미세 균열",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "wfIby",
+                  "name": "Crack Alert Detail",
+                  "fill": "#FFFFFF",
+                  "content": "AI 신뢰도 91% · 사진으로 기록할까요?",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "No7vf",
+              "x": 20,
+              "y": 18,
+              "name": "Camera Status",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "ellipse",
+                  "id": "PvBYz",
+                  "name": "Recording Dot",
+                  "fill": "#FF6B5A",
+                  "width": 8,
+                  "height": 8
+                },
+                {
+                  "type": "text",
+                  "id": "C67qG",
+                  "name": "Recording Text",
+                  "fill": "#FFFFFF",
+                  "content": "LIVE · 00:38",
+                  "fontFamily": "$font",
+                  "fontSize": 12,
+                  "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "dzIPo",
+          "name": "Live Prompt",
+          "width": "fill_container",
+          "fill": "#FFFFFF",
+          "cornerRadius": 18,
+          "gap": 12,
+          "padding": 14,
+          "children": [
+            {
+              "type": "icon",
+              "id": "uboBv",
+              "name": "Live Prompt Icon",
+              "width": 20,
+              "height": 20,
+              "icon": "volume-2",
+              "library": "lucide",
+              "fill": "$accent-orange"
+            },
+            {
+              "type": "frame",
+              "id": "AIwrE",
+              "name": "Live Prompt Text",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 3,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ZNeWU",
+                  "name": "Live Prompt Label",
+                  "fill": "$accent-orange",
+                  "content": "새잎이의 다음 안내",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "uQsrA",
+                  "name": "Live Prompt Sentence",
+                  "fill": "$ink",
+                  "content": "싱크대 아래쪽도 천천히 비춰주세요.",
+                  "fontFamily": "$font",
+                  "fontSize": 13,
+                  "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "fkQnj",
+          "name": "Live Controls",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "EELJp",
+              "name": "Flash Control",
+              "layout": "vertical",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "pbFJb",
+                  "name": "Flash Control Circle",
+                  "width": 48,
+                  "height": 48,
+                  "fill": "#FFFFFF22",
+                  "cornerRadius": 29,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "qUzch",
+                      "name": "Flash Control Icon",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "zap",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "F2ooV",
+                  "name": "Flash Control Label",
+                  "fill": "#FFFFFF",
+                  "content": "플래시",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "JPrQX",
+              "name": "Capture Control",
+              "layout": "vertical",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "oMXUr",
+                  "name": "Capture Control Circle",
+                  "width": 58,
+                  "height": 58,
+                  "fill": "$accent-orange",
+                  "cornerRadius": 29,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Nj6fj",
+                      "name": "Capture Control Icon",
+                      "width": 26,
+                      "height": 26,
+                      "icon": "camera",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "J4HoQ",
+                  "name": "Capture Control Label",
+                  "fill": "#FFFFFF",
+                  "content": "기록",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "kmuQb",
+              "name": "Guide Control",
+              "layout": "vertical",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "SC1rG",
+                  "name": "Guide Control Circle",
+                  "width": 48,
+                  "height": 48,
+                  "fill": "#FFFFFF22",
+                  "cornerRadius": 29,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "PfmA2",
+                      "name": "Guide Control Icon",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "list-checks",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "KsPrB",
+                  "name": "Guide Control Label",
+                  "fill": "#FFFFFF",
+                  "content": "목록",
+                  "fontFamily": "$font",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "kH0Yg",
+          "name": "Live Step Indicator",
+          "width": "fill_container",
+          "fill": "#FFFFFF12",
+          "cornerRadius": 14,
+          "padding": 10,
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Gxwfn",
+              "name": "Live Step Text",
+              "fill": "#D8EEE0",
+              "content": "점검 4 / 8 · 벽면과 창틀",
+              "fontFamily": "$font",
+              "fontSize": 12,
+              "fontWeight": "600"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "themes": {
+    "Mode": [
+      "Light",
+      "Dark"
+    ]
+  },
+  "variables": {
+    "--sidebar": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E7E8E5"
+        },
+        {
+          "value": "#18181b",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#666666"
+        },
+        {
+          "value": "#fafafa",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-primary": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#18181b"
+        },
+        {
+          "value": "#18181b",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-primary-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#fafafa"
+        },
+        {
+          "value": "#fafafa",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-border": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#CBCCC9"
+        },
+        {
+          "value": "#ffffff1a",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-accent": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#CBCCC9"
+        },
+        {
+          "value": "#2a2a30",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-accent-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#18181b"
+        },
+        {
+          "value": "#fafafa",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-ring": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#71717a"
+        },
+        {
+          "value": "#71717a",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--background": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#F2F3F0"
+        },
+        {
+          "value": "#111111",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#111111"
+        },
+        {
+          "value": "#FFFFFF",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--card": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FFFFFF"
+        },
+        {
+          "value": "#1A1A1A",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--card-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#111111"
+        },
+        {
+          "value": "#FFFFFF",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--popover": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FFFFFF"
+        },
+        {
+          "value": "#1A1A1A",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--popover-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#111111"
+        },
+        {
+          "value": "#FFFFFF",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--primary": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FF8400"
+        },
+        {
+          "value": "#FF8400",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--primary-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#111111"
+        },
+        {
+          "value": "#111111",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--secondary": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E7E8E5"
+        },
+        {
+          "value": "#2E2E2E",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--secondary-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#111111"
+        },
+        {
+          "value": "#FFFFFF",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--muted": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#F2F3F0"
+        },
+        {
+          "value": "#2E2E2E",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--muted-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#666666"
+        },
+        {
+          "value": "#B8B9B6",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--accent": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#F2F3F0"
+        },
+        {
+          "value": "#111111",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--accent-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#111111"
+        },
+        {
+          "value": "#F2F3F0",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--destructive": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#D93C15"
+        },
+        {
+          "value": "#FF5C33",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--border": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#CBCCC9"
+        },
+        {
+          "value": "#2E2E2E",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--input": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#CBCCC9"
+        },
+        {
+          "value": "#2E2E2E",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--ring": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#666666"
+        },
+        {
+          "value": "#666666",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--white": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "--black": {
+      "type": "color",
+      "value": "#000000"
+    },
+    "--font-primary": {
+      "type": "string",
+      "value": "JetBrains Mono"
+    },
+    "--font-secondary": {
+      "type": "string",
+      "value": "Geist"
+    },
+    "--radius-none": {
+      "type": "number",
+      "value": 0
+    },
+    "--radius-pill": {
+      "type": "number",
+      "value": 999
+    },
+    "--color-success": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#DFE6E1"
+        },
+        {
+          "value": "#222924",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-success-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#004D1A"
+        },
+        {
+          "value": "#B6FFCE",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-warning": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E9E3D8"
+        },
+        {
+          "value": "#291C0F",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-warning-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#804200"
+        },
+        {
+          "value": "#FF8400",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-error": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E5DCDA"
+        },
+        {
+          "value": "#24100B",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-error-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#8C1C00"
+        },
+        {
+          "value": "#FF5C33",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-info": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#DFDFE6"
+        },
+        {
+          "value": "#222229",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-info-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#000066"
+        },
+        {
+          "value": "#B2B2FF",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--radius-m": {
+      "type": "number",
+      "value": 16
+    },
+    "brand-green": {
+      "type": "color",
+      "value": "#287A4E"
+    },
+    "brand-deep": {
+      "type": "color",
+      "value": "#165338"
+    },
+    "brand-soft": {
+      "type": "color",
+      "value": "#E7F4EA"
+    },
+    "accent-orange": {
+      "type": "color",
+      "value": "#F47D31"
+    },
+    "ink": {
+      "type": "color",
+      "value": "#18352A"
+    },
+    "muted": {
+      "type": "color",
+      "value": "#6C7D73"
+    },
+    "line": {
+      "type": "color",
+      "value": "#DDE8E0"
+    },
+    "surface": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "canvas": {
+      "type": "color",
+      "value": "#F7FAF7"
+    },
+    "font": {
+      "type": "string",
+      "value": "Noto Sans KR"
+    },
+    "radius-card": {
+      "type": "number",
+      "value": 20
+    },
+    "space-md": {
+      "type": "number",
+      "value": 16
+    }
+  },
+  "fileToken": "b4d82f72-ff9d-4834-9ef8-0f602f0c092d"
+}

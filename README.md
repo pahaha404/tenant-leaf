@@ -53,4 +53,12 @@ Meta Glasses -> Android 앱 -> API 서버 -> AI Worker
 3. `apps/android`에서 API를 연결하고, `glass/`에 Meta SDK 어댑터를 붙입니다.
 4. `services/ai-worker`가 분석 작업과 결과 저장을 담당하게 연결합니다.
 
+## 문서와 작업 관리
+
+- `docs/`: 제품·기술·정책의 기준 문서
+- `docs/team/`: 역할별 시작 안내와 작업 순서
+- `Tasks/`: 전체 일정과 역할별 체크리스트
+- `mds/`: 구현·수정 요청서, 완료 기준, 작업 결과 기록
+- `design/`: 디자인 파일·참고 자료·에셋
+
 자세한 제품 범위와 API 초안은 `docs/`를 확인하세요.
