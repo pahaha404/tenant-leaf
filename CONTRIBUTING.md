@@ -37,6 +37,10 @@ git commit -m "feat(api): 방문 세션 생성 API 추가"
 git push -u origin feature/api-visit-session
 ```
 
+## 역할별 작업실
+
+`docs/team/`에는 역할별 시작 안내, 작업 순서, Task가 있습니다. 팀원은 배정된 역할 폴더의 `01_시작.md`부터 읽고 `03_Task.md`만 관리합니다. 전체 일정과 통합 상태는 루트 `Task.md`에서만 관리합니다.
+
 ## 금지 사항
 
 - `main`, `develop` 직접 푸시
