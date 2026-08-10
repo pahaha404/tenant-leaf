@@ -1,0 +1,11 @@
+# 팀원의 실제 GitHub 아이디가 정해지면 이 파일을 CODEOWNERS로 복사한 뒤 수정합니다.
+
+/apps/android/app/                 @android-owner
+/apps/android/feature/             @android-owner
+/apps/android/core/                @android-owner
+/apps/android/glass/               @glass-owner
+/packages/glass-adapter/           @glass-owner
+/services/api/                     @api-owner
+/services/ai-worker/               @ai-owner
+/ml/                               @ai-owner
+/packages/shared-types/            @api-owner @ai-owner

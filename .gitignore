@@ -24,6 +24,18 @@ uploads/
 coverage/
 tmp/
 
+# AI training data, experiment outputs, and model weights
+ml/data/raw/
+ml/data/processed/
+ml/artifacts/
+ml/runs/
+ml/checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.tflite
+
 # OS files
 .DS_Store
 Thumbs.db
