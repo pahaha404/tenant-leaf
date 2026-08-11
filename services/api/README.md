@@ -1,32 +1,106 @@
-# api
+# 세입세잎 API
 
-Kotlin + Spring Boot 기반 백엔드 API 서버 폴더입니다.
+Kotlin과 Spring Boot 기반 백엔드 API 프로젝트입니다.
 
-## 책임
+## 1. 필요한 프로그램과 버전
 
-- 사용자 인증
-- 프로젝트·매물·점검 세션 관리
-- 체크리스트와 음성 메모 저장
-- 촬영 파일 업로드 URL 발급
-- AI 분석 작업 요청과 결과 조회
-- 상태 등급·매물 비교 결과 제공
+- JDK 21 LTS
+- Docker Desktop과 Docker Compose
+- Git
 
-## 예정 구조
+Gradle은 프로젝트에 포함된 Wrapper를 사용하므로 별도로 설치하지 않습니다. 저장소 루트에서 설치 상태를 확인합니다.
 
-- `src/main/kotlin/`: Kotlin 서버 코드
-- `src/main/resources/`: Spring 설정·DB 마이그레이션
-- `controller/`: REST API 주소별 컨트롤러
-- `domain/`: 도메인 모델·서비스 규칙
-- `repository/`: DB 조회·저장
-- `dto/`: 요청·응답 데이터 형식
-- `worker/`: AI 워커 작업 요청
-- `src/test/kotlin/`: 서버 테스트
+```powershell
+.\scripts\check-prerequisites.ps1
+```
 
-## 권장 서버 기술
+## 패키지와 시작 클래스
 
-- Kotlin
-- Spring Boot
-- Spring Security + JWT
-- Spring Data JPA
-- PostgreSQL
-- Redis
+- 기본 패키지: `com.tenantleaf.api`
+- 시작 클래스: `com.tenantleaf.api.ApiApplication`
+
+## 2. 환경 변수 준비
+
+저장소 루트에서 예제 파일을 복사합니다. `.env`는 Git에 포함되지 않습니다.
+
+```powershell
+Copy-Item .env.example .env
+```
+
+기본 로컬 값은 `application.yml`의 안전한 개발용 기본값과 같습니다. 값을 변경했다면 API를 실행하는 PowerShell에도 같은 `DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD` 환경 변수를 설정해야 합니다.
+
+## 3. PostgreSQL 시작
+
+저장소 루트에서 실행합니다.
+
+```powershell
+docker compose --env-file .env -f infra/docker/compose.yml up -d
+docker compose --env-file .env -f infra/docker/compose.yml ps
+```
+
+`postgres` 서비스가 `healthy`로 표시될 때까지 기다립니다.
+
+## 4. API 실행
+
+새 PowerShell에서 실행합니다.
+
+```powershell
+cd services/api
+.\gradlew.bat bootRun
+```
+
+Flyway는 API 시작 시 `src/main/resources/db/migration`의 마이그레이션을 자동 실행합니다.
+
+## 5. 헬스 체크
+
+API가 실행 중인 상태에서 다른 PowerShell을 열어 확인합니다.
+
+```powershell
+Invoke-RestMethod http://localhost:8080/actuator/health
+```
+
+서버와 PostgreSQL이 정상이면 `status`가 `UP`입니다. API가 실행 중일 때 PostgreSQL을 중지하면 `status`가 `DOWN`으로 바뀝니다. 응답에는 비밀번호와 연결 문자열을 표시하지 않습니다.
+
+## 6. 테스트
+
+PostgreSQL이 `healthy`인 상태에서 실행합니다.
+
+```powershell
+cd services/api
+.\gradlew.bat clean test
+```
+
+테스트는 Spring 애플리케이션 시작과 Flyway가 만든 `api_schema_marker` 테이블을 확인합니다.
+
+## 7. 종료
+
+API를 실행한 PowerShell에서 `Ctrl+C`를 누릅니다. 그다음 저장소 루트에서 PostgreSQL을 중지합니다.
+
+```powershell
+docker compose --env-file .env -f infra/docker/compose.yml down
+```
+
+이 명령은 PostgreSQL 데이터 볼륨을 보존합니다.
+
+## 8. 자주 발생하는 오류
+
+### Docker engine에 연결할 수 없음
+
+Docker Desktop 왼쪽 아래가 `Engine running`인지 확인합니다.
+
+### 5432 포트가 이미 사용 중
+
+`.env`의 `POSTGRES_PORT`를 다른 값으로 변경하고, API를 실행하는 PowerShell의 `DATABASE_URL` 포트도 같은 값으로 설정합니다.
+
+### Failed to configure a DataSource
+
+PostgreSQL이 실행 중인지 확인하고 `DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD` 값이 Compose 설정과 같은지 확인합니다.
+
+### 비밀번호를 변경했는데 인증 실패
+
+기존 Docker 볼륨에는 처음 만든 계정 정보가 남아 있습니다. 데이터 삭제가 괜찮은 로컬 개발 환경에서만 다음 명령으로 볼륨을 제거한 뒤 다시 시작합니다.
+
+```powershell
+docker compose --env-file .env -f infra/docker/compose.yml down -v
+docker compose --env-file .env -f infra/docker/compose.yml up -d
+```
