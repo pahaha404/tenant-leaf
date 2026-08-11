@@ -1,8 +1,8 @@
 # 백엔드 Task
 
-- [ ] JDK 17·Docker Desktop 설치와 버전 확인
+- [x] JDK 21·Docker Desktop 설치와 버전 확인
 - [ ] API 빌드·테스트 기본 환경 구성
-- [ ] PostgreSQL·Redis 로컬 개발 환경 구성
+- [x] PostgreSQL 로컬 개발 환경 구성
 - [ ] 인증 또는 데모 계정 흐름 결정
 - [ ] 매물 CRUD API 구현
 - [ ] 방문 세션 시작·일시정지·종료 API 구현
