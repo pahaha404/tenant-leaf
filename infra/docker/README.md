@@ -1,12 +1,24 @@
-# docker
+# 로컬 Docker 환경
 
-개발자가 로컬 환경에서 필요한 서비스를 동일하게 실행하기 위한 Docker 설정 폴더입니다.
+현재 백엔드 기본 구조에서는 PostgreSQL 하나만 실행합니다. API와 AI 작업자는 Docker Compose에 포함하지 않습니다.
 
-## 예정 서비스
+저장소 루트에서 환경 파일을 준비하고 PostgreSQL을 시작합니다.
 
-- API 서버
-- PostgreSQL 데이터베이스
-- Redis 작업 큐
-- AI 분석 워커
+```powershell
+Copy-Item .env.example .env
+docker compose --env-file .env -f infra/docker/compose.yml up -d
+```
 
-모든 자체 서비스(API·워커)는 Kotlin/JVM 컨테이너로 실행합니다.
+상태를 확인합니다.
+
+```powershell
+docker compose --env-file .env -f infra/docker/compose.yml ps
+```
+
+PostgreSQL을 중지합니다.
+
+```powershell
+docker compose --env-file .env -f infra/docker/compose.yml down
+```
+
+`down`은 데이터 볼륨을 보존합니다. 테스트 데이터를 포함한 로컬 볼륨까지 삭제하려는 경우에만 `down -v`를 사용합니다.
