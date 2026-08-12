@@ -12,7 +12,7 @@ apps/android/                 Android 프런트엔드
   glass/                      Meta Wearables DAT 연결, 카메라, 터치, TTS
 
 services/api/                 백엔드 API
-  사용자, 매물, 방문 세션, 체크리스트, 업로드, AI 결과 조회
+  사용자, 매물, 임장, 체크리스트, 업로드, AI 결과 조회
 
 services/ai-worker/           비동기 AI 작업자
   사진 분석, 구역 추정, 사진 품질/중복 검사, STT, 보고서 초안
@@ -48,7 +48,7 @@ Meta Glasses -> Android 앱 -> API 서버 -> AI Worker
 
 ## 시작 순서
 
-1. `packages/shared-types`에 점검 세션·체크리스트·AI 관찰 결과 형식을 정의합니다.
+1. `packages/shared-types`에 임장·체크리스트·AI 탐지 결과 형식을 정의합니다.
 2. `services/api`에 해당 API와 데이터 저장을 구현합니다.
 3. `apps/android`에서 API를 연결하고, `glass/`에 Meta SDK 어댑터를 붙입니다.
 4. `services/ai-worker`가 분석 작업과 결과 저장을 담당하게 연결합니다.

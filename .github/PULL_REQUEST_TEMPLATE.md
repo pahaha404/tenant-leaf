@@ -1,29 +1,32 @@
+<!-- 제목은 반드시 한글로 간결하게 작성하세요. 예: 안경 연결 상태 화면 추가 -->
+
 ## 변경 내용
 
-<!-- 사용자가 체감하는 변경을 짧게 설명하세요. -->
+-
 
-## 영향 영역
+## 영향 범위
 
-- [ ] Android 프런트엔드 (`apps/android`)
-- [ ] Meta 안경 연동 (`apps/android/glass` 또는 `packages/glass-adapter`)
-- [ ] API 백엔드 (`services/api`)
+- [ ] 안드로이드 앱 (`apps/android`)
+- [ ] 메타 안경 연동 (`apps/android/glass`, `packages/glass-adapter`)
+- [ ] API 서버 (`services/api`)
 - [ ] AI 작업자 (`services/ai-worker`)
-- [ ] 공통 계약 또는 체크리스트 (`packages`)
-- [ ] 인프라 또는 문서 (`infra`, `docs`)
+- [ ] 공통 계약·체크리스트 (`packages`)
+- [ ] 인프라·문서 (`infra`, `docs`)
+- [ ] 디자인 (`design`)
 
-## API 계약 변경
+## API·데이터 계약 변경
 
 - [ ] 없음
-- [ ] `packages/shared-types` 및 `docs/api-spec.md`를 함께 수정함
+- [ ] 있음: 관련 계약 문서와 구현을 함께 수정함
 
 ## 확인
 
 - [ ] 단위 테스트 또는 빌드 확인
-- [ ] Android 에뮬레이터 확인
-- [ ] Mock Device Kit 확인
-- [ ] 실제 Meta 안경 확인
-- [ ] API/AI 통합 확인
+- [ ] 에뮬레이터 확인
+- [ ] 실제 기기 확인
+- [ ] 메타 안경 확인
+- [ ] API·AI 통합 확인
 
-## 남은 위험 또는 후속 작업
+## 남은 작업·위험
 
-<!-- 실제 기기 확인을 못 했거나, 설정이 필요한 경우 기록하세요. -->
+- 없음
