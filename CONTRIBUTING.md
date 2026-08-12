@@ -3,7 +3,7 @@
 ## 처음 한 번만 설치
 
 - Git
-- Android Studio와 JDK 17
+- Android Studio와 JDK 21
 - Docker Desktop
 - Python 3.11 이상 (AI 학습·평가 담당자)
 - Meta Wearables Device Access Toolkit과 테스트 기기 또는 Mock Device Kit (안경 담당자)
