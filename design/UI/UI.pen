@@ -34,7 +34,7 @@
                   "type": "text",
                   "id": "ohMGi",
                   "name": "디자인 시스템 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "세입세잎 · Android Mobile System",
                   "fontFamily": "$seip-font",
                   "fontSize": 26,
@@ -172,7 +172,7 @@
                       "cornerRadius": 12,
                       "id": "w8wLu6",
                       "name": "Deep Forest 견본",
-                      "fill": "$seip-green-dark",
+                      "fill": "$seip-green",
                       "width": 40,
                       "height": 40,
                       "stroke": "#FFFFFF",
@@ -387,7 +387,7 @@
                   "type": "text",
                   "id": "CFfR7",
                   "name": "디스플레이 샘플",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "내 방을 꼼꼼하게",
                   "fontFamily": "$seip-font",
                   "fontSize": 26,
@@ -496,7 +496,7 @@
                           "type": "text",
                           "id": "Q75Kr",
                           "name": "보조 버튼 라벨",
-                          "fill": "$seip-green-dark",
+                          "fill": "$seip-green",
                           "content": "나중에 하기",
                           "fontFamily": "$seip-font",
                           "fontSize": 15,
@@ -561,7 +561,7 @@
                                   "type": "text",
                                   "id": "xvE8P",
                                   "name": "점검 상태",
-                                  "fill": "$seip-green-dark",
+                                  "fill": "$seip-green",
                                   "content": "완료",
                                   "fontFamily": "$seip-font",
                                   "fontSize": 10,
@@ -685,7 +685,7 @@
                       "type": "text",
                       "id": "b1jhv",
                       "name": "원칙 내용",
-                      "fill": "$seip-green-dark",
+                      "fill": "$seip-green",
                       "content": "터치 영역 48px 이상 · 증거는 초록, 주의는 오렌지 · 카드 그림자는 핵심 1곳만",
                       "fontFamily": "$seip-font",
                       "fontSize": 11,
@@ -818,7 +818,7 @@
                   "type": "text",
                   "id": "xjB6o",
                   "name": "브랜드명",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "세입세잎",
                   "fontFamily": "$seip-font",
                   "fontSize": 13,
@@ -852,7 +852,7 @@
                   "type": "text",
                   "id": "zevdu",
                   "name": "온보딩 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "내 눈으로 확인하고,\n증거로 안심해요",
@@ -950,7 +950,7 @@
     {
       "type": "frame",
       "id": "akhgr",
-      "x": 4731,
+      "x": 2859,
       "y": 620,
       "name": "02 홈",
       "clip": true,
@@ -1067,7 +1067,7 @@
                       "type": "text",
                       "id": "r75Ie",
                       "name": "홈 제목",
-                      "fill": "$seip-green-dark",
+                      "fill": "$seip-green",
                       "content": "오늘도 방을 꼼꼼하게",
                       "fontFamily": "$seip-font",
                       "fontSize": 22,
@@ -1096,7 +1096,7 @@
                       "height": 20,
                       "icon": "bell",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 }
@@ -1108,7 +1108,7 @@
               "name": "스마트 글라스 연결 카드",
               "width": "fill_container",
               "height": 112,
-              "fill": "$seip-green-dark",
+              "fill": "$seip-green",
               "cornerRadius": 20,
               "effect": {
                 "type": "shadow",
@@ -1254,7 +1254,7 @@
                           "type": "text",
                           "id": "JVwHc",
                           "name": "진행률",
-                          "fill": "$seip-green-dark",
+                          "fill": "$seip-green",
                           "content": "6 / 10",
                           "fontFamily": "$seip-font",
                           "fontSize": 11,
@@ -1633,7 +1633,7 @@
                       "type": "text",
                       "id": "KLpUz",
                       "name": "홈 탭 라벨",
-                      "fill": "$seip-green-dark",
+                      "fill": "$seip-green",
                       "content": "홈",
                       "fontFamily": "$seip-font",
                       "fontSize": 10,
@@ -1755,7 +1755,7 @@
     {
       "type": "frame",
       "id": "zAjlB",
-      "x": 5161,
+      "x": 3289,
       "y": 620,
       "name": "03 매물 등록",
       "clip": true,
@@ -1889,7 +1889,7 @@
                   "type": "text",
                   "id": "t2LqR",
                   "name": "단계 라벨",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "1 / 3",
                   "fontFamily": "$seip-font",
                   "fontSize": 11,
@@ -1926,7 +1926,7 @@
                   "type": "text",
                   "id": "hx17u",
                   "name": "등록 단계 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "점검할 방을 알려주세요",
                   "fontFamily": "$seip-font",
                   "fontSize": 23,
@@ -2467,7 +2467,7 @@
     {
       "type": "frame",
       "id": "VhoAA",
-      "x": 5591,
+      "x": 3719,
       "y": 620,
       "name": "04 점검 준비",
       "clip": true,
@@ -2601,7 +2601,7 @@
                   "type": "text",
                   "id": "A21MQ",
                   "name": "단계 라벨",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "2 / 3",
                   "fontFamily": "$seip-font",
                   "fontSize": 11,
@@ -2638,7 +2638,7 @@
                   "type": "text",
                   "id": "yQmh2",
                   "name": "준비 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "점검 전, 장비를 확인해요",
                   "fontFamily": "$seip-font",
                   "fontSize": 23,
@@ -2692,7 +2692,7 @@
                       "height": 22,
                       "icon": "glasses",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -2771,7 +2771,7 @@
                       "height": 22,
                       "icon": "battery-medium",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -2850,7 +2850,7 @@
                       "height": 22,
                       "icon": "camera",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -2952,7 +2952,7 @@
     {
       "type": "frame",
       "id": "OlR62",
-      "x": 6021,
+      "x": 4149,
       "y": 620,
       "name": "05 실시간 점검",
       "clip": true,
@@ -3125,7 +3125,7 @@
               "name": "현재 점검 구역 카드",
               "width": "fill_container",
               "height": 82,
-              "fill": "$seip-green-dark",
+              "fill": "$seip-green",
               "cornerRadius": 18,
               "gap": 10,
               "padding": 14,
@@ -3299,7 +3299,7 @@
                       "height": 21,
                       "icon": "volume-2",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -3479,230 +3479,9 @@
     },
     {
       "type": "frame",
-      "id": "Ha6rp",
-      "x": 999,
-      "y": 620,
-      "name": "00 첫 접속",
-      "clip": true,
-      "width": 390,
-      "height": 844,
-      "fill": "$seip-bg",
-      "layout": "vertical",
-      "children": [
-        {
-          "type": "frame",
-          "id": "cBPrs",
-          "name": "Android 상태바",
-          "width": "fill_container",
-          "height": 62,
-          "padding": [
-            0,
-            20
-          ],
-          "justifyContent": "space_between",
-          "alignItems": "center",
-          "children": [
-            {
-              "type": "text",
-              "id": "E1nzlV",
-              "name": "상태 시간",
-              "fill": "$seip-text",
-              "content": "9:41",
-              "fontFamily": "Inter",
-              "fontSize": 13,
-              "fontWeight": "700"
-            },
-            {
-              "type": "frame",
-              "id": "Bpqwh",
-              "name": "상태 아이콘",
-              "gap": 6,
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "J630f",
-                  "name": "신호",
-                  "width": 15,
-                  "height": 15,
-                  "icon": "signal",
-                  "library": "lucide",
-                  "fill": "$seip-text"
-                },
-                {
-                  "type": "icon",
-                  "id": "za8H2",
-                  "name": "와이파이",
-                  "width": 15,
-                  "height": 15,
-                  "icon": "wifi",
-                  "library": "lucide",
-                  "fill": "$seip-text"
-                },
-                {
-                  "type": "icon",
-                  "id": "Nhp4u",
-                  "name": "배터리",
-                  "width": 15,
-                  "height": 15,
-                  "icon": "battery-full",
-                  "library": "lucide",
-                  "fill": "$seip-text"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "frame",
-          "id": "K4MMrR",
-          "name": "첫 접속 콘텐츠",
-          "width": "fill_container",
-          "height": "fill_container",
-          "layout": "vertical",
-          "padding": [
-            44,
-            28,
-            30,
-            28
-          ],
-          "justifyContent": "space_between",
-          "alignItems": "center",
-          "children": [
-            {
-              "type": "frame",
-              "id": "hmVAT",
-              "name": "첫 접속 브랜드",
-              "fill": "$seip-green-soft",
-              "cornerRadius": 999,
-              "gap": 8,
-              "padding": [
-                8,
-                14
-              ],
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "icon",
-                  "id": "FOCch",
-                  "name": "브랜드 잎 아이콘",
-                  "width": 18,
-                  "height": 18,
-                  "icon": "sprout",
-                  "library": "lucide",
-                  "fill": "$seip-green"
-                },
-                {
-                  "type": "text",
-                  "id": "BD1EV",
-                  "name": "브랜드명",
-                  "fill": "$seip-green-dark",
-                  "content": "세입세잎",
-                  "fontFamily": "$seip-font",
-                  "fontSize": 14,
-                  "fontWeight": "800"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "bfxUh",
-              "name": "첫 접속 캐릭터",
-              "width": 254,
-              "height": 254,
-              "fill": {
-                "type": "image",
-                "enabled": true,
-                "url": "images/generated-1786340095170.png",
-                "mode": "fill"
-              },
-              "children": [
-                {
-                  "type": "rectangle",
-                  "id": "MLw8w",
-                  "fill": {
-                    "type": "image",
-                    "enabled": true,
-                    "url": "generated-1786340095170.png",
-                    "mode": "fill"
-                  },
-                  "width": 254,
-                  "height": 258
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "gkNEg",
-              "name": "첫 접속 문구",
-              "width": "fill_container",
-              "layout": "vertical",
-              "gap": 10,
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "o6WEfE",
-                  "name": "첫 접속 제목",
-                  "fill": "$seip-green-dark",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "방을 보는 눈에\n안심을 더해요",
-                  "lineHeight": 1.25,
-                  "textAlign": "center",
-                  "fontFamily": "$seip-font",
-                  "fontSize": 28,
-                  "fontWeight": "800"
-                },
-                {
-                  "type": "text",
-                  "id": "VGvrL",
-                  "name": "첫 접속 설명",
-                  "fill": "$seip-text-2",
-                  "textGrowth": "fixed-width",
-                  "width": "fill_container",
-                  "content": "처음이라도 괜찮아요.\n세입세잎이 꼼꼼한 방 점검을 함께할게요.",
-                  "lineHeight": 1.5,
-                  "textAlign": "center",
-                  "fontFamily": "$seip-font",
-                  "fontSize": 14,
-                  "fontWeight": "normal"
-                }
-              ]
-            },
-            {
-              "type": "frame",
-              "id": "z1W8Q5",
-              "name": "시작하기 버튼",
-              "width": "fill_container",
-              "height": 52,
-              "fill": "$seip-green",
-              "cornerRadius": 14,
-              "gap": 8,
-              "justifyContent": "center",
-              "alignItems": "center",
-              "children": [
-                {
-                  "type": "text",
-                  "id": "PGbKS",
-                  "name": "시작하기 라벨",
-                  "fill": "#FFFFFF",
-                  "content": "시작하기",
-                  "fontFamily": "$seip-font",
-                  "fontSize": 15,
-                  "fontWeight": "700"
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "type": "frame",
       "id": "fz6Rz",
-      "x": 1429,
-      "y": 620,
+      "x": 998,
+      "y": 1624,
       "name": "00 로그인",
       "clip": true,
       "width": 390,
@@ -3809,7 +3588,7 @@
                   "type": "text",
                   "id": "bDdID",
                   "name": "브랜드명",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "세입세잎",
                   "fontFamily": "$seip-font",
                   "fontSize": 18,
@@ -4322,7 +4101,7 @@
                   "type": "text",
                   "id": "R9Rd8",
                   "name": "브랜드명",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "세입세잎",
                   "fontFamily": "$seip-font",
                   "fontSize": 13,
@@ -4356,7 +4135,7 @@
                   "type": "text",
                   "id": "Rb6MW",
                   "name": "온보딩 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "찍고, 듣고,\n놓치지 않아요",
@@ -4570,7 +4349,7 @@
                   "type": "text",
                   "id": "EYu56",
                   "name": "브랜드명",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "세입세잎",
                   "fontFamily": "$seip-font",
                   "fontSize": 13,
@@ -4604,7 +4383,7 @@
                   "type": "text",
                   "id": "Y00UVq",
                   "name": "온보딩 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "기록이 모이면,\n안심이 남아요",
@@ -4702,8 +4481,8 @@
     {
       "type": "frame",
       "id": "cBphj",
-      "x": 569,
-      "y": 1544,
+      "x": 1859,
+      "y": 3392,
       "name": "01 온보딩 · 환영 시안",
       "clip": true,
       "width": 390,
@@ -4906,7 +4685,7 @@
                   "type": "text",
                   "id": "BsbM3",
                   "name": "환영 설명 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "스마트 글라스와 함께",
                   "fontFamily": "$seip-font",
                   "fontSize": 14,
@@ -5154,7 +4933,7 @@
     {
       "type": "frame",
       "id": "GgL51",
-      "x": 6451,
+      "x": 4579,
       "y": 620,
       "name": "06 현장 체크리스트",
       "clip": true,
@@ -5308,7 +5087,7 @@
                   "type": "text",
                   "id": "dVqgb",
                   "name": "진행도 수치",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "7 / 10",
                   "fontFamily": "$seip-font",
                   "fontSize": 11,
@@ -5343,7 +5122,7 @@
                   "type": "text",
                   "id": "HBuga",
                   "name": "체크리스트 안내 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "직접 확인한 내용을 선택해주세요",
                   "fontFamily": "$seip-font",
                   "fontSize": 18,
@@ -5464,7 +5243,7 @@
                           "type": "text",
                           "id": "T2WbN7",
                           "name": "수압 항목 문제 없음 라벨",
-                          "fill": "$seip-green-dark",
+                          "fill": "$seip-green",
                           "content": "문제 없음",
                           "fontFamily": "$seip-font",
                           "fontSize": 10,
@@ -5679,7 +5458,7 @@
                           "type": "text",
                           "id": "T77FK",
                           "name": "배수 상태 항목 확인 못함 라벨",
-                          "fill": "$seip-green-dark",
+                          "fill": "$seip-green",
                           "content": "확인 못함",
                           "fontFamily": "$seip-font",
                           "fontSize": 10,
@@ -5891,7 +5670,7 @@
                       "type": "text",
                       "id": "M6Ujo7",
                       "name": "메모 추가 라벨",
-                      "fill": "$seip-green-dark",
+                      "fill": "$seip-green",
                       "content": "메모 추가",
                       "fontFamily": "$seip-font",
                       "fontSize": 12,
@@ -5927,7 +5706,7 @@
                       "type": "text",
                       "id": "uYhfX",
                       "name": "사진 보기 라벨",
-                      "fill": "$seip-green-dark",
+                      "fill": "$seip-green",
                       "content": "사진 보기",
                       "fontFamily": "$seip-font",
                       "fontSize": 12,
@@ -6031,7 +5810,7 @@
     {
       "type": "frame",
       "id": "mk1Hu",
-      "x": 6881,
+      "x": 5009,
       "y": 620,
       "name": "06 촬영 완료 현황",
       "clip": true,
@@ -6997,8 +6776,8 @@
     {
       "type": "frame",
       "id": "JienI",
-      "x": 1429,
-      "y": 1544,
+      "x": 998,
+      "y": 620,
       "name": "00 로그인 · 안심 패스",
       "clip": true,
       "width": 390,
@@ -7012,7 +6791,7 @@
           "name": "안심 패스 헤더",
           "width": "fill_container",
           "height": 292,
-          "fill": "$seip-green-dark",
+          "fill": "$seip-green",
           "layout": "vertical",
           "padding": [
             0,
@@ -7291,7 +7070,7 @@
                   "type": "text",
                   "id": "FtFwo",
                   "name": "이메일 로그인 라벨",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "GOOGLE 로그인하기",
                   "fontFamily": "$seip-font",
                   "fontSize": 14,
@@ -7327,7 +7106,7 @@
                   "type": "text",
                   "id": "hy6Ro",
                   "name": "이메일 로그인 라벨",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "이메일로 로그인하기",
                   "fontFamily": "$seip-font",
                   "fontSize": 14,
@@ -7520,10 +7299,10 @@
               "x": 20,
               "y": 98,
               "name": "튜토리얼 제목",
-              "fill": "$seip-green-dark",
+              "fill": "$seip-green",
               "textGrowth": "fixed-width",
               "width": 350,
-              "content": "점검 전에\n60초만 함께 볼까요?",
+              "content": "스마트 글래스로 한 번에!\n튜토리얼 영상 어쩌구",
               "lineHeight": 1.25,
               "textAlign": "center",
               "fontFamily": "$seip-font",
@@ -7540,7 +7319,7 @@
               "fill": "$seip-text-2",
               "textGrowth": "fixed-width",
               "width": 350,
-              "content": "스마트 글라스 촬영부터 직접 확인까지\n가장 중요한 흐름만 빠르게 알려드려요.",
+              "content": "스마트 글래스 촬영부터 직접 확인까지\n가장 중요한 흐름만 빠르게 알려드려요. ",
               "lineHeight": 1.5,
               "textAlign": "center",
               "fontFamily": "$seip-font",
@@ -7874,7 +7653,7 @@
               "type": "text",
               "id": "hri42",
               "name": "체크리스트 확인 제목",
-              "fill": "$seip-green-dark",
+              "fill": "$seip-green",
               "textGrowth": "fixed-width",
               "width": "fill_container",
               "content": "이제 체크리스트를\n확인해 볼까요?",
@@ -7937,7 +7716,7 @@
                           "height": 22,
                           "icon": "list-checks",
                           "library": "lucide",
-                          "fill": "$seip-green-dark"
+                          "fill": "$seip-green"
                         }
                       ]
                     },
@@ -8161,7 +7940,7 @@
     {
       "type": "frame",
       "id": "Eihom",
-      "x": 2903,
+      "x": 6299,
       "y": 620,
       "name": "07 현관 공용 · 현관문",
       "clip": true,
@@ -8329,7 +8108,7 @@
                   "type": "text",
                   "id": "J5uebg",
                   "name": "현관 공용 가이드 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "현관 · 공용에서\n꼭 살펴볼 4가지",
@@ -8388,7 +8167,7 @@
                       "height": 20,
                       "icon": "door-open",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -8472,7 +8251,7 @@
                       "height": 20,
                       "icon": "key-round",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -8556,7 +8335,7 @@
                       "height": 20,
                       "icon": "archive",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -8640,7 +8419,7 @@
                       "height": 20,
                       "icon": "monitor-smartphone",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -8724,7 +8503,7 @@
                       "height": 20,
                       "icon": "monitor-smartphone",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -8838,8 +8617,8 @@
     {
       "type": "frame",
       "id": "r1oDF",
-      "x": 3406,
-      "y": 631,
+      "x": 6299,
+      "y": 1544,
       "name": "07 현관 공용 · 도어락",
       "clip": true,
       "width": 390,
@@ -9036,7 +8815,7 @@
                       "type": "text",
                       "id": "NIK4h",
                       "name": "점검 항목 제목",
-                      "fill": "$seip-green-dark",
+                      "fill": "$seip-green",
                       "content": "도어락 비밀번호",
                       "fontFamily": "$seip-font",
                       "fontSize": 19,
@@ -9109,7 +8888,7 @@
                       "type": "text",
                       "id": "flVbS",
                       "name": "사진 근거 라벨",
-                      "fill": "$seip-green-dark",
+                      "fill": "$seip-green",
                       "content": "촬영 근거",
                       "fontFamily": "$seip-font",
                       "fontSize": 10,
@@ -9312,8 +9091,8 @@
     {
       "type": "frame",
       "id": "F95gA",
-      "x": 2903,
-      "y": 1544,
+      "x": 6299,
+      "y": 2468,
       "name": "08 주방 가이드",
       "clip": true,
       "width": 390,
@@ -9480,7 +9259,7 @@
                   "type": "text",
                   "id": "IKEPh",
                   "name": "현관 공용 가이드 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "주방에서\n꼭 살펴볼 4가지",
@@ -9539,7 +9318,7 @@
                       "height": 20,
                       "icon": "utensils",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -9623,7 +9402,7 @@
                       "height": 20,
                       "icon": "pipe",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -9707,7 +9486,7 @@
                       "height": 20,
                       "icon": "droplets",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -9791,7 +9570,7 @@
                       "height": 20,
                       "icon": "flame",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -9875,7 +9654,7 @@
                       "height": 20,
                       "icon": "monitor-smartphone",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -9979,8 +9758,8 @@
     {
       "type": "frame",
       "id": "oaiWR",
-      "x": 2903,
-      "y": 2516,
+      "x": 6299,
+      "y": 3392,
       "name": "09 창틀 환기 가이드",
       "clip": true,
       "width": 390,
@@ -10147,7 +9926,7 @@
                   "type": "text",
                   "id": "s8MDQh",
                   "name": "현관 공용 가이드 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "창틀 · 환기에서\n꼭 살펴볼 4가지",
@@ -10206,7 +9985,7 @@
                       "height": 20,
                       "icon": "panel-top-open",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -10290,7 +10069,7 @@
                       "height": 20,
                       "icon": "scan",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -10374,7 +10153,7 @@
                       "height": 20,
                       "icon": "cloud-rain",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -10458,7 +10237,7 @@
                       "height": 20,
                       "icon": "wind",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -10542,7 +10321,7 @@
                       "height": 20,
                       "icon": "monitor-smartphone",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -10646,8 +10425,8 @@
     {
       "type": "frame",
       "id": "MAWle",
-      "x": 2903,
-      "y": 3440,
+      "x": 6299,
+      "y": 4316,
       "name": "10 거실 방 가이드",
       "clip": true,
       "width": 390,
@@ -10814,7 +10593,7 @@
                   "type": "text",
                   "id": "x6tPMz",
                   "name": "현관 공용 가이드 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "거실 · 방에서\n꼭 살펴볼 4가지",
@@ -10873,7 +10652,7 @@
                       "height": 20,
                       "icon": "paint-roller",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -10957,7 +10736,7 @@
                       "height": 20,
                       "icon": "layers",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -11041,7 +10820,7 @@
                       "height": 20,
                       "icon": "lightbulb",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -11125,7 +10904,7 @@
                       "height": 20,
                       "icon": "thermometer",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -11209,7 +10988,7 @@
                       "height": 20,
                       "icon": "monitor-smartphone",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -11313,8 +11092,8 @@
     {
       "type": "frame",
       "id": "Y22yI",
-      "x": 2903,
-      "y": 4364,
+      "x": 6299,
+      "y": 5240,
       "name": "11 화장실 가이드",
       "clip": true,
       "width": 390,
@@ -11481,7 +11260,7 @@
                   "type": "text",
                   "id": "dfcV5",
                   "name": "현관 공용 가이드 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "textGrowth": "fixed-width",
                   "width": "fill_container",
                   "content": "화장실에서\n꼭 살펴볼 4가지",
@@ -11540,7 +11319,7 @@
                       "height": 20,
                       "icon": "droplets",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -11624,7 +11403,7 @@
                       "height": 20,
                       "icon": "shower-head",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -11708,7 +11487,7 @@
                       "height": 20,
                       "icon": "circle-dot-dashed",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -11792,7 +11571,7 @@
                       "height": 20,
                       "icon": "fan",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -11876,7 +11655,7 @@
                       "height": 20,
                       "icon": "monitor-smartphone",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -11980,7 +11759,7 @@
     {
       "type": "frame",
       "id": "UJjAC",
-      "x": 3836,
+      "x": 5869,
       "y": 620,
       "name": "07 현관 공용 · 안심 가이드",
       "clip": true,
@@ -12242,7 +12021,7 @@
                       "height": 20,
                       "icon": "door-open",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -12324,7 +12103,7 @@
                       "height": 20,
                       "icon": "key-round",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -12406,7 +12185,7 @@
                       "height": 20,
                       "icon": "archive",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -12460,7 +12239,7 @@
               "name": "인터폰",
               "width": "fill_container",
               "height": 66,
-              "fill": "#FFF8F1",
+              "fill": "$seip-card-warm",
               "cornerRadius": 15,
               "gap": 10,
               "padding": [
@@ -12488,7 +12267,7 @@
                       "height": 20,
                       "icon": "monitor-smartphone",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -12625,7 +12404,7 @@
     {
       "type": "frame",
       "id": "x9ptT",
-      "x": 3836,
+      "x": 5869,
       "y": 1544,
       "name": "08 주방 · 안심 가이드",
       "clip": true,
@@ -12640,7 +12419,7 @@
           "name": "안심 현관 헤더",
           "width": "fill_container",
           "height": 260,
-          "fill": "$seip-green-dark",
+          "fill": "$seip-green",
           "layout": "vertical",
           "padding": [
             0,
@@ -12887,7 +12666,7 @@
                       "height": 20,
                       "icon": "utensils",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -12969,7 +12748,7 @@
                       "height": 20,
                       "icon": "pipe",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -13051,7 +12830,7 @@
                       "height": 20,
                       "icon": "droplets",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -13104,7 +12883,7 @@
               "id": "rh24G",
               "name": "인터폰",
               "width": "fill_container",
-              "height": 66,
+              "height": 67,
               "fill": "$seip-bg",
               "cornerRadius": 15,
               "gap": 10,
@@ -13133,7 +12912,7 @@
                       "height": 20,
                       "icon": "flame",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -13141,6 +12920,7 @@
                   "type": "frame",
                   "id": "fhBMK",
                   "name": "인터폰 문구",
+                  "rotation": -0.017307564657826405,
                   "width": "fill_container",
                   "layout": "vertical",
                   "gap": 3,
@@ -13270,7 +13050,7 @@
     {
       "type": "frame",
       "id": "guUeu",
-      "x": 3836,
+      "x": 5869,
       "y": 2468,
       "name": "09 창틀 환기 · 안심 가이드",
       "clip": true,
@@ -13285,7 +13065,7 @@
           "name": "안심 현관 헤더",
           "width": "fill_container",
           "height": 260,
-          "fill": "$seip-green-dark",
+          "fill": "$seip-green",
           "layout": "vertical",
           "padding": [
             0,
@@ -13532,7 +13312,7 @@
                       "height": 20,
                       "icon": "panel-top-open",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -13614,7 +13394,7 @@
                       "height": 20,
                       "icon": "scan",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -13696,7 +13476,7 @@
                       "height": 20,
                       "icon": "cloud-rain",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -13778,7 +13558,7 @@
                       "height": 20,
                       "icon": "wind",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -13915,7 +13695,7 @@
     {
       "type": "frame",
       "id": "tZtuE",
-      "x": 3836,
+      "x": 5869,
       "y": 3392,
       "name": "10 거실 방 · 안심 가이드",
       "clip": true,
@@ -13930,7 +13710,7 @@
           "name": "안심 현관 헤더",
           "width": "fill_container",
           "height": 260,
-          "fill": "$seip-green-dark",
+          "fill": "$seip-green",
           "layout": "vertical",
           "padding": [
             0,
@@ -14177,7 +13957,7 @@
                       "height": 20,
                       "icon": "paint-roller",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -14259,7 +14039,7 @@
                       "height": 20,
                       "icon": "layers",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -14341,7 +14121,7 @@
                       "height": 20,
                       "icon": "lightbulb",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -14423,7 +14203,7 @@
                       "height": 20,
                       "icon": "thermometer",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -14560,7 +14340,7 @@
     {
       "type": "frame",
       "id": "fuK55",
-      "x": 3836,
+      "x": 5869,
       "y": 4316,
       "name": "11 화장실 · 안심 가이드",
       "clip": true,
@@ -14575,7 +14355,7 @@
           "name": "안심 현관 헤더",
           "width": "fill_container",
           "height": 260,
-          "fill": "$seip-green-dark",
+          "fill": "$seip-green",
           "layout": "vertical",
           "padding": [
             0,
@@ -14822,7 +14602,7 @@
                       "height": 20,
                       "icon": "droplets",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -14904,7 +14684,7 @@
                       "height": 20,
                       "icon": "shower-head",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -14986,7 +14766,7 @@
                       "height": 20,
                       "icon": "circle-dot-dashed",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -15068,7 +14848,7 @@
                       "height": 20,
                       "icon": "fan",
                       "library": "lucide",
-                      "fill": "$seip-green-dark"
+                      "fill": "$seip-green"
                     }
                   ]
                 },
@@ -15205,7 +14985,7 @@
     {
       "type": "frame",
       "id": "R6Jso",
-      "x": 7311,
+      "x": 5439,
       "y": 620,
       "name": "12 점검 종료 확인",
       "clip": true,
@@ -15360,7 +15140,7 @@
                   "type": "text",
                   "id": "E8iwjm",
                   "name": "종료 확인 제목",
-                  "fill": "$seip-green-dark",
+                  "fill": "$seip-green",
                   "content": "점검을 종료할까요?",
                   "fontFamily": "$seip-font",
                   "fontSize": 24,
@@ -15882,6 +15662,2388 @@
                   "fontFamily": "$seip-font",
                   "fontSize": 11,
                   "fontWeight": "700"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "V8t6k",
+      "x": 540,
+      "y": 550,
+      "name": "보드 흐름 구분선",
+      "width": 6580,
+      "height": 32,
+      "layout": "none",
+      "children": [
+        {
+          "type": "text",
+          "id": "duCmW",
+          "x": 0,
+          "y": 0,
+          "name": "기본 흐름 라벨",
+          "fill": "$seip-green",
+          "content": "기본 앱 흐름",
+          "fontFamily": "$seip-font",
+          "fontSize": 14,
+          "fontWeight": "800"
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 999,
+          "id": "sGc7N",
+          "x": 0,
+          "y": 28,
+          "name": "기본 흐름 구분선",
+          "fill": "$seip-green-soft",
+          "width": 5280,
+          "height": 2
+        },
+        {
+          "type": "text",
+          "id": "g7Fg4H",
+          "x": 5329,
+          "y": 0,
+          "name": "안심 가이드 라벨",
+          "fill": "$seip-green",
+          "content": "초보 세입자 안심 가이드",
+          "fontFamily": "$seip-font",
+          "fontSize": 14,
+          "fontWeight": "800"
+        },
+        {
+          "type": "rectangle",
+          "cornerRadius": 999,
+          "id": "N1yXtk",
+          "x": 5329,
+          "y": 28,
+          "name": "안심 가이드 구분선",
+          "fill": "$seip-orange",
+          "width": 1240,
+          "height": 2
+        },
+        {
+          "type": "frame",
+          "id": "Ha6rp",
+          "x": 863,
+          "y": 32,
+          "name": "00 첫 접속",
+          "clip": true,
+          "width": 390,
+          "height": 844,
+          "fill": "$seip-bg",
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "cBPrs",
+              "name": "Android 상태바",
+              "width": "fill_container",
+              "height": 62,
+              "padding": [
+                0,
+                20
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "E1nzlV",
+                  "name": "상태 시간",
+                  "fill": "$seip-text",
+                  "content": "9:41",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "frame",
+                  "id": "Bpqwh",
+                  "name": "상태 아이콘",
+                  "gap": 6,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "J630f",
+                      "name": "신호",
+                      "width": 15,
+                      "height": 15,
+                      "icon": "signal",
+                      "library": "lucide",
+                      "fill": "$seip-text"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "za8H2",
+                      "name": "와이파이",
+                      "width": 15,
+                      "height": 15,
+                      "icon": "wifi",
+                      "library": "lucide",
+                      "fill": "$seip-text"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "Nhp4u",
+                      "name": "배터리",
+                      "width": 15,
+                      "height": 15,
+                      "icon": "battery-full",
+                      "library": "lucide",
+                      "fill": "$seip-text"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "K4MMrR",
+              "name": "첫 접속 콘텐츠",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "padding": [
+                44,
+                28,
+                30,
+                28
+              ],
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "hmVAT",
+                  "name": "첫 접속 브랜드",
+                  "fill": "$seip-green-soft",
+                  "cornerRadius": 999,
+                  "gap": 8,
+                  "padding": [
+                    8,
+                    14
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "FOCch",
+                      "name": "브랜드 잎 아이콘",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "sprout",
+                      "library": "lucide",
+                      "fill": "$seip-green"
+                    },
+                    {
+                      "type": "text",
+                      "id": "BD1EV",
+                      "name": "브랜드명",
+                      "fill": "$seip-green",
+                      "content": "세입세잎",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 14,
+                      "fontWeight": "800"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bfxUh",
+                  "name": "첫 접속 캐릭터",
+                  "width": 254,
+                  "height": 254,
+                  "fill": {
+                    "type": "image",
+                    "enabled": true,
+                    "url": "images/generated-1786340095170.png",
+                    "mode": "fill"
+                  },
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "MLw8w",
+                      "fill": {
+                        "type": "image",
+                        "enabled": true,
+                        "url": "generated-1786340095170.png",
+                        "mode": "fill"
+                      },
+                      "width": 254,
+                      "height": 258
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gkNEg",
+                  "name": "첫 접속 문구",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "o6WEfE",
+                      "name": "첫 접속 제목",
+                      "fill": "$seip-green",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "방을 보는 눈에\n안심을 더해요",
+                      "lineHeight": 1.25,
+                      "textAlign": "center",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 28,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "VGvrL",
+                      "name": "첫 접속 설명",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "처음이라도 괜찮아요.\n세입세잎이 꼼꼼한 방 점검을 함께할게요.",
+                      "lineHeight": 1.5,
+                      "textAlign": "center",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "z1W8Q5",
+                  "name": "시작하기 버튼",
+                  "width": "fill_container",
+                  "height": 52,
+                  "fill": "$seip-green",
+                  "cornerRadius": 14,
+                  "gap": 8,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "PGbKS",
+                      "name": "시작하기 라벨",
+                      "fill": "#FFFFFF",
+                      "content": "시작하기",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 15,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "path",
+      "id": "lCehP",
+      "x": 5795,
+      "y": 3464.5,
+      "geometry": "M0 0",
+      "width": 0,
+      "height": 0,
+      "stroke": "#000000",
+      "strokeWidth": 1
+    },
+    {
+      "type": "frame",
+      "id": "OXeO8",
+      "x": 6729,
+      "y": 620,
+      "name": "07 현관 상세 · 문과 문틀",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$seip-bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "K83Wh",
+          "name": "Android 상태바",
+          "width": "fill_container",
+          "height": 62,
+          "padding": [
+            0,
+            20
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "hUFYN",
+              "name": "상태 시간",
+              "fill": "$seip-text",
+              "content": "9:41",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "wkmB7",
+              "name": "상태 아이콘",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "XQLna",
+                  "name": "신호",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "signal",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "lRTZ9",
+                  "name": "와이파이",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "OyBQL",
+                  "name": "배터리",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "XG6NY",
+          "name": "상세 가이드 상단",
+          "width": "fill_container",
+          "height": 54,
+          "padding": [
+            0,
+            16
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "fOus3",
+              "name": "뒤로가기 버튼",
+              "width": 40,
+              "height": 40,
+              "fill": "#FFFFFF",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "lU3Z6",
+                  "name": "뒤로가기 아이콘",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "arrow-left",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "EMcK6",
+              "name": "상세 단계 배지",
+              "fill": "$seip-green-soft",
+              "cornerRadius": 999,
+              "padding": [
+                6,
+                10
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "byU7i",
+                  "name": "상세 단계 라벨",
+                  "fill": "$seip-green",
+                  "content": "현관 · 공용  1 / 4",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 10,
+                  "fontWeight": "800"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "HfiED",
+          "name": "상세 가이드 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            10,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "B4kVVQ",
+              "name": "상세 가이드 제목 영역",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 5,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "hskB3",
+                  "name": "상세 아이콘",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "$seip-green-pale",
+                  "cornerRadius": 13,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "J5jlfL",
+                      "name": "상세 아이콘 모양",
+                      "width": 21,
+                      "height": 21,
+                      "icon": "door-open",
+                      "library": "lucide",
+                      "fill": "$seip-green"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "of0uH",
+                  "name": "상세 제목",
+                  "fill": "$seip-green",
+                  "content": "문과 문틀",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 23,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "OepVH",
+                  "name": "상세 설명",
+                  "fill": "$seip-text-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "문이 안전하게 닫히고 잠기는지 직접 확인해야 해요.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$seip-font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "l1381",
+              "name": "사진 예시",
+              "metadata": {
+                "type": "unsplash",
+                "username": "daniel_von_appen",
+                "link": "https://unsplash.com/@daniel_von_appen",
+                "author": "Daniel von Appen"
+              },
+              "clip": true,
+              "width": "fill_container",
+              "height": 190,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "https://images.unsplash.com/photo-1760202763171-03e252fe9a99?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODY1OTYwMTd8&ixlib=rb-4.1.0&q=80&w=1080",
+                "mode": "fill"
+              },
+              "cornerRadius": 18,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "YHJwp",
+                  "x": 0,
+                  "y": 0,
+                  "name": "사진 예시 배지",
+                  "width": 88,
+                  "height": 28,
+                  "fill": "#FFFFFFE8",
+                  "cornerRadius": 999,
+                  "gap": 5,
+                  "padding": [
+                    0,
+                    9
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "mn0tf",
+                      "name": "사진 예시 아이콘",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "image",
+                      "library": "lucide",
+                      "fill": "$seip-green"
+                    },
+                    {
+                      "type": "text",
+                      "id": "UVvWa",
+                      "name": "사진 예시 라벨",
+                      "fill": "$seip-green",
+                      "content": "사진 예시",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "jJfUW",
+              "name": "확인 방법 카드",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 16,
+              "stroke": "$seip-line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 9,
+              "padding": [
+                13,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "eZEQd",
+                  "name": "확인 방법 제목",
+                  "fill": "$seip-text",
+                  "content": "이렇게 살펴보세요",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 13,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "frame",
+                  "id": "T6PUpQ",
+                  "name": "확인 방법 1",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Sp5Ba",
+                      "name": "순서 1",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "w7PAf",
+                          "name": "순서 라벨 1",
+                          "fill": "$seip-green",
+                          "content": "1",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "WJxXl",
+                      "name": "확인 문구 1",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "문을 천천히 2~3번 열고 닫아보세요.",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "GKvHc",
+                  "name": "확인 방법 2",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "IzTOB",
+                      "name": "순서 2",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "M73vQ",
+                          "name": "순서 라벨 2",
+                          "fill": "$seip-green",
+                          "content": "2",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "ueGzp",
+                      "name": "확인 문구 2",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "문틀과 벽 사이에 큰 틈·들뜸이 없는지 보세요.",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "um2BO",
+                  "name": "확인 방법 3",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "h6UCF",
+                      "name": "순서 3",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "PYUfC",
+                          "name": "순서 라벨 3",
+                          "fill": "$seip-green",
+                          "content": "3",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "KHs3N",
+                      "name": "확인 문구 3",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "손잡이와 잠금장치가 뻑뻑하지 않은지 확인하세요.",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "CYBDQ",
+              "name": "사진 촬영 팁",
+              "width": "fill_container",
+              "fill": "#FFF0E4",
+              "cornerRadius": 13,
+              "gap": 8,
+              "padding": [
+                9,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "MFHC8",
+                  "name": "사진 촬영 팁 아이콘",
+                  "width": 17,
+                  "height": 17,
+                  "icon": "camera",
+                  "library": "lucide",
+                  "fill": "$seip-orange"
+                },
+                {
+                  "type": "text",
+                  "id": "i4L1P",
+                  "name": "사진 촬영 팁 문구",
+                  "fill": "#8B542D",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "이상한 부분이 보이면 가까이에서 한 장 더 남겨두세요.",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 10,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "a4rRj",
+          "name": "상세 가이드 하단",
+          "width": "fill_container",
+          "height": 82,
+          "padding": [
+            10,
+            20,
+            20,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "qtbjk",
+              "name": "다음 상세 항목 버튼",
+              "width": "fill_container",
+              "height": 50,
+              "fill": "$seip-orange",
+              "cornerRadius": 14,
+              "gap": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "l7O5yH",
+                  "name": "다음 상세 항목 라벨",
+                  "fill": "#FFFFFF",
+                  "content": "다음 확인 요소 보기",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "icon",
+                  "id": "wsKl6",
+                  "name": "다음 상세 항목 아이콘",
+                  "width": 17,
+                  "height": 17,
+                  "icon": "arrow-right",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "MaokE",
+      "x": 6729,
+      "y": 1544,
+      "name": "07 현관 상세 · 도어락",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$seip-bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "kHJ0i",
+          "name": "Android 상태바",
+          "width": "fill_container",
+          "height": 62,
+          "padding": [
+            0,
+            20
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Qqz2r",
+              "name": "상태 시간",
+              "fill": "$seip-text",
+              "content": "9:41",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "VzVL5",
+              "name": "상태 아이콘",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "B8VjOB",
+                  "name": "신호",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "signal",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "DBnGD",
+                  "name": "와이파이",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "lWKaU",
+                  "name": "배터리",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "HjkTg",
+          "name": "상세 가이드 상단",
+          "width": "fill_container",
+          "height": 54,
+          "padding": [
+            0,
+            16
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "WUKOd",
+              "name": "뒤로가기 버튼",
+              "width": 40,
+              "height": 40,
+              "fill": "#FFFFFF",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "nostV",
+                  "name": "뒤로가기 아이콘",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "arrow-left",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Poq4i",
+              "name": "상세 단계 배지",
+              "fill": "$seip-green-soft",
+              "cornerRadius": 999,
+              "padding": [
+                6,
+                10
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "zwRwH",
+                  "name": "상세 단계 라벨",
+                  "fill": "$seip-green",
+                  "content": "현관 · 공용  2 / 4",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 10,
+                  "fontWeight": "800"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "o8YJMC",
+          "name": "상세 가이드 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            10,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "e2ETn",
+              "name": "상세 가이드 제목 영역",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 5,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "pd4SD",
+                  "name": "상세 아이콘",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "$seip-green-pale",
+                  "cornerRadius": 13,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "lJXuA",
+                      "name": "상세 아이콘 모양",
+                      "width": 21,
+                      "height": 21,
+                      "icon": "key-round",
+                      "library": "lucide",
+                      "fill": "$seip-green"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "xO7cA",
+                  "name": "상세 제목",
+                  "fill": "$seip-green",
+                  "content": "도어락 비밀번호",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 23,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "cmHJE",
+                  "name": "상세 설명",
+                  "fill": "$seip-text-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "입주 후 비밀번호를 바꿀 수 있는지 미리 확인해야 해요.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$seip-font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Jmf9O",
+              "name": "사진 예시",
+              "metadata": {
+                "type": "unsplash",
+                "username": "polarmermaid",
+                "link": "https://unsplash.com/@polarmermaid",
+                "author": "Anne Nygård"
+              },
+              "clip": true,
+              "width": "fill_container",
+              "height": 190,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "https://images.unsplash.com/photo-1618588845382-4267677cfc11?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODY1OTYwMTl8&ixlib=rb-4.1.0&q=80&w=1080",
+                "mode": "fill"
+              },
+              "cornerRadius": 18,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "r9fyF",
+                  "x": 0,
+                  "y": 0,
+                  "name": "사진 예시 배지",
+                  "width": 88,
+                  "height": 28,
+                  "fill": "#FFFFFFE8",
+                  "cornerRadius": 999,
+                  "gap": 5,
+                  "padding": [
+                    0,
+                    9
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Ab8Xq",
+                      "name": "사진 예시 아이콘",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "image",
+                      "library": "lucide",
+                      "fill": "$seip-green"
+                    },
+                    {
+                      "type": "text",
+                      "id": "DrCT3",
+                      "name": "사진 예시 라벨",
+                      "fill": "$seip-green",
+                      "content": "사진 예시",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Gh0sM",
+              "name": "확인 방법 카드",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 16,
+              "stroke": "$seip-line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 9,
+              "padding": [
+                13,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "KbaPx",
+                  "name": "확인 방법 제목",
+                  "fill": "$seip-text",
+                  "content": "이렇게 살펴보세요",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 13,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "frame",
+                  "id": "s0NFw",
+                  "name": "확인 방법 1",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "uRUJd",
+                      "name": "순서 1",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "g68nl",
+                          "name": "순서 라벨 1",
+                          "fill": "$seip-green",
+                          "content": "1",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "nXpOj",
+                      "name": "확인 문구 1",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "현재 비밀번호로 잠금·해제가 되는지 눌러보세요.",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "F4OuLy",
+                  "name": "확인 방법 2",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "O1sGc",
+                      "name": "순서 2",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "uUO7R",
+                          "name": "순서 라벨 2",
+                          "fill": "$seip-green",
+                          "content": "2",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "iNauq",
+                      "name": "확인 문구 2",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "비밀번호 변경 방법을 집주인에게 확인하세요.",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "D7LGi",
+                  "name": "확인 방법 3",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "n00C95",
+                      "name": "순서 3",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "JtEto",
+                          "name": "순서 라벨 3",
+                          "fill": "$seip-green",
+                          "content": "3",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "XnynK",
+                      "name": "확인 문구 3",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "비상키나 공동현관 출입 방식도 함께 물어보세요.",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "jDWDU",
+              "name": "사진 촬영 팁",
+              "width": "fill_container",
+              "fill": "#FFF0E4",
+              "cornerRadius": 13,
+              "gap": 8,
+              "padding": [
+                9,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "qZfsx",
+                  "name": "사진 촬영 팁 아이콘",
+                  "width": 17,
+                  "height": 17,
+                  "icon": "camera",
+                  "library": "lucide",
+                  "fill": "$seip-orange"
+                },
+                {
+                  "type": "text",
+                  "id": "kEcb9",
+                  "name": "사진 촬영 팁 문구",
+                  "fill": "#8B542D",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "이상한 부분이 보이면 가까이에서 한 장 더 남겨두세요.",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 10,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "bSUUB",
+          "name": "상세 가이드 하단",
+          "width": "fill_container",
+          "height": 82,
+          "padding": [
+            10,
+            20,
+            20,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "V0Kx55",
+              "name": "다음 상세 항목 버튼",
+              "width": "fill_container",
+              "height": 50,
+              "fill": "$seip-orange",
+              "cornerRadius": 14,
+              "gap": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "TA9Ov",
+                  "name": "다음 상세 항목 라벨",
+                  "fill": "#FFFFFF",
+                  "content": "다음 확인 요소 보기",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "icon",
+                  "id": "G2PCO",
+                  "name": "다음 상세 항목 아이콘",
+                  "width": 17,
+                  "height": 17,
+                  "icon": "arrow-right",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "mxqEm",
+      "x": 6729,
+      "y": 2468,
+      "name": "07 현관 상세 · 신발장",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$seip-bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "hALKE",
+          "name": "Android 상태바",
+          "width": "fill_container",
+          "height": 62,
+          "padding": [
+            0,
+            20
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "KfVZD",
+              "name": "상태 시간",
+              "fill": "$seip-text",
+              "content": "9:41",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "Qy1x2",
+              "name": "상태 아이콘",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "WejuX",
+                  "name": "신호",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "signal",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "eE77n",
+                  "name": "와이파이",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "SQIA4",
+                  "name": "배터리",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "UWThq",
+          "name": "상세 가이드 상단",
+          "width": "fill_container",
+          "height": 54,
+          "padding": [
+            0,
+            16
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "ao0w1",
+              "name": "뒤로가기 버튼",
+              "width": 40,
+              "height": 40,
+              "fill": "#FFFFFF",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "UxpTQ",
+                  "name": "뒤로가기 아이콘",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "arrow-left",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Idm8Z",
+              "name": "상세 단계 배지",
+              "fill": "$seip-green-soft",
+              "cornerRadius": 999,
+              "padding": [
+                6,
+                10
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "OJHQ4",
+                  "name": "상세 단계 라벨",
+                  "fill": "$seip-green",
+                  "content": "현관 · 공용  3 / 4",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 10,
+                  "fontWeight": "800"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "opdRn",
+          "name": "상세 가이드 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            10,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "iYUpw",
+              "name": "상세 가이드 제목 영역",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 5,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "AXWyE",
+                  "name": "상세 아이콘",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "$seip-green-pale",
+                  "cornerRadius": 13,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "QsyPm",
+                      "name": "상세 아이콘 모양",
+                      "width": 21,
+                      "height": 21,
+                      "icon": "archive",
+                      "library": "lucide",
+                      "fill": "$seip-green"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "VO8nQ",
+                  "name": "상세 제목",
+                  "fill": "$seip-green",
+                  "content": "신발장 내부",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 23,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "z9WAmD",
+                  "name": "상세 설명",
+                  "fill": "$seip-text-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "수납공간만 보지 말고 습기와 냄새도 살펴봐야 해요.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$seip-font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tjdYm",
+              "name": "사진 예시",
+              "metadata": {
+                "type": "unsplash",
+                "username": "dada_design",
+                "link": "https://unsplash.com/@dada_design",
+                "author": "dada_design"
+              },
+              "clip": true,
+              "width": "fill_container",
+              "height": 190,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "https://images.unsplash.com/photo-1653971858474-4f2dfa7f4dc1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODY1OTYwMjF8&ixlib=rb-4.1.0&q=80&w=1080",
+                "mode": "fill"
+              },
+              "cornerRadius": 18,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "H1tzTr",
+                  "x": 0,
+                  "y": 0,
+                  "name": "사진 예시 배지",
+                  "width": 88,
+                  "height": 28,
+                  "fill": "#FFFFFFE8",
+                  "cornerRadius": 999,
+                  "gap": 5,
+                  "padding": [
+                    0,
+                    9
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "GTPC5",
+                      "name": "사진 예시 아이콘",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "image",
+                      "library": "lucide",
+                      "fill": "$seip-green"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Z5lrKz",
+                      "name": "사진 예시 라벨",
+                      "fill": "$seip-green",
+                      "content": "사진 예시",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "IZcHW",
+              "name": "확인 방법 카드",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 16,
+              "stroke": "$seip-line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 9,
+              "padding": [
+                13,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "TNAc2",
+                  "name": "확인 방법 제목",
+                  "fill": "$seip-text",
+                  "content": "이렇게 살펴보세요",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 13,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "frame",
+                  "id": "SeRp0",
+                  "name": "확인 방법 1",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "VDKKQ",
+                      "name": "순서 1",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "WbMwd",
+                          "name": "순서 라벨 1",
+                          "fill": "$seip-green",
+                          "content": "1",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "WWh21",
+                      "name": "확인 문구 1",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "문을 열어 경첩과 선반 파손 여부를 보세요.",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "z2pxC",
+                  "name": "확인 방법 2",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "hIKAS",
+                      "name": "순서 2",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "YijWu",
+                          "name": "순서 라벨 2",
+                          "fill": "$seip-green",
+                          "content": "2",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "Ryopi",
+                      "name": "확인 문구 2",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "안쪽 벽면에 곰팡이·물자국이 없는지 확인하세요.",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "e5KGY",
+                  "name": "확인 방법 3",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "CjylO",
+                      "name": "순서 3",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "IED7s",
+                          "name": "순서 라벨 3",
+                          "fill": "$seip-green",
+                          "content": "3",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "O70zkj",
+                      "name": "확인 문구 3",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "환기가 어려운 구조인지 냄새도 확인하세요.",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "eisuH",
+              "name": "사진 촬영 팁",
+              "width": "fill_container",
+              "fill": "#FFF0E4",
+              "cornerRadius": 13,
+              "gap": 8,
+              "padding": [
+                9,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "z94nU",
+                  "name": "사진 촬영 팁 아이콘",
+                  "width": 17,
+                  "height": 17,
+                  "icon": "camera",
+                  "library": "lucide",
+                  "fill": "$seip-orange"
+                },
+                {
+                  "type": "text",
+                  "id": "t5Bii2",
+                  "name": "사진 촬영 팁 문구",
+                  "fill": "#8B542D",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "이상한 부분이 보이면 가까이에서 한 장 더 남겨두세요.",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 10,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ObtIC",
+          "name": "상세 가이드 하단",
+          "width": "fill_container",
+          "height": 82,
+          "padding": [
+            10,
+            20,
+            20,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "JWLhx",
+              "name": "다음 상세 항목 버튼",
+              "width": "fill_container",
+              "height": 50,
+              "fill": "$seip-orange",
+              "cornerRadius": 14,
+              "gap": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "sVcVU",
+                  "name": "다음 상세 항목 라벨",
+                  "fill": "#FFFFFF",
+                  "content": "다음 확인 요소 보기",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "icon",
+                  "id": "vMfHn",
+                  "name": "다음 상세 항목 아이콘",
+                  "width": 17,
+                  "height": 17,
+                  "icon": "arrow-right",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "aNGVP",
+      "x": 6729,
+      "y": 3392,
+      "name": "07 현관 상세 · 인터폰",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$seip-bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "Y8zlW0",
+          "name": "Android 상태바",
+          "width": "fill_container",
+          "height": 62,
+          "padding": [
+            0,
+            20
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "uZE56",
+              "name": "상태 시간",
+              "fill": "$seip-text",
+              "content": "9:41",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "YrIeJ",
+              "name": "상태 아이콘",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "xg9xG",
+                  "name": "신호",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "signal",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "MGqNK",
+                  "name": "와이파이",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "JIZY6",
+                  "name": "배터리",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "OuB2b",
+          "name": "상세 가이드 상단",
+          "width": "fill_container",
+          "height": 54,
+          "padding": [
+            0,
+            16
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "lPE0l",
+              "name": "뒤로가기 버튼",
+              "width": 40,
+              "height": 40,
+              "fill": "#FFFFFF",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "vxgJ6",
+                  "name": "뒤로가기 아이콘",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "arrow-left",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "J1fNY1",
+              "name": "상세 단계 배지",
+              "fill": "$seip-green-soft",
+              "cornerRadius": 999,
+              "padding": [
+                6,
+                10
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "T7lmm",
+                  "name": "상세 단계 라벨",
+                  "fill": "$seip-green",
+                  "content": "현관 · 공용  4 / 4",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 10,
+                  "fontWeight": "800"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "vql62",
+          "name": "상세 가이드 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            10,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "bZhHR",
+              "name": "상세 가이드 제목 영역",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 5,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "A1ZyOf",
+                  "name": "상세 아이콘",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "$seip-green-pale",
+                  "cornerRadius": 13,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Lm35I",
+                      "name": "상세 아이콘 모양",
+                      "width": 21,
+                      "height": 21,
+                      "icon": "monitor-smartphone",
+                      "library": "lucide",
+                      "fill": "$seip-green"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "j0562R",
+                  "name": "상세 제목",
+                  "fill": "$seip-green",
+                  "content": "인터폰과 공용 복도",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 23,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "dT50U",
+                  "name": "상세 설명",
+                  "fill": "$seip-text-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "생활 안전과 연결되는 공용 설비를 확인해야 해요.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$seip-font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ChWcZ",
+              "name": "사진 예시",
+              "metadata": {
+                "type": "unsplash",
+                "username": "albutler",
+                "link": "https://unsplash.com/@albutler",
+                "author": "Al Butler"
+              },
+              "clip": true,
+              "width": "fill_container",
+              "height": 190,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "https://images.unsplash.com/photo-1780342595346-43efde008930?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODY1OTYwMjJ8&ixlib=rb-4.1.0&q=80&w=1080",
+                "mode": "fill"
+              },
+              "cornerRadius": 18,
+              "layout": "none",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "su93d",
+                  "x": 0,
+                  "y": 0,
+                  "name": "사진 예시 배지",
+                  "width": 88,
+                  "height": 28,
+                  "fill": "#FFFFFFE8",
+                  "cornerRadius": 999,
+                  "gap": 5,
+                  "padding": [
+                    0,
+                    9
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "g0MU6l",
+                      "name": "사진 예시 아이콘",
+                      "width": 14,
+                      "height": 14,
+                      "icon": "image",
+                      "library": "lucide",
+                      "fill": "$seip-green"
+                    },
+                    {
+                      "type": "text",
+                      "id": "j6Hxam",
+                      "name": "사진 예시 라벨",
+                      "fill": "$seip-green",
+                      "content": "사진 예시",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "aQrQT",
+              "name": "확인 방법 카드",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 16,
+              "stroke": "$seip-line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 9,
+              "padding": [
+                13,
+                14
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "tnm9w",
+                  "name": "확인 방법 제목",
+                  "fill": "$seip-text",
+                  "content": "이렇게 살펴보세요",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 13,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "frame",
+                  "id": "HZIpK",
+                  "name": "확인 방법 1",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "rMQNE",
+                      "name": "순서 1",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "hIr6W",
+                          "name": "순서 라벨 1",
+                          "fill": "$seip-green",
+                          "content": "1",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "qP3B3",
+                      "name": "확인 문구 1",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "인터폰 호출 버튼과 음성 연결을 직접 해보세요.",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "OWdWs",
+                  "name": "확인 방법 2",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "G0bYR7",
+                      "name": "순서 2",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "IURWp",
+                          "name": "순서 라벨 2",
+                          "fill": "$seip-green",
+                          "content": "2",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "IQwBO",
+                      "name": "확인 문구 2",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "공용 복도 조명과 통로 폭을 살펴보세요.",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "AJp2u",
+                  "name": "확인 방법 3",
+                  "width": "fill_container",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "M2opv",
+                      "name": "순서 3",
+                      "width": 20,
+                      "height": 20,
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Jum1f",
+                          "name": "순서 라벨 3",
+                          "fill": "$seip-green",
+                          "content": "3",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "jSwEd",
+                      "name": "확인 문구 3",
+                      "fill": "$seip-text-2",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "소화기 위치와 CCTV 유무를 확인해두세요.",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "tkPS4",
+              "name": "사진 촬영 팁",
+              "width": "fill_container",
+              "fill": "#FFF0E4",
+              "cornerRadius": 13,
+              "gap": 8,
+              "padding": [
+                9,
+                10
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "w7jP3",
+                  "name": "사진 촬영 팁 아이콘",
+                  "width": 17,
+                  "height": 17,
+                  "icon": "camera",
+                  "library": "lucide",
+                  "fill": "$seip-orange"
+                },
+                {
+                  "type": "text",
+                  "id": "zxAti",
+                  "name": "사진 촬영 팁 문구",
+                  "fill": "#8B542D",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "이상한 부분이 보이면 가까이에서 한 장 더 남겨두세요.",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 10,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "MkAhF",
+          "name": "상세 가이드 하단",
+          "width": "fill_container",
+          "height": 82,
+          "padding": [
+            10,
+            20,
+            20,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "Q7sTeg",
+              "name": "다음 상세 항목 버튼",
+              "width": "fill_container",
+              "height": 50,
+              "fill": "$seip-orange",
+              "cornerRadius": 14,
+              "gap": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "lRYEq",
+                  "name": "다음 상세 항목 라벨",
+                  "fill": "#FFFFFF",
+                  "content": "현관 가이드로 돌아가기",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 14,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "icon",
+                  "id": "xouNE",
+                  "name": "다음 상세 항목 아이콘",
+                  "width": 17,
+                  "height": 17,
+                  "icon": "arrow-right",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
                 }
               ]
             }
@@ -16452,6 +18614,23 @@
     "seip-radius": {
       "type": "number",
       "value": 18
+    },
+    "seip-card-warm": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#fff8f1",
+          "theme": {
+            "Mode": "Light"
+          }
+        },
+        {
+          "value": "#fff8f1",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
     }
   },
   "fileToken": "7e476bcb-e9d0-499c-9185-b249c25734cd"
