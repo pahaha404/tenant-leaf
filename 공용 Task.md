@@ -66,3 +66,4 @@
 - 2026-08-13 — 공통 API 계약 1.1에 사용자가 직접 입력하는 매물 조건 7개를 추가함. 보증금·월세·관리비·전용면적·층수·옵션·부동산 연락처의 OpenAPI Kotlin 타입 생성과 `server/api`의 `clean test` 통과를 확인함.
 - 2026-08-13 — 프로젝트 폴더를 Android·서버·AI·글래스 중심으로 정리함. Android Gradle 설정을 `android/`으로 옮기고 경로 참조를 갱신함.
 - 2026-08-13 — 매물 면적의 ㎡·평 전환 규칙 확정. 서버는 ㎡만 저장하고 Android 앱이 `1평 = 3.305785㎡` 기준으로 입력·표시를 변환하도록 API 계약과 UI 요구사항에 기록함.
+- 2026-08-13 — 매물 CRUD API 구현 완료. PostgreSQL 마이그레이션과 Kotlin Controller·Service·Repository를 구성하고 등록·목록/상세 조회·부분 수정·삭제·소유권·오류 응답을 `server/api`의 `clean test`로 확인함.
