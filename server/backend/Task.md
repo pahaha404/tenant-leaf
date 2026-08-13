@@ -6,7 +6,7 @@
 - [x] MVP 데모 계정 흐름 결정
 - [x] 확정 API의 OpenAPI 명세 작성과 문법 검증
 - [x] OpenAPI 기반 Spring Boot Kotlin 타입·API 인터페이스 자동 생성
-- [ ] 매물 CRUD API 구현
+- [x] 매물 CRUD API 구현
 - [ ] 임장 시작·완료·취소 API 구현
 - [ ] 업로드 URL 발급과 미디어 메타데이터 API 구현
 - [ ] 체크리스트·사용자 확인 결과 API 구현
