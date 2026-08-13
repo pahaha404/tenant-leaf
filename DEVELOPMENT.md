@@ -16,7 +16,7 @@ PowerShell에서 아래 명령을 실행해 도구 설치 상태를 확인합니
 
 | 단위 | 경로 | 기본 도구 |
 | --- | --- | --- |
-| Android 앱 | `apps/android` | Android Studio, Kotlin, JDK 17 |
+| Android 앱 | `apps/android` | Android Studio, Kotlin, JDK 21 |
 | API | `services/api` | Kotlin, Spring Boot, PostgreSQL, Redis |
 | AI 작업자 | `services/ai-worker` | Python 또는 Kotlin, 큐, AI 제공자 |
 | AI 학습·평가 | `ml` | Python 3.11+, GPU 환경은 선택 |
