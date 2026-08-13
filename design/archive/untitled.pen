@@ -1,0 +1,3076 @@
+{
+  "version": "2.17",
+  "children": [
+    {
+      "type": "frame",
+      "id": "Y3fypr",
+      "x": 0,
+      "y": 0,
+      "name": "Welcome to pen.dev",
+      "clip": true,
+      "width": 1000,
+      "height": 1458,
+      "layout": "none",
+      "children": [
+        {
+          "type": "text",
+          "id": "p5iwM",
+          "x": 38,
+          "y": 297,
+          "name": "Start here",
+          "fill": "#ff8303ff",
+          "textGrowth": "fixed-width-height",
+          "width": 923,
+          "height": 139,
+          "content": "Ask agent to design",
+          "lineHeight": 1.399999976158142,
+          "textAlign": "center",
+          "fontFamily": "Noto Sans",
+          "fontSize": 100,
+          "fontWeight": "500",
+          "letterSpacing": -4
+        }
+      ]
+    },
+    {
+      "type": "path",
+      "id": "pSGLk",
+      "x": 317,
+      "y": 689,
+      "geometry": "M7 0l0 14m7-7l-7 7-7-7",
+      "width": 366,
+      "height": 366,
+      "stroke": "#ff8302ff",
+      "strokeWidth": 50,
+      "strokeLinejoin": "round",
+      "strokeLinecap": "round"
+    },
+    {
+      "type": "frame",
+      "id": "o3w1X",
+      "x": 1100,
+      "y": 0,
+      "name": "세입세잎 모바일 디자인 시스템",
+      "clip": true,
+      "width": 1230,
+      "height": 520,
+      "fill": "$seip-bg",
+      "layout": "vertical",
+      "gap": 24,
+      "padding": 32,
+      "children": [
+        {
+          "type": "frame",
+          "id": "vqmDr",
+          "name": "디자인 시스템 헤더",
+          "width": "fill_container",
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "sQd48",
+              "name": "브랜드 설명",
+              "layout": "vertical",
+              "gap": 5,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ohMGi",
+                  "name": "디자인 시스템 제목",
+                  "fill": "$seip-green-dark",
+                  "content": "세입세잎 · Android Mobile System",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 26,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "s7Tnl",
+                  "name": "디자인 원칙",
+                  "fill": "$seip-text-2",
+                  "content": "따뜻한 초록 · 둥근 손그림 캐릭터 · 증거 중심의 신뢰감",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "g3qDl1",
+              "name": "브랜드 배지",
+              "fill": "$seip-green",
+              "cornerRadius": 999,
+              "padding": [
+                8,
+                14
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "WtgXj",
+                  "name": "브랜드 배지 라벨",
+                  "fill": "#FFFFFF",
+                  "content": "SMART GLASS INSPECTION",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 11,
+                  "fontWeight": "700",
+                  "letterSpacing": 0.4
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "pVoop",
+          "name": "디자인 시스템 내용",
+          "width": "fill_container",
+          "height": "fill_container",
+          "gap": 28,
+          "children": [
+            {
+              "type": "frame",
+              "id": "z89dP",
+              "name": "컬러 토큰",
+              "width": 270,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "VlwCY",
+                  "name": "컬러 제목",
+                  "fill": "$seip-text",
+                  "content": "Color",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 15,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "frame",
+                  "id": "qtz0u",
+                  "name": "Forest 토큰",
+                  "width": "fill_container",
+                  "height": 40,
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 12,
+                      "id": "viLdY",
+                      "name": "Forest 견본",
+                      "fill": "$seip-green",
+                      "width": 40,
+                      "height": 40,
+                      "stroke": "#FFFFFF",
+                      "strokeWidth": 2
+                    },
+                    {
+                      "type": "frame",
+                      "id": "wlltq",
+                      "name": "Forest 정보",
+                      "layout": "vertical",
+                      "gap": 1,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "of9ci",
+                          "name": "Forest 이름",
+                          "fill": "$seip-text",
+                          "content": "Forest",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 12,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "HZE1g",
+                          "name": "Forest 용도",
+                          "fill": "$seip-text-2",
+                          "content": "브랜드·표면",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "yvYxK",
+                  "name": "Deep Forest 토큰",
+                  "width": "fill_container",
+                  "height": 40,
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 12,
+                      "id": "w8wLu6",
+                      "name": "Deep Forest 견본",
+                      "fill": "$seip-green-dark",
+                      "width": 40,
+                      "height": 40,
+                      "stroke": "#FFFFFF",
+                      "strokeWidth": 2
+                    },
+                    {
+                      "type": "frame",
+                      "id": "cAVKI",
+                      "name": "Deep Forest 정보",
+                      "layout": "vertical",
+                      "gap": 1,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "oSGG5",
+                          "name": "Deep Forest 이름",
+                          "fill": "$seip-text",
+                          "content": "Deep Forest",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 12,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "J3Rj2b",
+                          "name": "Deep Forest 용도",
+                          "fill": "$seip-text-2",
+                          "content": "브랜드·표면",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bbL7A",
+                  "name": "Leaf Mist 토큰",
+                  "width": "fill_container",
+                  "height": 40,
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 12,
+                      "id": "H8kp8",
+                      "name": "Leaf Mist 견본",
+                      "fill": "$seip-green-soft",
+                      "width": 40,
+                      "height": 40,
+                      "stroke": "#FFFFFF",
+                      "strokeWidth": 2
+                    },
+                    {
+                      "type": "frame",
+                      "id": "aadC5",
+                      "name": "Leaf Mist 정보",
+                      "layout": "vertical",
+                      "gap": 1,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "G9QVY",
+                          "name": "Leaf Mist 이름",
+                          "fill": "$seip-text",
+                          "content": "Leaf Mist",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 12,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "d6OFty",
+                          "name": "Leaf Mist 용도",
+                          "fill": "$seip-text-2",
+                          "content": "브랜드·표면",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "GmIPz",
+                  "name": "Warm Paper 토큰",
+                  "width": "fill_container",
+                  "height": 40,
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 12,
+                      "id": "HOoJY",
+                      "name": "Warm Paper 견본",
+                      "fill": "$seip-bg",
+                      "width": 40,
+                      "height": 40,
+                      "stroke": "#FFFFFF",
+                      "strokeWidth": 2
+                    },
+                    {
+                      "type": "frame",
+                      "id": "M61oq",
+                      "name": "Warm Paper 정보",
+                      "layout": "vertical",
+                      "gap": 1,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "TZsOf",
+                          "name": "Warm Paper 이름",
+                          "fill": "$seip-text",
+                          "content": "Warm Paper",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 12,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "DSnbG",
+                          "name": "Warm Paper 용도",
+                          "fill": "$seip-text-2",
+                          "content": "브랜드·표면",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "o2NSps",
+                  "name": "Tangerine 토큰",
+                  "width": "fill_container",
+                  "height": 40,
+                  "gap": 10,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 12,
+                      "id": "oQ61g",
+                      "name": "Tangerine 견본",
+                      "fill": "$seip-orange",
+                      "width": 40,
+                      "height": 40,
+                      "stroke": "#FFFFFF",
+                      "strokeWidth": 2
+                    },
+                    {
+                      "type": "frame",
+                      "id": "TocFd",
+                      "name": "Tangerine 정보",
+                      "layout": "vertical",
+                      "gap": 1,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Q2JTYq",
+                          "name": "Tangerine 이름",
+                          "fill": "$seip-text",
+                          "content": "Tangerine",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 12,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "a1P3V0",
+                          "name": "Tangerine 용도",
+                          "fill": "$seip-text-2",
+                          "content": "주의·강조",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "zIoIo",
+              "name": "타이포그래피",
+              "width": 260,
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 14,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "fDCMo",
+                  "name": "타입 제목",
+                  "fill": "$seip-text",
+                  "content": "Typography",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 15,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "CFfR7",
+                  "name": "디스플레이 샘플",
+                  "fill": "$seip-green-dark",
+                  "content": "내 방을 꼼꼼하게",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 26,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "cOhKJ",
+                  "name": "타이틀 샘플",
+                  "fill": "$seip-text",
+                  "content": "오늘의 점검",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 20,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "SRp5X",
+                  "name": "본문 샘플",
+                  "fill": "$seip-text-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "체크리스트와 사진 증거를 한곳에 안전하게 기록해요.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "$seip-font",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "yuo9a",
+                  "name": "캡션 샘플",
+                  "fill": "$seip-green",
+                  "content": "AI 관찰 · 신뢰도 92%",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Tm3qb",
+              "name": "핵심 컴포넌트",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "MUTA1",
+                  "name": "컴포넌트 제목",
+                  "fill": "$seip-text",
+                  "content": "Components",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 15,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "frame",
+                  "id": "X68tG",
+                  "name": "버튼 컴포넌트 행",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "LHVxD",
+                      "name": "컴포넌트 / 기본 버튼",
+                      "reusable": true,
+                      "width": 210,
+                      "height": 52,
+                      "fill": "$seip-green",
+                      "cornerRadius": 16,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "cx8V6",
+                          "name": "버튼 라벨",
+                          "fill": "#FFFFFF",
+                          "content": "점검 시작하기",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 15,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "noyH2",
+                      "name": "컴포넌트 / 보조 버튼",
+                      "reusable": true,
+                      "width": 210,
+                      "height": 52,
+                      "fill": "$seip-green-pale",
+                      "cornerRadius": 16,
+                      "stroke": "$seip-line",
+                      "strokeWidth": 1,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Q75Kr",
+                          "name": "보조 버튼 라벨",
+                          "fill": "$seip-green-dark",
+                          "content": "나중에 하기",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 15,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "rRYzH",
+                  "name": "카드와 입력 컴포넌트",
+                  "width": "fill_container",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "pO5gn",
+                      "name": "컴포넌트 / 점검 카드",
+                      "reusable": true,
+                      "width": 270,
+                      "height": 138,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 18,
+                      "stroke": "$seip-line",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "lgNSE",
+                          "name": "점검 카드 상단",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "tWmrd",
+                              "name": "점검 카드 제목",
+                              "fill": "$seip-text",
+                              "content": "창문과 환기",
+                              "fontFamily": "$seip-font",
+                              "fontSize": 15,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "JB1Dh",
+                              "name": "점검 상태 배지",
+                              "fill": "$seip-green-soft",
+                              "cornerRadius": 999,
+                              "padding": [
+                                5,
+                                9
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "xvE8P",
+                                  "name": "점검 상태",
+                                  "fill": "$seip-green-dark",
+                                  "content": "완료",
+                                  "fontFamily": "$seip-font",
+                                  "fontSize": 10,
+                                  "fontWeight": "700"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "DdHdD",
+                          "name": "점검 카드 설명",
+                          "fill": "$seip-text-2",
+                          "content": "사진 3장 · AI 관찰 2건",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "y7htE",
+                          "name": "점검 진행 바",
+                          "width": "fill_container",
+                          "height": 8,
+                          "fill": "$seip-green-pale",
+                          "cornerRadius": 999,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 999,
+                              "id": "G5wtHv",
+                              "x": 0,
+                              "y": 0,
+                              "name": "점검 진행 값",
+                              "fill": "$seip-green",
+                              "width": 186,
+                              "height": 8
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "WyZOR",
+                      "name": "컴포넌트 / 입력 필드",
+                      "reusable": true,
+                      "width": 270,
+                      "layout": "vertical",
+                      "gap": 7,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "Bl6Qz",
+                          "name": "입력 필드 라벨",
+                          "fill": "$seip-text",
+                          "content": "매물 이름",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 12,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "S5cG3H",
+                          "name": "입력 상자",
+                          "width": "fill_container",
+                          "height": 52,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 14,
+                          "stroke": "$seip-line",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            15
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Cdyb2",
+                              "name": "입력 플레이스홀더",
+                              "fill": "$seip-text-2",
+                              "content": "예: 연남동 햇살 원룸",
+                              "fontFamily": "$seip-font",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "HgkX5",
+                  "name": "컴포넌트 원칙 메모",
+                  "width": "fill_container",
+                  "fill": "$seip-green-soft",
+                  "cornerRadius": 12,
+                  "gap": 8,
+                  "padding": [
+                    10,
+                    14
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Csmzu",
+                      "name": "원칙 아이콘",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "leaf",
+                      "library": "lucide",
+                      "fill": "$seip-green"
+                    },
+                    {
+                      "type": "text",
+                      "id": "b1jhv",
+                      "name": "원칙 내용",
+                      "fill": "$seip-green-dark",
+                      "content": "터치 영역 48px 이상 · 증거는 초록, 주의는 오렌지 · 카드 그림자는 핵심 1곳만",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "P7GHZ7",
+      "x": 999,
+      "y": 708,
+      "name": "01 온보딩",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$seip-bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "AJMfR",
+          "name": "Android 상태바",
+          "width": "fill_container",
+          "height": 62,
+          "padding": [
+            0,
+            20
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "VBlwW",
+              "name": "상태 시간",
+              "fill": "$seip-text",
+              "content": "9:41",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "C1dxwB",
+              "name": "상태 아이콘",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "AKWex",
+                  "name": "신호",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "signal",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "pbjmW",
+                  "name": "와이파이",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "r2LM0f",
+                  "name": "배터리",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "HvzOm",
+          "name": "온보딩 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 18,
+          "padding": [
+            6,
+            20,
+            24,
+            20
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "p9TOs",
+              "name": "온보딩 브랜드",
+              "fill": "$seip-green-soft",
+              "cornerRadius": 999,
+              "gap": 7,
+              "padding": [
+                7,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "PZXx8",
+                  "name": "브랜드 잎 아이콘",
+                  "width": 17,
+                  "height": 17,
+                  "icon": "sprout",
+                  "library": "lucide",
+                  "fill": "$seip-green"
+                },
+                {
+                  "type": "text",
+                  "id": "xjB6o",
+                  "name": "브랜드명",
+                  "fill": "$seip-green-dark",
+                  "content": "세입세잎",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 13,
+                  "fontWeight": "800"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "R2SN0",
+              "name": "세입세잎 안심 점검 캐릭터",
+              "width": 270,
+              "height": 270,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "images/generated-1786340095170.png",
+                "mode": "fill"
+              }
+            },
+            {
+              "type": "frame",
+              "id": "tA45r",
+              "name": "온보딩 문구",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "zevdu",
+                  "name": "온보딩 제목",
+                  "fill": "$seip-green-dark",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "내 눈으로 확인하고,\n증거로 안심해요",
+                  "lineHeight": 1.25,
+                  "textAlign": "center",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 27,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "vGuZ6",
+                  "name": "온보딩 설명",
+                  "fill": "$seip-text-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "스마트 글라스와 함께 방을 둘러보면\n체크리스트·사진·AI 관찰을 차곡차곡 기록해 드려요.",
+                  "lineHeight": 1.55,
+                  "textAlign": "center",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "uoTt5",
+              "name": "온보딩 하단",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 14,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "zjZFm",
+                  "name": "페이지 표시",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "ellipse",
+                      "id": "A0KjuH",
+                      "name": "현재 페이지",
+                      "fill": "$seip-green",
+                      "width": 20,
+                      "height": 7
+                    },
+                    {
+                      "type": "ellipse",
+                      "id": "KR1o4",
+                      "name": "다음 페이지 1",
+                      "fill": "$seip-line",
+                      "width": 7,
+                      "height": 7
+                    },
+                    {
+                      "type": "ellipse",
+                      "id": "CyktW",
+                      "name": "다음 페이지 2",
+                      "fill": "$seip-line",
+                      "width": 7,
+                      "height": 7
+                    }
+                  ]
+                },
+                {
+                  "id": "zWTAl",
+                  "type": "ref",
+                  "ref": "LHVxD",
+                  "name": "온보딩 시작 버튼",
+                  "width": "fill_container",
+                  "descendants": {
+                    "cx8V6": {
+                      "content": "안심 점검 시작하기"
+                    }
+                  }
+                },
+                {
+                  "type": "text",
+                  "id": "PjHHr",
+                  "name": "온보딩 보조 링크",
+                  "fill": "$seip-green",
+                  "content": "서비스 둘러보기",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "akhgr",
+      "x": 1530,
+      "y": 620,
+      "name": "02 홈",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$seip-bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "WNFhH",
+          "name": "Android 상태바",
+          "width": "fill_container",
+          "height": 62,
+          "padding": [
+            0,
+            20
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "g9cCq",
+              "name": "상태 시간",
+              "fill": "$seip-text",
+              "content": "9:41",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "zhkOm",
+              "name": "상태 아이콘",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "tMcUt",
+                  "name": "신호",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "signal",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "E2F0s",
+                  "name": "와이파이",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "zqvBG",
+                  "name": "배터리",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "OTm1N",
+          "name": "홈 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 18,
+          "padding": [
+            2,
+            20,
+            14,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "B2IWA",
+              "name": "홈 헤더",
+              "width": "fill_container",
+              "justifyContent": "space_between",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "S01Hum",
+                  "name": "홈 인사",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "WtkAu",
+                      "name": "홈 작은 인사",
+                      "fill": "$seip-text-2",
+                      "content": "좋은 오후예요, 민지님",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "r75Ie",
+                      "name": "홈 제목",
+                      "fill": "$seip-green-dark",
+                      "content": "오늘도 방을 꼼꼼하게",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 22,
+                      "fontWeight": "800"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "i966H",
+                  "name": "알림 버튼",
+                  "width": 44,
+                  "height": 44,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "stroke": "$seip-line",
+                  "strokeWidth": 1,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "n4gy8p",
+                      "name": "알림 아이콘",
+                      "width": 20,
+                      "height": 20,
+                      "icon": "bell",
+                      "library": "lucide",
+                      "fill": "$seip-green-dark"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "oFV12",
+              "name": "스마트 글라스 연결 카드",
+              "width": "fill_container",
+              "height": 112,
+              "fill": "$seip-green-dark",
+              "cornerRadius": 20,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#1E49331F",
+                "offset": {
+                  "x": 0,
+                  "y": 8
+                },
+                "blur": 20
+              },
+              "gap": 14,
+              "padding": 16,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "RqNrT",
+                  "name": "글라스 아이콘 배경",
+                  "width": 52,
+                  "height": 52,
+                  "fill": "#FFFFFF1F",
+                  "cornerRadius": 16,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "kRc7M",
+                      "name": "스마트 글라스 아이콘",
+                      "width": 28,
+                      "height": 28,
+                      "icon": "glasses",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "cfaHl",
+                  "name": "글라스 연결 정보",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "tGdHN",
+                      "name": "연결 상태",
+                      "fill": "#FFFFFF",
+                      "content": "세잎 Glass 01 · 연결됨",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "QKtqZ",
+                      "name": "연결 안내",
+                      "fill": "#DCE9D6",
+                      "content": "배터리 84% · 촬영 준비 완료",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "SM5em",
+                  "name": "연결 이동 아이콘",
+                  "width": 20,
+                  "height": 20,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "o7kUc",
+              "name": "진행 중인 점검",
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "cornerRadius": 20,
+              "stroke": "$seip-line",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 13,
+              "padding": 16,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Q1J89O",
+                  "name": "진행 점검 상단",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "eZ0cn",
+                      "name": "진행 점검 라벨",
+                      "layout": "vertical",
+                      "gap": 3,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "y0GIH",
+                          "name": "점검 섹션 라벨",
+                          "fill": "$seip-green",
+                          "content": "진행 중인 점검",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 11,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "qUsuD",
+                          "name": "매물명",
+                          "fill": "$seip-text",
+                          "content": "연남동 햇살 원룸",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 17,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "VZXqA",
+                      "name": "진행률 배지",
+                      "fill": "$seip-green-soft",
+                      "cornerRadius": 999,
+                      "padding": [
+                        6,
+                        10
+                      ],
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "JVwHc",
+                          "name": "진행률",
+                          "fill": "$seip-green-dark",
+                          "content": "6 / 10",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 11,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "iRk14",
+                  "name": "홈 진행 바",
+                  "width": "fill_container",
+                  "height": 9,
+                  "fill": "$seip-green-pale",
+                  "cornerRadius": 999,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 999,
+                      "id": "u20Sl8",
+                      "x": 0,
+                      "y": 0,
+                      "name": "홈 진행 값",
+                      "fill": "$seip-orange",
+                      "width": 191,
+                      "height": 9
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "wcTRY",
+                  "name": "다음 점검 안내",
+                  "fill": "$seip-text-2",
+                  "content": "다음: 욕실 수압과 배수 상태",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "ytlas",
+                  "name": "점검 이어하기",
+                  "width": "fill_container",
+                  "height": 46,
+                  "fill": "$seip-green",
+                  "cornerRadius": 14,
+                  "gap": 7,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "S4Okoc",
+                      "name": "이어하기 아이콘",
+                      "width": 16,
+                      "height": 16,
+                      "icon": "play",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    },
+                    {
+                      "type": "text",
+                      "id": "oVUAd",
+                      "name": "이어하기 라벨",
+                      "fill": "#FFFFFF",
+                      "content": "점검 이어하기",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "xvWeX",
+              "name": "빠른 메뉴",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "CxSiu",
+                  "name": "빠른 메뉴 헤더",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "c79mB",
+                      "name": "빠른 메뉴 제목",
+                      "fill": "$seip-text",
+                      "content": "빠른 메뉴",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 15,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "AbJ1I",
+                      "name": "전체 보기",
+                      "fill": "$seip-green",
+                      "content": "전체 보기",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 11,
+                      "fontWeight": "600"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Jm44G",
+                  "name": "빠른 메뉴 목록",
+                  "width": "fill_container",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "w8qQH",
+                      "name": "사진 증거",
+                      "width": "fill_container",
+                      "height": 78,
+                      "fill": "#E7F0E2",
+                      "cornerRadius": 16,
+                      "layout": "vertical",
+                      "gap": 7,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "k6vCm",
+                          "name": "사진 증거 아이콘",
+                          "width": 22,
+                          "height": 22,
+                          "icon": "camera",
+                          "library": "lucide",
+                          "fill": "$seip-green"
+                        },
+                        {
+                          "type": "text",
+                          "id": "r72rH0",
+                          "name": "사진 증거 라벨",
+                          "fill": "$seip-text",
+                          "content": "사진 증거",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 11,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "D9oXQt",
+                      "name": "AI 관찰",
+                      "width": "fill_container",
+                      "height": 78,
+                      "fill": "#FFF0E4",
+                      "cornerRadius": 16,
+                      "layout": "vertical",
+                      "gap": 7,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "DzFRe",
+                          "name": "AI 관찰 아이콘",
+                          "width": 22,
+                          "height": 22,
+                          "icon": "sparkles",
+                          "library": "lucide",
+                          "fill": "$seip-orange"
+                        },
+                        {
+                          "type": "text",
+                          "id": "j0gTBj",
+                          "name": "AI 관찰 라벨",
+                          "fill": "$seip-text",
+                          "content": "AI 관찰",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 11,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "auBn9",
+                      "name": "점검 리포트",
+                      "width": "fill_container",
+                      "height": 78,
+                      "fill": "#E7F0E2",
+                      "cornerRadius": 16,
+                      "layout": "vertical",
+                      "gap": 7,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "dGsaN",
+                          "name": "점검 리포트 아이콘",
+                          "width": 22,
+                          "height": 22,
+                          "icon": "file-check",
+                          "library": "lucide",
+                          "fill": "$seip-green"
+                        },
+                        {
+                          "type": "text",
+                          "id": "cFx01",
+                          "name": "점검 리포트 라벨",
+                          "fill": "$seip-text",
+                          "content": "점검 리포트",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 11,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "ffM7u",
+              "name": "최근 리포트",
+              "width": "fill_container",
+              "height": 82,
+              "fill": "$seip-green-pale",
+              "cornerRadius": 16,
+              "gap": 12,
+              "padding": [
+                12,
+                14
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "XXj1Q",
+                  "name": "리포트 아이콘 배경",
+                  "width": 42,
+                  "height": 42,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 13,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "KX6K9",
+                      "name": "리포트 아이콘",
+                      "width": 22,
+                      "height": 22,
+                      "icon": "shield-check",
+                      "library": "lucide",
+                      "fill": "$seip-green"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "G9Qeta",
+                  "name": "리포트 정보",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 3,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "NS9lC",
+                      "name": "리포트 제목",
+                      "fill": "$seip-text",
+                      "content": "망원동 102호 점검 리포트",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Y4k5Io",
+                      "name": "리포트 메타",
+                      "fill": "$seip-text-2",
+                      "content": "안심 8 · 확인 필요 2  |  3일 전",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "icon",
+                  "id": "ht6ZR",
+                  "name": "리포트 이동",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "chevron-right",
+                  "library": "lucide",
+                  "fill": "$seip-text-2"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ymCrF",
+          "name": "홈 하단 내비게이션 영역",
+          "width": "fill_container",
+          "height": 78,
+          "padding": [
+            5,
+            16,
+            12,
+            16
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "g1cA8",
+              "name": "하단 내비게이션",
+              "width": "fill_container",
+              "height": 58,
+              "fill": "#FFFFFFE8",
+              "cornerRadius": 999,
+              "stroke": "$seip-line",
+              "strokeWidth": 1,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#1E49331A",
+                "offset": {
+                  "x": 0,
+                  "y": 4
+                },
+                "blur": 16
+              },
+              "gap": 4,
+              "padding": 5,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "HrOFH",
+                  "name": "홈 탭",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "$seip-green-soft",
+                  "cornerRadius": 999,
+                  "layout": "vertical",
+                  "gap": 2,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "p0N2TJ",
+                      "name": "홈 탭 아이콘",
+                      "width": 19,
+                      "height": 19,
+                      "icon": "house",
+                      "library": "lucide",
+                      "fill": "$seip-green"
+                    },
+                    {
+                      "type": "text",
+                      "id": "KLpUz",
+                      "name": "홈 탭 라벨",
+                      "fill": "$seip-green-dark",
+                      "content": "홈",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gfUG7",
+                  "name": "점검 탭",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "#FFFFFF00",
+                  "cornerRadius": 999,
+                  "layout": "vertical",
+                  "gap": 2,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "BxJYn",
+                      "name": "점검 탭 아이콘",
+                      "width": 19,
+                      "height": 19,
+                      "icon": "clipboard-check",
+                      "library": "lucide",
+                      "fill": "$seip-text-2"
+                    },
+                    {
+                      "type": "text",
+                      "id": "wvMc4",
+                      "name": "점검 탭 라벨",
+                      "fill": "$seip-text-2",
+                      "content": "점검",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 10,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "oC3l4",
+                  "name": "리포트 탭",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "#FFFFFF00",
+                  "cornerRadius": 999,
+                  "layout": "vertical",
+                  "gap": 2,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "s9JIY",
+                      "name": "리포트 탭 아이콘",
+                      "width": 19,
+                      "height": 19,
+                      "icon": "files",
+                      "library": "lucide",
+                      "fill": "$seip-text-2"
+                    },
+                    {
+                      "type": "text",
+                      "id": "ewBgy",
+                      "name": "리포트 탭 라벨",
+                      "fill": "$seip-text-2",
+                      "content": "리포트",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 10,
+                      "fontWeight": "500"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "jS7SE",
+                  "name": "내 정보 탭",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "#FFFFFF00",
+                  "cornerRadius": 999,
+                  "layout": "vertical",
+                  "gap": 2,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "SdPPj",
+                      "name": "내 정보 탭 아이콘",
+                      "width": 19,
+                      "height": 19,
+                      "icon": "user-round",
+                      "library": "lucide",
+                      "fill": "$seip-text-2"
+                    },
+                    {
+                      "type": "text",
+                      "id": "lzppu",
+                      "name": "내 정보 탭 라벨",
+                      "fill": "$seip-text-2",
+                      "content": "내 정보",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 10,
+                      "fontWeight": "500"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "zAjlB",
+      "x": 1960,
+      "y": 620,
+      "name": "03 매물 등록",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$seip-bg",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "vdtEm",
+          "name": "Android 상태바",
+          "width": "fill_container",
+          "height": 62,
+          "padding": [
+            0,
+            20
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "YS1XR",
+              "name": "상태 시간",
+              "fill": "$seip-text",
+              "content": "9:41",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "700"
+            },
+            {
+              "type": "frame",
+              "id": "tIbaw",
+              "name": "상태 아이콘",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "D3o2T",
+                  "name": "신호",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "signal",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "rkd7Z",
+                  "name": "와이파이",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "wifi",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                },
+                {
+                  "type": "icon",
+                  "id": "oPU34",
+                  "name": "배터리",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "battery-full",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "J0GmwX",
+          "name": "매물 등록 상단바",
+          "width": "fill_container",
+          "height": 54,
+          "padding": [
+            0,
+            16
+          ],
+          "justifyContent": "space_between",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "eSlTw",
+              "name": "뒤로가기 버튼",
+              "width": 40,
+              "height": 40,
+              "fill": "#FFFFFF",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "O354Pr",
+                  "name": "뒤로가기 아이콘",
+                  "width": 21,
+                  "height": 21,
+                  "icon": "arrow-left",
+                  "library": "lucide",
+                  "fill": "$seip-text"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "zaXlb",
+              "name": "매물 등록 제목",
+              "fill": "$seip-text",
+              "content": "매물 등록",
+              "fontFamily": "$seip-font",
+              "fontSize": 18,
+              "fontWeight": "800"
+            },
+            {
+              "type": "frame",
+              "id": "rvC8U",
+              "name": "단계 배지",
+              "fill": "$seip-green-soft",
+              "cornerRadius": 999,
+              "padding": [
+                6,
+                10
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "t2LqR",
+                  "name": "단계 라벨",
+                  "fill": "$seip-green-dark",
+                  "content": "1 / 3",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 11,
+                  "fontWeight": "800"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "iQ2rg",
+          "name": "매물 등록 콘텐츠",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 18,
+          "padding": [
+            10,
+            20,
+            14,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "PDM8P",
+              "name": "등록 단계 안내",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 8,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "hx17u",
+                  "name": "등록 단계 제목",
+                  "fill": "$seip-green-dark",
+                  "content": "점검할 방을 알려주세요",
+                  "fontFamily": "$seip-font",
+                  "fontSize": 23,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "text",
+                  "id": "BmsWy",
+                  "name": "등록 단계 설명",
+                  "fill": "$seip-text-2",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "기본 정보는 리포트 제목과 증거 정리에 사용돼요.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "$seip-font",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "h2KuI",
+                  "name": "등록 진행 바",
+                  "width": "fill_container",
+                  "height": 7,
+                  "fill": "$seip-green-soft",
+                  "cornerRadius": 999,
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 999,
+                      "id": "BzgPt",
+                      "x": 0,
+                      "y": 0,
+                      "name": "등록 진행 값",
+                      "fill": "$seip-green",
+                      "width": 108,
+                      "height": 7
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "HQdVC",
+              "name": "매물 정보 폼",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "id": "dGZRp",
+                  "type": "ref",
+                  "ref": "WyZOR",
+                  "name": "매물 이름 입력",
+                  "width": "fill_container",
+                  "descendants": {
+                    "Bl6Qz": {
+                      "content": "매물 이름"
+                    },
+                    "Cdyb2": {
+                      "content": "예: 연남동 햇살 원룸"
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "gkdLX",
+                  "name": "주소 입력 그룹",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 7,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "IfMxh",
+                      "name": "주소 라벨",
+                      "fill": "$seip-text",
+                      "content": "주소",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 12,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "hof4s",
+                      "name": "주소 입력 상자",
+                      "width": "fill_container",
+                      "height": 52,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 14,
+                      "stroke": "$seip-line",
+                      "strokeWidth": 1,
+                      "gap": 9,
+                      "padding": [
+                        0,
+                        14
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "aVJ4V",
+                          "name": "주소 검색 아이콘",
+                          "width": 18,
+                          "height": 18,
+                          "icon": "search",
+                          "library": "lucide",
+                          "fill": "$seip-green"
+                        },
+                        {
+                          "type": "text",
+                          "id": "q3WZDD",
+                          "name": "주소 플레이스홀더",
+                          "fill": "$seip-text-2",
+                          "content": "도로명이나 건물명을 검색하세요",
+                          "fontFamily": "$seip-font",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "wPXZs",
+                  "name": "주거 형태 선택",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 9,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "RvzPu",
+                      "name": "주거 형태 라벨",
+                      "fill": "$seip-text",
+                      "content": "주거 형태",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 12,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "KzlNA",
+                      "name": "주거 형태 옵션",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "PWb5S",
+                          "name": "원룸 옵션",
+                          "width": "fill_container",
+                          "height": 42,
+                          "fill": "$seip-green",
+                          "cornerRadius": 999,
+                          "stroke": "$seip-green",
+                          "strokeWidth": 1,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "V9ykCY",
+                              "name": "원룸 라벨",
+                              "fill": "#FFFFFF",
+                              "content": "원룸",
+                              "fontFamily": "$seip-font",
+                              "fontSize": 12,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "gfnLT",
+                          "name": "오피스텔 옵션",
+                          "width": "fill_container",
+                          "height": 42,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 999,
+                          "stroke": "$seip-line",
+                          "strokeWidth": 1,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "GsdU4",
+                              "name": "오피스텔 라벨",
+                              "fill": "$seip-text-2",
+                              "content": "오피스텔",
+                              "fontFamily": "$seip-font",
+                              "fontSize": 12,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "MTv7M",
+                          "name": "투룸 이상 옵션",
+                          "width": "fill_container",
+                          "height": 42,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 999,
+                          "stroke": "$seip-line",
+                          "strokeWidth": 1,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "C6x64P",
+                              "name": "투룸 이상 라벨",
+                              "fill": "$seip-text-2",
+                              "content": "투룸 이상",
+                              "fontFamily": "$seip-font",
+                              "fontSize": 12,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "uOJ3S",
+                  "name": "방문 일정",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 7,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "YY3qV",
+                      "name": "방문 일정 라벨",
+                      "fill": "$seip-text",
+                      "content": "방문 예정일",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 12,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "c6wwBW",
+                      "name": "날짜 선택 상자",
+                      "width": "fill_container",
+                      "height": 48,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 14,
+                      "stroke": "$seip-line",
+                      "strokeWidth": 1,
+                      "padding": [
+                        0,
+                        14
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "CNwgQ",
+                          "name": "날짜 정보",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "qru3I",
+                              "name": "달력 아이콘",
+                              "width": 18,
+                              "height": 18,
+                              "icon": "calendar-days",
+                              "library": "lucide",
+                              "fill": "$seip-green"
+                            },
+                            {
+                              "type": "text",
+                              "id": "XO84X",
+                              "name": "선택 날짜",
+                              "fill": "$seip-text",
+                              "content": "2025. 08. 16 (토)  14:00",
+                              "fontFamily": "$seip-font",
+                              "fontSize": 13,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "icon",
+                          "id": "s9j7a",
+                          "name": "날짜 이동 아이콘",
+                          "width": 17,
+                          "height": 17,
+                          "icon": "chevron-down",
+                          "library": "lucide",
+                          "fill": "$seip-text-2"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Mnedb",
+                  "name": "증거 기록 방식",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 7,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "XBjhw",
+                      "name": "증거 기록 라벨",
+                      "fill": "$seip-text",
+                      "content": "현장 기록 준비",
+                      "fontFamily": "$seip-font",
+                      "fontSize": 12,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "davp4",
+                      "name": "기록 방식 옵션",
+                      "width": "fill_container",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "L8Aye",
+                          "name": "스마트 글라스 기록",
+                          "width": "fill_container",
+                          "height": 62,
+                          "fill": "$seip-green-pale",
+                          "cornerRadius": 14,
+                          "stroke": "$seip-green",
+                          "strokeWidth": 1,
+                          "gap": 9,
+                          "padding": [
+                            0,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "ge1Jg",
+                              "name": "스마트 글라스 기록 아이콘",
+                              "width": 21,
+                              "height": 21,
+                              "icon": "glasses",
+                              "library": "lucide",
+                              "fill": "$seip-green"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "AfUYt",
+                              "name": "스마트 글라스 기록 정보",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "OBnOR",
+                                  "name": "스마트 글라스 기록 제목",
+                                  "fill": "$seip-text",
+                                  "content": "스마트 글라스",
+                                  "fontFamily": "$seip-font",
+                                  "fontSize": 11,
+                                  "fontWeight": "700"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "FW4BX",
+                                  "name": "스마트 글라스 기록 설명",
+                                  "fill": "$seip-text-2",
+                                  "content": "자동 촬영",
+                                  "fontFamily": "$seip-font",
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "L2kcg",
+                          "name": "휴대폰 기록",
+                          "width": "fill_container",
+                          "height": 62,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 14,
+                          "stroke": "$seip-line",
+                          "strokeWidth": 1,
+                          "gap": 9,
+                          "padding": [
+                            0,
+                            12
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "i3nwLr",
+                              "name": "휴대폰 기록 아이콘",
+                              "width": 21,
+                              "height": 21,
+                              "icon": "smartphone",
+                              "library": "lucide",
+                              "fill": "$seip-text-2"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "wfPxN",
+                              "name": "휴대폰 기록 정보",
+                              "layout": "vertical",
+                              "gap": 2,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "SHeAf",
+                                  "name": "휴대폰 기록 제목",
+                                  "fill": "$seip-text",
+                                  "content": "휴대폰",
+                                  "fontFamily": "$seip-font",
+                                  "fontSize": 11,
+                                  "fontWeight": "700"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "brsnq",
+                                  "name": "휴대폰 기록 설명",
+                                  "fill": "$seip-text-2",
+                                  "content": "직접 촬영",
+                                  "fontFamily": "$seip-font",
+                                  "fontSize": 9,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "bp9lD",
+              "name": "AI 안내",
+              "width": "fill_container",
+              "fill": "#FFF0E4",
+              "cornerRadius": 14,
+              "gap": 9,
+              "padding": [
+                10,
+                12
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "PXSoz",
+                  "name": "AI 안내 아이콘 배경",
+                  "width": 34,
+                  "height": 34,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 11,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "Px4og",
+                      "name": "AI 안내 아이콘",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "sparkles",
+                      "library": "lucide",
+                      "fill": "$seip-orange"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "Y9blqF",
+                  "name": "AI 안내 문구",
+                  "fill": "#78472C",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "점검 중 놓치기 쉬운 흔적은 AI가 함께 관찰해요.",
+                  "lineHeight": 1.4,
+                  "fontFamily": "$seip-font",
+                  "fontSize": 11,
+                  "fontWeight": "600"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "MIPfE",
+          "name": "매물 등록 하단 액션",
+          "width": "fill_container",
+          "height": 82,
+          "padding": [
+            10,
+            20,
+            20,
+            20
+          ],
+          "children": [
+            {
+              "id": "KVbly",
+              "type": "ref",
+              "ref": "LHVxD",
+              "name": "다음 단계 버튼",
+              "width": "fill_container",
+              "descendants": {
+                "cx8V6": {
+                  "content": "체크리스트 선택하기"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "themes": {
+    "Mode": [
+      "Light",
+      "Dark"
+    ]
+  },
+  "variables": {
+    "--sidebar": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E7E8E5"
+        },
+        {
+          "value": "#18181b",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#666666"
+        },
+        {
+          "value": "#fafafa",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-primary": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#18181b"
+        },
+        {
+          "value": "#18181b",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-primary-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#fafafa"
+        },
+        {
+          "value": "#fafafa",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-border": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#CBCCC9"
+        },
+        {
+          "value": "#ffffff1a",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-accent": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#CBCCC9"
+        },
+        {
+          "value": "#2a2a30",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-accent-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#18181b"
+        },
+        {
+          "value": "#fafafa",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--sidebar-ring": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#71717a"
+        },
+        {
+          "value": "#71717a",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--background": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#F2F3F0"
+        },
+        {
+          "value": "#111111",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#111111"
+        },
+        {
+          "value": "#FFFFFF",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--card": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FFFFFF"
+        },
+        {
+          "value": "#1A1A1A",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--card-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#111111"
+        },
+        {
+          "value": "#FFFFFF",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--popover": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FFFFFF"
+        },
+        {
+          "value": "#1A1A1A",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--popover-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#111111"
+        },
+        {
+          "value": "#FFFFFF",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--primary": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#FF8400"
+        },
+        {
+          "value": "#FF8400",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--primary-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#111111"
+        },
+        {
+          "value": "#111111",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--secondary": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E7E8E5"
+        },
+        {
+          "value": "#2E2E2E",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--secondary-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#111111"
+        },
+        {
+          "value": "#FFFFFF",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--muted": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#F2F3F0"
+        },
+        {
+          "value": "#2E2E2E",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--muted-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#666666"
+        },
+        {
+          "value": "#B8B9B6",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--accent": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#F2F3F0"
+        },
+        {
+          "value": "#111111",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--accent-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#111111"
+        },
+        {
+          "value": "#F2F3F0",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--destructive": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#D93C15"
+        },
+        {
+          "value": "#FF5C33",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--border": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#CBCCC9"
+        },
+        {
+          "value": "#2E2E2E",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--input": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#CBCCC9"
+        },
+        {
+          "value": "#2E2E2E",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--ring": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#666666"
+        },
+        {
+          "value": "#666666",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--white": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "--black": {
+      "type": "color",
+      "value": "#000000"
+    },
+    "--font-primary": {
+      "type": "string",
+      "value": "JetBrains Mono"
+    },
+    "--font-secondary": {
+      "type": "string",
+      "value": "Geist"
+    },
+    "--radius-none": {
+      "type": "number",
+      "value": 0
+    },
+    "--radius-pill": {
+      "type": "number",
+      "value": 999
+    },
+    "--color-success": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#DFE6E1"
+        },
+        {
+          "value": "#222924",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-success-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#004D1A"
+        },
+        {
+          "value": "#B6FFCE",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-warning": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E9E3D8"
+        },
+        {
+          "value": "#291C0F",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-warning-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#804200"
+        },
+        {
+          "value": "#FF8400",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-error": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#E5DCDA"
+        },
+        {
+          "value": "#24100B",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-error-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#8C1C00"
+        },
+        {
+          "value": "#FF5C33",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-info": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#DFDFE6"
+        },
+        {
+          "value": "#222229",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--color-info-foreground": {
+      "type": "color",
+      "value": [
+        {
+          "value": "#000066"
+        },
+        {
+          "value": "#B2B2FF",
+          "theme": {
+            "Mode": "Dark"
+          }
+        }
+      ]
+    },
+    "--radius-m": {
+      "type": "number",
+      "value": 16
+    },
+    "seip-bg": {
+      "type": "color",
+      "value": "#F6F4EF"
+    },
+    "seip-surface": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "seip-green": {
+      "type": "color",
+      "value": "#2F6848"
+    },
+    "seip-green-dark": {
+      "type": "color",
+      "value": "#1E4933"
+    },
+    "seip-green-soft": {
+      "type": "color",
+      "value": "#DCE9D6"
+    },
+    "seip-green-pale": {
+      "type": "color",
+      "value": "#EEF4EA"
+    },
+    "seip-orange": {
+      "type": "color",
+      "value": "#F28A3A"
+    },
+    "seip-text": {
+      "type": "color",
+      "value": "#20362A"
+    },
+    "seip-text-2": {
+      "type": "color",
+      "value": "#607267"
+    },
+    "seip-line": {
+      "type": "color",
+      "value": "#D9E1DA"
+    },
+    "seip-alert": {
+      "type": "color",
+      "value": "#C9573D"
+    },
+    "seip-font": {
+      "type": "string",
+      "value": "Noto Sans KR"
+    },
+    "seip-radius": {
+      "type": "number",
+      "value": 18
+    }
+  },
+  "fileToken": "7e476bcb-e9d0-499c-9185-b249c25734cd"
+}

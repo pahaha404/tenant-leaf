@@ -5,25 +5,27 @@ Meta AI Glasses를 활용해 청년 임대주택 현장 점검을 보조하는 A
 ## 개발 구조
 
 ```text
-apps/android/                 Android 프런트엔드
-  app/                        앱 시작점과 의존성 조립
-  feature/                    매물, 현장점검, 체크리스트, 보고서, 설정 화면
-  core/                       공통 UI, 네트워크, 로컬 저장소, 권한, 상태 관리
-  glass/                      Meta Wearables DAT 연결, 카메라, 터치, TTS
+android/                      Android 앱과 Android 전용 Gradle 설정
+  app/                         앱 시작점과 의존성 조립
+  feature/                     매물, 현장점검, 체크리스트, 보고서, 설정 화면
+  core/                        공통 UI, 네트워크, 로컬 저장소, 권한, 상태 관리
 
-services/api/                 백엔드 API
-  사용자, 매물, 임장, 체크리스트, 업로드, AI 결과 조회
+server/                       서버 실행 단위와 서버 인프라
+  api/                         Kotlin + Spring Boot API
+  ai-worker/                   비동기 AI 분석 작업자
+  infra/                       Docker, 환경별 설정, 배포와 모니터링
 
-services/ai-worker/           비동기 AI 작업자
-  사진 분석, 구역 추정, 사진 품질/중복 검사, STT, 보고서 초안
+ai/                           AI 학습·평가 코드와 데이터셋 메타데이터
+  ml/
 
-packages/shared-types/        API 요청/응답과 상태값의 단일 계약
-packages/checklist-config/    28개 점검 항목과 구역별 안내 규칙
-packages/glass-adapter/       안경 SDK에 의존하지 않는 공통 인터페이스
+glasses/                      Meta 안경 연동과 SDK 어댑터
+  android-integration/         Android 앱에 연결되는 안경 기능
+  adapter/                     특정 SDK를 격리하는 공통 인터페이스
 
-infra/                        Docker, 환경별 설정, 배포와 모니터링
-docs/                         기획, API, 데이터 모델, AI 평가와 QA 문서
 design/                       Figma/PDF 등 디자인 산출물
+packages/                     앱·서버·AI 공통 계약과 점검 설정
+docs/                         기획, API, 데이터 모델, AI 평가와 QA 문서
+mds/, Tasks/                  작업 요청서와 역할별 작업 현황
 ```
 
 ## 통신 원칙
@@ -49,9 +51,9 @@ Meta Glasses -> Android 앱 -> API 서버 -> AI Worker
 ## 시작 순서
 
 1. `packages/shared-types`에 임장·체크리스트·AI 탐지 결과 형식을 정의합니다.
-2. `services/api`에 해당 API와 데이터 저장을 구현합니다.
-3. `apps/android`에서 API를 연결하고, `glass/`에 Meta SDK 어댑터를 붙입니다.
-4. `services/ai-worker`가 분석 작업과 결과 저장을 담당하게 연결합니다.
+2. `server/api`에 해당 API와 데이터 저장을 구현합니다.
+3. `android`에서 API를 연결하고, `glasses/`에 Meta SDK 어댑터를 붙입니다.
+4. `server/ai-worker`가 분석 작업과 결과 저장을 담당하게 연결합니다.
 
 ## 문서와 작업 관리
 

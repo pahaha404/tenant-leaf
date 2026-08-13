@@ -4,14 +4,14 @@
 
 ## 프로젝트 구조와 담당 경계
 
-- `apps/android/`: Android 프런트엔드, 화면, 권한, 사용자 확인 흐름
-- `apps/android/glass/`: Meta 안경 연결, 촬영, 터치, 배터리, TTS
-- `services/api/`: 인증, 매물·방문 세션·체크리스트·업로드 API
-- `services/ai-worker/`: 비동기 사진 분석, STT, 보고서 초안 생성
+- `android/`: Android 프런트엔드, 화면, 권한, 사용자 확인 흐름
+- `glasses/android-integration/`: Meta 안경 연결, 촬영, 터치, 배터리, TTS
+- `server/api/`: 인증, 매물·방문 세션·체크리스트·업로드 API
+- `server/ai-worker/`: 비동기 사진 분석, STT, 보고서 초안 생성
 - `packages/shared-types/`: 앱·서버·AI 사이의 공통 계약
 - `packages/checklist-config/`: 점검 항목과 구역별 안내 규칙
-- `packages/glass-adapter/`: 앱의 Meta SDK 의존성을 격리하는 인터페이스
-- `ml/`: 학습·평가 코드와 데이터셋 메타데이터. 원본 이미지는 저장하지 않음
+- `glasses/adapter/`: 앱의 Meta SDK 의존성을 격리하는 인터페이스
+- `ai/ml/`: 학습·평가 코드와 데이터셋 메타데이터. 원본 이미지는 저장하지 않음
 - `docs/`: 제품, 기술, 개인정보 관련 문서
 - `docs/team/`: 역할별 시작 안내와 작업 순서
 - `Tasks/`: 전체 일정과 역할별 체크리스트

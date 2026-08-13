@@ -32,7 +32,7 @@ git switch -c feature/api-visit-session
 
 # 작업 후
 git status
-git add services/api
+git add server/api
 git commit -m "feat(api): 방문 세션 생성 API 추가"
 git push -u origin feature/api-visit-session
 ```
@@ -48,4 +48,4 @@ git push -u origin feature/api-visit-session
 - 동의 없이 개인식별 가능 이미지·음성·문서를 AI 학습에 사용
 - 다른 팀원의 변경을 확인 없이 삭제하거나 강제 푸시
 
-자세한 AI 데이터 규칙은 `ml/README.md`를 확인합니다.
+자세한 AI 데이터 규칙은 `ai/ml/README.md`를 확인합니다.

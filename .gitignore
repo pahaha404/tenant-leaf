@@ -25,11 +25,11 @@ coverage/
 tmp/
 
 # AI training data, experiment outputs, and model weights
-ml/data/raw/
-ml/data/processed/
-ml/artifacts/
-ml/runs/
-ml/checkpoints/
+ai/ml/data/raw/
+ai/ml/data/processed/
+ai/ml/artifacts/
+ai/ml/runs/
+ai/ml/checkpoints/
 *.pt
 *.pth
 *.ckpt

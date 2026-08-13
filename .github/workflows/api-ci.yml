@@ -6,8 +6,9 @@ on:
       - develop
       - main
     paths:
-      - services/api/**
-      - infra/docker/**
+      - server/api/**
+      - packages/shared-types/openapi/**
+      - server/infra/docker/**
       - .env.example
       - .github/workflows/api-ci.yml
   push:
@@ -15,8 +16,9 @@ on:
       - develop
       - main
     paths:
-      - services/api/**
-      - infra/docker/**
+      - server/api/**
+      - packages/shared-types/openapi/**
+      - server/infra/docker/**
       - .env.example
       - .github/workflows/api-ci.yml
   workflow_dispatch:
@@ -56,7 +58,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: services/api
+        working-directory: server/api
 
     steps:
       - name: Check out repository
@@ -69,11 +71,15 @@ jobs:
           java-version: "21"
           cache: gradle
           cache-dependency-path: |
-            services/api/*.gradle.kts
-            services/api/gradle/wrapper/gradle-wrapper.properties
+            server/api/*.gradle.kts
+            server/api/gradle/wrapper/gradle-wrapper.properties
+            packages/shared-types/openapi/openapi.yaml
 
       - name: Make Gradle Wrapper executable
         run: chmod +x gradlew
+
+      - name: Validate OpenAPI contract
+        run: ./gradlew openApiValidate --no-daemon
 
       - name: Build and test
         run: ./gradlew clean test --no-daemon
