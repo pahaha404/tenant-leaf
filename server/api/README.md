@@ -74,7 +74,7 @@ cd server/api
 
 ## 7. OpenAPI 기반 Kotlin 코드 생성
 
-공통 계약인 `packages/shared-types/openapi/openapi.yaml`에서 서버용 요청·응답 타입과 API 인터페이스를 생성합니다.
+공통 계약인 `server/shared-types/openapi/openapi.yaml`에서 서버용 요청·응답 타입과 API 인터페이스를 생성합니다.
 
 ```powershell
 cd server/api

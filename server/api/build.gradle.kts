@@ -51,7 +51,7 @@ allOpen {
 	annotation("jakarta.persistence.Embeddable")
 }
 
-val openApiSpec = file("../../packages/shared-types/openapi/openapi.yaml")
+val openApiSpec = file("../shared-types/openapi/openapi.yaml")
 val openApiOutput = layout.buildDirectory.dir("generated/openapi")
 
 openApiValidate {

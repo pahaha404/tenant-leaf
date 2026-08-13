@@ -7,7 +7,7 @@ on:
       - main
     paths:
       - server/api/**
-      - packages/shared-types/openapi/**
+      - server/shared-types/openapi/**
       - server/infra/docker/**
       - .env.example
       - .github/workflows/api-ci.yml
@@ -17,7 +17,7 @@ on:
       - main
     paths:
       - server/api/**
-      - packages/shared-types/openapi/**
+      - server/shared-types/openapi/**
       - server/infra/docker/**
       - .env.example
       - .github/workflows/api-ci.yml
@@ -73,7 +73,7 @@ jobs:
           cache-dependency-path: |
             server/api/*.gradle.kts
             server/api/gradle/wrapper/gradle-wrapper.properties
-            packages/shared-types/openapi/openapi.yaml
+            server/shared-types/openapi/openapi.yaml
 
       - name: Make Gradle Wrapper executable
         run: chmod +x gradlew
