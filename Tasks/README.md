@@ -1,6 +1,6 @@
 # 세입세잎 전체 작업 현황
 
-기준일: 2026-08-10
+기준일: 2026-08-12
 
 ## 이 폴더를 쓰는 방법
 
@@ -32,8 +32,8 @@
 - [ ] 안경 카메라·스피커·마이크·터치 연동 가능 여부 검증
 - [ ] 녹음 모드와 음성 안내 모드의 동시 사용 제약 검증
 - [ ] 필수 점검 체크리스트 28개 확정
-- [ ] AI 관찰 항목과 사용자 직접 확인 항목 분리
-- [ ] 매물·임장·미디어·체크리스트·AI 관찰의 최소 데이터 구조 확정
+- [ ] AI 탐지 항목과 사용자 직접 확인 항목 분리
+- [x] 매물·임장·미디어·체크리스트·AI 탐지의 최소 데이터 구조 확정
 - [ ] 전체 사용자 흐름과 정보 구조 확정
 - [ ] 로우파이 화면 및 클릭 가능한 프로토타입 완성
 
@@ -60,3 +60,5 @@
 - 2026-08-10 — `docs/team/pm/01_2026-08-10_MVP-계획.md` 작성 완료. MVP 범위, 사용자 흐름, UI/UX, 일정, 완료 조건을 기록함.
 - 2026-08-11 — 백엔드 개발 도구 설치 확인 완료. `scripts/check-prerequisites.ps1`로 Temurin JDK·javac 21.0.12, Docker CLI와 Docker Desktop engine 29.7.2 실행을 확인함.
 - 2026-08-11 — PostgreSQL 로컬 개발 환경 구성 완료. Docker Compose에서 PostgreSQL 17을 `healthy` 상태로 실행하고, 빈 볼륨 재생성 후 Flyway 마이그레이션과 `services/api`의 `clean test` 통과를 확인함. 헬스 체크는 DB 연결 시 `UP(200)`, 중지 시 `DOWN(503)`을 반환함.
+- 2026-08-12 — 공통 API 계약 1.0 확정. 데모 로그인, 사용자→매물→임장 구조, 체크리스트 상태 4개, AI 라벨·bbox 형식, 프레임 규격과 보관 정책을 `docs/technical/api-spec.md`에서 확인함.
+- 2026-08-12 — 확정된 HTTP API의 OpenAPI 3.0.3 명세 작성 완료. Redocly CLI와 OpenAPI Generator 7.24.0으로 `packages/shared-types/openapi/openapi.yaml` 문법과 참조 유효성을 확인함.
