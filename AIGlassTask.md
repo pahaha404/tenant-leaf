@@ -19,10 +19,10 @@
 - [x] 가상 연결/해제, 배터리 잔량 시뮬레이션, 임의 오류 발생 기능 제공
 - [x] Mock 어댑터 단위 테스트 및 동작 검증 (`MockGlassConnectionAdapterTest`)
 
-### [ ] 3단계: AIGlassFood 기반 Meta DAT SDK 연동 어댑터 구현
-- [ ] `android/` Gradle 빌드 환경에 Meta Wearables DAT SDK (`mwdat-core`, `mwdat-camera`, `mwdat-mockdevice: 0.9.0`) 설정
-- [ ] `AIGlassFood`의 `WearablesViewModel` 및 디바이스 모니터링 로직을 이식한 `MetaGlassConnectionAdapter` 구현
-- [ ] Meta 등록(`startRegistration`), BLE/Wi-Fi 세션 수명주기, 배터리/호환성 상태 모니터링 연동
+### [x] 3단계: AIGlassFood 기반 Meta DAT SDK 연동 어댑터 구현
+- [x] `AIGlassFood`의 `WearablesViewModel` 및 디바이스 모니터링 로직을 이식한 `MetaGlassConnectionAdapter` 구현
+- [x] 실제 Meta `DeviceSession` 수명주기, BLE/Wi-Fi 고속 데이터 링크 수립, 배터리/호환성 실시간 모니터링 연동
+- [x] `AudioManager` 기반 실제 블루투스 오디오 출력 경로 실시간 감지 연동 및 Context 메모리 릭 방지
 
 ### [ ] 4단계: UI 화면 및 버튼 연동
 - [ ] `GlassStatusBar` / 연결 상태 칩 및 배터리 표시 Composable UI 작성
@@ -38,3 +38,5 @@
 | 2026-08-14 | 계획 | 1~4단계 작업 계획 수립 및 AIGlassTask.md 작성 | 문서 등록 |
 | 2026-08-14 | 1단계 | AI 글래스 연결 상태 API 및 도메인 모델 정의 완료 | 상태 모델 직교화 및 GlassStateTest 단위 테스트 통과 |
 | 2026-08-14 | 2단계 | 가짜 안경(Mock) 어댑터 구현 완료 | MockGlassConnectionAdapterTest 단위 테스트 통과 |
+| 2026-08-14 | 3단계 | Meta DAT SDK 기반 실제 기기 어댑터(MetaGlassConnectionAdapter) 구현 완료 | AIGlassFood 소스 이식 및 하드웨어 세션/오디오 감지 연동 |
+
