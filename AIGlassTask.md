@@ -7,17 +7,17 @@
 ## 📋 단계별 작업 목록
 
 ### [x] 1단계: 연결 상태 인터페이스 & 도메인 모델 정의
-- [x] 독립적인 상태 머신 직교화 분리 (`GlassRegistrationStatus`, `DeviceLinkStatus`, `GlassStreamStatus`, `GlassAudioRouteStatus`)
+- [x] 독립적인 상태 머신 직교화 분리 (`GlassRegistrationStatus`, `GlassLinkStatus`, `GlassStreamStatus`, `GlassAudioRouteStatus`)
 - [x] Null-Safe 배터리 및 검증 로직이 포함된 기기 정보 모델 (`GlassDeviceInfo`)
 - [x] UI 복구 액션(`ErrorRecoveryAction`) 메타데이터가 포함된 도메인 에러 모델 (`GlassError`)
 - [x] UI 상태 바인딩용 통합 불변 상태 모델 (`GlassState`: `isReadyForInspection`, `isBusy`, `isStreaming` 등)
 - [x] Clean Architecture 기반의 Activity 비의존적 연결 API 인터페이스 (`GlassConnectionApi`, `GlassConnectionEvent`)
 - [x] 상태 전이, 속성 유효성, 에러 액션 매핑 단위 테스트 작성 (`GlassStateTest`)
 
-### [ ] 2단계: 가짜 안경(Mock) 어댑터 구현
-- [ ] 실기기 없이 개발/테스트 가능한 `MockGlassConnectionAdapter` 구현
-- [ ] 가상 연결/해제, 배터리 잔량 시뮬레이션, 임의 오류 발생 기능 제공
-- [ ] Mock 어댑터 단위 테스트 및 동작 검증
+### [x] 2단계: 가짜 안경(Mock) 어댑터 구현
+- [x] 실기기 없이 개발/테스트 가능한 `MockGlassConnectionAdapter` 구현
+- [x] 가상 연결/해제, 배터리 잔량 시뮬레이션, 임의 오류 발생 기능 제공
+- [x] Mock 어댑터 단위 테스트 및 동작 검증 (`MockGlassConnectionAdapterTest`)
 
 ### [ ] 3단계: AIGlassFood 기반 Meta DAT SDK 연동 어댑터 구현
 - [ ] `android/` Gradle 빌드 환경에 Meta Wearables DAT SDK (`mwdat-core`, `mwdat-camera`, `mwdat-mockdevice: 0.9.0`) 설정
@@ -37,3 +37,4 @@
 | :--- | :---: | :--- | :--- |
 | 2026-08-14 | 계획 | 1~4단계 작업 계획 수립 및 AIGlassTask.md 작성 | 문서 등록 |
 | 2026-08-14 | 1단계 | AI 글래스 연결 상태 API 및 도메인 모델 정의 완료 | 상태 모델 직교화 및 GlassStateTest 단위 테스트 통과 |
+| 2026-08-14 | 2단계 | 가짜 안경(Mock) 어댑터 구현 완료 | MockGlassConnectionAdapterTest 단위 테스트 통과 |

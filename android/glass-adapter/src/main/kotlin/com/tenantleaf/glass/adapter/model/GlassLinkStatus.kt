@@ -1,7 +1,7 @@
 package com.tenantleaf.glass.adapter.model
 
 // 휴대전화와 안경 사이의 물리적 무선(BLE / Wi-Fi Direct) 링크 상태
-enum class DeviceLinkStatus {
+enum class GlassLinkStatus {
     // 안경과 무선 연결이 맺어지지 않은 상태
     DISCONNECTED,
 

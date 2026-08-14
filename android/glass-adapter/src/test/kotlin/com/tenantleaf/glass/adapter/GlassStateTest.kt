@@ -1,10 +1,10 @@
 package com.tenantleaf.glass.adapter
 
-import com.tenantleaf.glass.adapter.model.DeviceLinkStatus
 import com.tenantleaf.glass.adapter.model.ErrorRecoveryAction
 import com.tenantleaf.glass.adapter.model.GlassAudioRouteStatus
 import com.tenantleaf.glass.adapter.model.GlassDeviceInfo
 import com.tenantleaf.glass.adapter.model.GlassError
+import com.tenantleaf.glass.adapter.model.GlassLinkStatus
 import com.tenantleaf.glass.adapter.model.GlassRegistrationStatus
 import com.tenantleaf.glass.adapter.model.GlassState
 import com.tenantleaf.glass.adapter.model.GlassStreamStatus
@@ -25,7 +25,7 @@ class GlassStateTest {
         val state = GlassState()
 
         assertEquals(GlassRegistrationStatus.UNAVAILABLE, state.registration)
-        assertEquals(DeviceLinkStatus.DISCONNECTED, state.link)
+        assertEquals(GlassLinkStatus.DISCONNECTED, state.link)
         assertEquals(GlassStreamStatus.STOPPED, state.stream)
         assertEquals(GlassAudioRouteStatus.NOT_CONNECTED, state.audioRoute)
         assertNull(state.device)
@@ -44,7 +44,7 @@ class GlassStateTest {
     fun testReadyForInspectionState() {
         val readyState = GlassState(
             registration = GlassRegistrationStatus.REGISTERED,
-            link = DeviceLinkStatus.CONNECTED,
+            link = GlassLinkStatus.CONNECTED,
             stream = GlassStreamStatus.STOPPED,
             device = GlassDeviceInfo(
                 deviceId = "rayban-001",
@@ -65,7 +65,7 @@ class GlassStateTest {
     fun testStreamingState() {
         val streamingState = GlassState(
             registration = GlassRegistrationStatus.REGISTERED,
-            link = DeviceLinkStatus.CONNECTED,
+            link = GlassLinkStatus.CONNECTED,
             stream = GlassStreamStatus.STREAMING,
             device = GlassDeviceInfo(
                 deviceId = "rayban-001",
@@ -84,13 +84,13 @@ class GlassStateTest {
     fun testBusyStateTransitions() {
         val connectingState = GlassState(
             registration = GlassRegistrationStatus.REGISTERED,
-            link = DeviceLinkStatus.CONNECTING,
+            link = GlassLinkStatus.CONNECTING,
         )
         assertTrue(connectingState.isBusy)
 
         val streamStartingState = GlassState(
             registration = GlassRegistrationStatus.REGISTERED,
-            link = DeviceLinkStatus.CONNECTED,
+            link = GlassLinkStatus.CONNECTED,
             stream = GlassStreamStatus.STARTING,
         )
         assertTrue(streamStartingState.isBusy)

@@ -7,7 +7,7 @@ package com.tenantleaf.glass.adapter.model
  */
 data class GlassState(
     val registration: GlassRegistrationStatus = GlassRegistrationStatus.UNAVAILABLE, // 앱과 관리 앱 사이의 페어링 상태
-    val link: DeviceLinkStatus = DeviceLinkStatus.DISCONNECTED,                      // 안경과의 물리 무선 링크 상태
+    val link: GlassLinkStatus = GlassLinkStatus.DISCONNECTED,                        // 안경과의 물리 무선 링크 상태
     val stream: GlassStreamStatus = GlassStreamStatus.STOPPED,                       // 카메라 및 센서 데이터 스트리밍 상태
     val audioRoute: GlassAudioRouteStatus = GlassAudioRouteStatus.NOT_CONNECTED,     // 안경 스피커(TTS) 오디오 출력 경로 상태
     val device: GlassDeviceInfo? = null,                                             // 연결된 기기 하드웨어 메타데이터
@@ -19,7 +19,7 @@ data class GlassState(
 
     // 안경과 물리적 무선 링크가 안정적으로 연결되어 있는지 여부
     val isConnected: Boolean
-        get() = link == DeviceLinkStatus.CONNECTED
+        get() = link == GlassLinkStatus.CONNECTED
 
     // 현재 안경 카메라로부터 실시간 영상 스트림을 수신 중인지 여부
     val isStreaming: Boolean
@@ -33,8 +33,8 @@ data class GlassState(
     val isBusy: Boolean
         get() = registration == GlassRegistrationStatus.REGISTERING ||
             registration == GlassRegistrationStatus.UNREGISTERING ||
-            link == DeviceLinkStatus.CONNECTING ||
-            link == DeviceLinkStatus.DISCONNECTING ||
+            link == GlassLinkStatus.CONNECTING ||
+            link == GlassLinkStatus.DISCONNECTING ||
             stream == GlassStreamStatus.STARTING ||
             stream == GlassStreamStatus.STOPPING
 
