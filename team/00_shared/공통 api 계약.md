@@ -1,30 +1,39 @@
 # 세입세잎 공통 API 계약
 
-> 상태: 확정 1.2
+> 상태: 검토 초안 2.0
 >
-> 기준일: 2026-08-14
+> 기준일: 2026-08-18
 >
 > 기준 용어: [`공통용어집.md`](../../server/backendmds/공통용어집.md)
+>
+> 도메인 기준: [`도메인 규칙.md`](../../server/backendmds/도메인%20규칙.md)
 
-Android 앱, Kotlin API 서버, AI 작업자가 같은 이름과 데이터 형식을 사용하기 위한 MVP 계약이다. 이 문서의 확정 항목을 구현 기준으로 사용하며, 아직 확정되지 않은 항목은 임의로 채우지 않는다.
+Android 앱, Kotlin API 서버와 AI 작업자가 같은 이름과 데이터 의미를 사용하기 위한 MVP 계약이다. 2.0은 현장 체크리스트 중심의 1.2 계약을 **구역·관찰·근거 미디어 중심**으로 교체하는 배포 전 파괴적 개정안이다.
 
-## 1. 반드시 지키는 흐름
+이 문서에서 `확정`으로 표시한 의미와 상태값만 구현 기준으로 사용한다. 요청·응답 형식이 아직 합의되지 않은 API는 설명만 남기고 OpenAPI에서 제외한다.
+
+## 1. 반드시 지키는 서비스 흐름
 
 ```text
-스마트 글래스 기본 영상 촬영 -> 휴대전화 갤러리
-                                  -> Android JPEG 생성 -> API 서버 -> AI 작업자
-                                                         -> 파일 저장소
+AI 글래스 기본 고화질 영상 촬영
+→ Meta AI 동반 앱을 통해 휴대전화 갤러리로 가져오기
+→ Android가 영상을 선택하고 고정 3초 구간마다 JPEG 후보 생성
+→ 선명한 JPEG만 API를 거쳐 객체 저장소에 업로드
+→ AI Worker가 비동기로 구역 분류와 하자 의심 관찰 후보 생성
+→ 사용자가 구역별 관찰과 근거 사진 확인
+→ 분석 종료 후 리포트 생성
 ```
 
-- 스마트 글래스는 API 서버나 AI 제공자를 직접 호출하지 않는다.
+- AI 글래스는 API 서버나 AI 제공자를 직접 호출하지 않는다.
 - Android 앱은 AI 제공자 API 키를 저장하거나 AI 제공자를 직접 호출하지 않는다.
-- 원본 영상은 사용자의 휴대전화 갤러리에만 보관하며 API 서버와 파일 저장소에 업로드하지 않는다.
-- Android가 촬영 중 생성하거나 촬영 완료 영상에서 추출한 분석용 JPEG만 접근 제어된 파일 저장소에 보관한다.
+- 원본 영상은 사용자의 휴대전화 갤러리에만 보관하며 API, PostgreSQL, 객체 저장소와 AI Worker에 업로드하지 않는다.
+- 휴대전화 갤러리 URI와 로컬 파일 경로는 API 요청과 로그에 포함하지 않는다.
 - MVP에서는 촬영 중 실시간 스트리밍 분석을 실행하지 않는다.
-- AI `detection`은 하자 후보인 **확인 필요 관찰 결과**이며 실제 하자, 위험 또는 안전 상태를 확정하지 않는다.
-- 체크리스트의 최종 상태는 사용자가 Android 앱에서 확인한 값만 반영한다.
+- 촬영 중 JPEG 생성은 실기기에서 녹화 중단·화질 저하·시점 오차가 없음을 확인한 경우에만 선택적으로 사용한다.
+- AI 결과는 실제 하자·위험·안전·수리 필요·계약 가능 여부를 확정하지 않는 `확인 필요 관찰`이다.
+- 현장 체크리스트 상태, 체크리스트 완료율과 AI의 체크리스트 자동 판정은 사용하지 않는다.
 
-## 2. 공통 규칙
+## 2. 공통 HTTP 규칙
 
 | 항목 | 규칙 |
 |---|---|
@@ -32,34 +41,13 @@ Android 앱, Kotlin API 서버, AI 작업자가 같은 이름과 데이터 형�
 | 본문 형식 | `application/json` |
 | JSON 필드명 | `camelCase` |
 | ID | UUID 문자열 |
-| 날짜와 시간 | ISO 8601 UTC 문자열. 예: `2026-08-12T07:30:00Z` |
-| 날짜 | ISO 8601 날짜. 예: `2026-08-12` |
-| 선택값 | 값이 없으면 필드를 생략한다. 값을 지우는 요청에만 명시적으로 `null`을 사용한다. |
+| 날짜와 시간 | ISO 8601 UTC 문자열. 예: `2026-08-18T07:30:00Z` |
+| 선택값 | 값이 없으면 필드를 생략한다. 값을 지우는 PATCH 요청에만 명시적인 `null`을 사용한다. |
 | 페이지 조회 | `page`, `size`를 사용하며 `page`는 0부터 시작한다. |
+| enum | OpenAPI에 정의된 대소문자를 그대로 사용한다. 현재 상태·구역 값은 대문자, AI 원본 라벨은 소문자이며 `Bearer` 같은 프로토콜 값도 명세 표기를 바꾸지 않는다. |
 | 언어 | 코드와 API는 영문 표준명, 사용자 화면은 한글 표준명을 사용한다. |
 
-### 2.1 인증
-
-MVP에서는 실제 소셜 로그인을 연동하지 않고 데모 계정으로 게스트 로그인한다. UI의 소셜 로그인 버튼을 누르면 데모 로그인 안내 후 동일한 게스트 로그인 API를 호출한다. 해당 버튼을 실제 소셜 계정 인증이나 연동 완료로 표현하지 않는다.
-
-데모 로그인 성공 후 모든 사용자용 API에 아래 형식을 적용한다.
-
-```http
-Authorization: Bearer <access-token>
-```
-
-서버는 데모 사용자를 식별할 수 있는 접근 토큰을 발급한다. 실제 소셜 인증, 토큰 재발급 및 장기 로그인 유지는 MVP 범위에서 제외한다.
-
-### 2.2 성공 응답
-
 성공 응답은 불필요한 공통 포장 객체 없이 리소스 또는 페이지 객체를 그대로 반환한다.
-
-```json
-{
-  "id": "b5df53ee-d948-4c16-879f-8a4ec0ca64cd",
-  "name": "역세권 원룸"
-}
-```
 
 목록 응답은 다음 형식을 사용한다.
 
@@ -73,7 +61,20 @@ Authorization: Bearer <access-token>
 }
 ```
 
-### 2.3 오류 응답
+### 2.1 인증과 데이터 접근
+
+MVP에서는 실제 소셜 로그인 대신 데모 사용자를 사용한다. 데모 로그인 성공 후 사용자용 API에는 다음 헤더를 사용한다.
+
+```http
+Authorization: Bearer <access-token>
+```
+
+- 서버는 토큰의 사용자 ID로 매물과 그 하위 임장·미디어·관찰·리포트의 접근 권한을 검사한다.
+- 여기서 사용자가 `소유`한 매물은 부동산의 법적 소유권이 아니라 사용자가 앱에 등록해 접근 권한을 가진 기록을 뜻한다.
+- 다른 사용자의 리소스 존재를 숨겨야 할 때는 `404`를 반환할 수 있다.
+- 실제 소셜 인증, 토큰 재발급과 장기 로그인은 이 계약의 범위가 아니다.
+
+### 2.2 오류 응답
 
 ```json
 {
@@ -93,81 +94,165 @@ Authorization: Bearer <access-token>
 |---:|---|---|
 | `400` | `VALIDATION_ERROR` | 요청값 형식 또는 범위 오류 |
 | `401` | `UNAUTHENTICATED` | 로그인이 필요함 |
-| `403` | `FORBIDDEN` | 다른 사용자의 리소스 등 접근 권한 없음 |
-| `404` | `PROPERTY_NOT_FOUND` | 요청한 리소스가 없음 |
+| `403` | `FORBIDDEN` | 인증된 사용자가 수행할 수 없는 동작 |
+| `404` | `PROPERTY_NOT_FOUND` | 요청한 리소스가 없거나 접근할 수 없음 |
 | `409` | `INVALID_STATE_TRANSITION` | 현재 상태에서는 요청을 수행할 수 없음 |
-| `413` | `FILE_TOO_LARGE` | 업로드 허용 크기 초과 |
-| `415` | `UNSUPPORTED_MEDIA_TYPE` | 지원하지 않는 파일 형식 |
+| `413` | `FILE_TOO_LARGE` | JPEG 업로드 허용 크기 초과 |
+| `415` | `UNSUPPORTED_MEDIA_TYPE` | JPEG가 아닌 파일 형식 |
 | `500` | `INTERNAL_ERROR` | 서버 내부 오류 |
 
-클라이언트는 사용자 문구인 `message`가 아니라 안정된 식별자인 `code`로 분기한다.
+클라이언트는 사용자 문구인 `message`가 아니라 안정된 식별자인 `code`로 분기한다. 내부 예외 메시지와 스택 트레이스는 응답에 포함하지 않는다.
 
-## 3. 공통 상태값
+### 2.3 멱등성 원칙
+
+미디어 등록·완료·재시도 API가 확정되면 `Idempotency-Key`를 사용한다.
+
+- Android는 같은 논리 사진에 재시도해도 바뀌지 않는 `clientMediaId` UUID를 사용한다.
+- `(inspectionId, clientMediaId)`는 중복될 수 없다.
+- 같은 키와 같은 요청은 기존 결과를 반환하고 DB 행이나 저장소 객체를 중복 생성하지 않는다.
+- 업로드 실패 시 같은 `mediaId`, `clientMediaId`와 저장소 키를 유지하고 새 서명 URL만 발급한다. 자동 재시도는 최대 3회이며 이후에는 사용자가 직접 재시도한다.
+- Android가 분석 대상 미디어 등록을 끝냈다고 확정한 뒤에는 신규 미디어를 추가하지 않고 이미 등록된 실패 미디어만 재시도한다.
+- 같은 키에 다른 요청 본문을 보내는 경우의 정확한 오류 코드는 아직 확정하지 않았다.
+
+## 3. 확정 상태값
 
 ### 3.1 임장 상태 `InspectionStatus`
 
-| 값 | 의미 |
-|---|---|
-| `in_progress` | 사용자가 임장을 진행 중 |
-| `completed` | 사용자가 임장을 종료함 |
-| `cancelled` | 사용자가 임장을 취소함 |
-
-허용 전이는 `in_progress -> completed` 또는 `in_progress -> cancelled`이다. 같은 매물을 다시 점검하면 기존 임장을 되돌리지 않고 새 `inspection`을 만든다.
-
-### 3.2 체크리스트 상태 `ChecklistStatus`
+```text
+IN_PROGRESS → ENDED
+      └────→ CANCELLED
+```
 
 | 값 | 의미 |
 |---|---|
-| `unchecked` | 아직 사용자가 확인하지 않음 |
-| `normal` | 사용자가 특이사항 없음을 확인함 |
-| `needs_review` | 사용자가 추가 확인이 필요하다고 표시함 |
-| `not_applicable` | 해당 매물에는 적용되지 않는 항목 |
+| `IN_PROGRESS` | 사용자가 안경으로 현장 원본 영상을 촬영 중 |
+| `ENDED` | 촬영을 정상 종료했으며 영상 가져오기·JPEG 생성·업로드·분석 가능 |
+| `CANCELLED` | 촬영을 중단해 신규 업로드와 분석 대상에서 제외됨 |
 
-AI 결과만으로 체크리스트 상태를 변경하지 않는다. 모든 변경에는 `confirmedByUser: true`가 필요하다.
+- 실제 촬영 시작 시 `IN_PROGRESS` 임장을 생성한다.
+- `ENDED`와 `CANCELLED`는 되돌릴 수 없다. 다시 점검하면 새 임장을 만든다.
+- 보관은 상태값이 아니라 `archivedAt`으로 관리한다.
+- 미디어 업로드와 분석은 `ENDED` 임장에서만 허용한다.
 
-### 3.3 업로드 상태 `FrameUploadStatus`
-
-| 값 | 의미 |
-|---|---|
-| `pending` | 업로드 URL을 발급했으나 완료 확인 전 |
-| `uploaded` | 파일 저장소 업로드 완료를 확인함 |
-| `failed` | 업로드가 실패함 |
-| `deleted` | 보관 정책 또는 사용자 요청에 따라 삭제됨 |
-
-### 3.4 AI 분석 상태 `AnalysisStatus`
+### 3.2 임장 전체 분석 상태 `InspectionAnalysisStatus`
 
 | 값 | 의미 |
 |---|---|
-| `queued` | 분석 요청이 대기열에 등록됨 |
-| `processing` | AI 작업자가 분석 중 |
-| `completed` | 탐지 결과 저장 완료 |
-| `failed` | 재시도 후에도 분석 실패 |
+| `NOT_STARTED` | 등록된 분석 미디어가 없음 |
+| `UPLOADING` | 미디어 등록·업로드·객체 확인 또는 업로드 재시도 단계 |
+| `QUEUED` | 업로드 완료 후 분석 요청 준비 또는 대기열 처리 중 |
+| `ANALYZING` | 하나 이상의 미디어가 분석 중 |
+| `PARTIAL_COMPLETED` | 일부 성공 결과가 있고 나머지가 진행 중 또는 실패 |
+| `COMPLETED` | 미디어 집합 확정 후 모든 분석 대상 처리가 성공함 |
+| `FAILED` | 미디어 집합 확정 후 성공한 분석 없이 모든 대상이 최종 실패함 |
 
-### 3.5 AI 탐지 검토 상태 `DetectionReviewStatus`
+Android가 이 값을 확정해 보내지 않는다. 서버가 삭제되지 않은 등록 미디어 상태와 분석 대상 미디어 집합 확정 여부를 보고 다음 우선순위로 계산한다.
+
+1. 등록 미디어 없음 → `NOT_STARTED`
+2. 성공 분석 있음 + 집합 미확정 또는 다른 작업 진행·최종 실패 → `PARTIAL_COMPLETED`
+3. 분석 중 있음 → `ANALYZING`
+4. `analysisStatus=QUEUED` 또는 `uploadStatus=UPLOADED` + `analysisStatus=NOT_REQUESTED` 있음 → 집합 확정 여부와 관계없이 `QUEUED`
+5. `PENDING`, 업로드 중, 재시도 가능한 업로드 실패가 있거나, 집합 미확정 상태에서 업로드·분석 최종 실패만 남음 → `UPLOADING`
+6. 집합 확정 + 전체 분석 성공 → `COMPLETED`
+7. 집합 확정 + 일부 분석 성공 + 나머지 최종 실패 → `PARTIAL_COMPLETED`
+8. 집합 확정 + 성공 없음 + 전체 업로드·분석 최종 실패 → `FAILED`
+
+`COMPLETED`와 `FAILED`는 미디어 집합 확정 전에는 반환하지 않는다. 집합 확정 사실은 서버가 저장하지만 정확한 필드와 확정 API는 P0 합의 전까지 OpenAPI에 추가하지 않는다. 분석 결과가 관찰 0건이어도 분석 성공으로 집계한다.
+
+### 3.3 미디어 상태
+
+`MediaUploadStatus`:
 
 | 값 | 의미 |
 |---|---|
-| `needs_review` | 사용자가 아직 확인하지 않음 |
-| `accepted` | 사용자가 해당 후보를 관찰 결과로 인정함 |
-| `rejected` | 사용자가 오탐 등으로 반려함 |
+| `PENDING` | 업로드 등록 후 객체 확인 전 |
+| `UPLOADING` | 업로드 진행 중 |
+| `UPLOADED` | 서버가 객체의 존재·크기·형식을 확인함 |
+| `FAILED` | 업로드 실패 |
 
-`accepted`도 안전 진단이나 법적 하자 확정이 아니라 사용자가 현장에서 확인한 관찰 기록이라는 뜻이다.
+`MediaAnalysisStatus`:
 
-## 4. 공통 데이터 형식
+| 값 | 의미 |
+|---|---|
+| `NOT_REQUESTED` | 분석 요청 전 |
+| `QUEUED` | 분석 대기열 등록됨 |
+| `ANALYZING` | AI Worker가 분석 중 |
+| `COMPLETED` | 분석이 성공적으로 끝남. 관찰 0건도 포함 |
+| `FAILED` | 재시도 후 최종 실패 |
+
+삭제 여부는 업로드 상태에 섞지 않고 별도의 삭제 시각으로 관리한다.
+
+### 3.4 구역 `Zone`
+
+| API 값 | 앱 표시 |
+|---|---|
+| `ENTRANCE_COMMON` | 현관·공용 |
+| `KITCHEN` | 주방 |
+| `WINDOW_VENTILATION` | 창틀·환기 |
+| `LIVING_ROOM` | 거실·방 |
+| `BATHROOM` | 화장실 |
+| `UNKNOWN` | 구역 확인 필요 |
+
+- `UNKNOWN` 미디어를 임의의 정규 구역으로 넣지 않는다.
+- `UNKNOWN`은 다섯 개 정규 구역 완료 수에 포함하지 않는다.
+- AI 원본 구역과 `zoneConfidence`는 사용자가 보정하더라도 덮어쓰지 않는다.
+
+### 3.5 구역별 분석 상태 `ZoneAnalysisStatus`
+
+| 값 | 의미 |
+|---|---|
+| `NO_MEDIA` | 해당 구역에 분류된 분석 사진이 없음 |
+| `UPLOADING` | 미디어 업로드 중 |
+| `QUEUED` | 분석 대기 중 |
+| `ANALYZING` | 분석 중 |
+| `COMPLETED` | 분석 성공 결과를 조회할 수 있음 |
+| `PARTIAL_FAILED` | 성공 결과와 최종 실패 미디어가 함께 있음 |
+| `FAILED` | 성공 결과 없이 해당 구역 분석이 최종 실패 |
+
+`NO_MEDIA`는 하자가 발견되지 않았다는 뜻이 아니다. 진행 상태가 섞여 있으면 `ANALYZING > QUEUED > UPLOADING` 순으로 표시하고, 완료 결과가 이미 있는지는 별도 `hasResults`로 제공한다.
+
+### 3.6 관찰 검토 상태 `ObservationStatus`
+
+```text
+ACTIVE → VIEWED → DISMISSED
+ACTIVE ───────────→ DISMISSED
+DISMISSED ────────→ VIEWED
+```
+
+| 값 | 의미 |
+|---|---|
+| `ACTIVE` | 아직 사용자가 열람하지 않은 활성 관찰 |
+| `VIEWED` | 사용자가 관찰과 근거를 열람함 |
+| `DISMISSED` | 사용자가 기본 리포트에서 제외함 |
+
+`DISMISSED`는 `하자 아님`이나 오탐 확정 판정이 아니다. 복원하면 이미 확인한 상태인 `VIEWED`로 돌아가고 AI 원본 결과는 유지한다.
+
+### 3.7 리포트 상태 `ReportStatus`
+
+| 값 | 의미 |
+|---|---|
+| `NOT_REQUESTED` | 생성 요청 또는 자동 생성 조건 충족 전 |
+| `WAITING_FOR_ANALYSIS` | 분석 종료 대기 중 |
+| `GENERATING` | 리포트 생성 중 |
+| `COMPLETED` | 성공 미디어가 하나 이상이고 최종 실패가 없음 |
+| `PARTIAL_COMPLETED` | 성공 미디어가 하나 이상이고 일부가 최종 실패 |
+| `FAILED` | 성공 분석 미디어가 없음 |
+
+성공 분석의 관찰이 0건이어도 `COMPLETED`다. 이때 화면에는 `하자 없음`이 아니라 `현재 촬영 근거에서 확인 필요 관찰이 생성되지 않음`으로 표시한다.
+
+## 4. 공통 데이터 의미
 
 ### 4.1 사용자 `User`
 
 ```json
 {
   "id": "2fb2b214-523f-4fcf-bce7-72881a5ccb32",
-  "displayName": "잎새",
-  "createdAt": "2026-08-12T07:30:00Z"
+  "displayName": "데모 사용자",
+  "createdAt": "2026-08-18T07:30:00Z"
 }
 ```
 
-계정 인증 정보와 개인정보 필드는 인증 정책이 확정된 뒤 별도 계약으로 추가한다.
-
-MVP의 `User`는 데모 사용자이며 실제 소셜 계정 정보와 연결하지 않는다.
+MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자다.
 
 ### 4.2 매물 `Property`
 
@@ -184,20 +269,16 @@ MVP의 `User`는 데모 사용자이며 실제 소셜 계정 정보와 연결하
   "options": ["에어컨", "냉장고", "세탁기"],
   "brokerContact": "○○부동산 02-0000-0000",
   "note": "채광 확인 필요",
-  "createdAt": "2026-08-12T07:30:00Z",
-  "updatedAt": "2026-08-12T07:30:00Z"
+  "createdAt": "2026-08-18T07:30:00Z",
+  "updatedAt": "2026-08-18T07:30:00Z"
 }
 ```
 
-- `addressSummary`에는 비교에 필요한 최소 지역 정보만 저장한다.
-- 금액 필드는 모두 원(KRW) 단위의 0 이상 정수로 저장한다.
-- `areaSquareMeters`는 ㎡ 단위의 0보다 큰 숫자로 저장한다.
-- 앱은 면적 표시를 `㎡`와 `평` 사이에서 전환할 수 있다. `1평 = 3.305785㎡`를 사용하며, `평 = ㎡ / 3.305785`, `㎡ = 평 × 3.305785`로 계산한다.
-- 사용자가 평 단위로 입력해도 앱이 ㎡로 변환하여 `areaSquareMeters`에 전송한다. 서버와 데이터베이스에는 평 값을 별도 저장하지 않는다.
-- 계산에는 반올림하지 않은 값을 사용하고 화면에 표시할 때만 소수점 둘째 자리까지 반올림한다. 선택한 표시 단위는 앱의 로컬 설정으로 관리한다.
-- `floor`, `options`, `brokerContact`는 사용자가 확인한 표현을 그대로 기록하며 서버가 사실 여부를 보증하지 않는다.
-- `brokerContact`에는 매물 확인에 필요한 최소 연락 정보만 입력하고 사용자 본인이나 제3자의 불필요한 개인정보를 기록하지 않는다.
-- 상세 주소가 필요해지면 접근 권한, 암호화, 마스킹, 삭제 기한을 먼저 정한다.
+- `name`만 생성 필수이며 나머지는 사용자 선택 입력이다.
+- 금액은 원(KRW) 단위의 0 이상 정수로 저장한다.
+- 면적은 ㎡ 단위의 0보다 큰 값만 저장한다. 평 값은 저장하지 않고 Android에서 `1평 = 3.305785㎡`로 변환한다.
+- 계산에는 반올림하지 않은 값을 사용하고 화면에 표시할 때만 반올림한다.
+- `floor`, `options`, `brokerContact`는 사용자가 작성한 참고 정보이며 서버가 정확성을 보증하지 않는다.
 
 ### 4.3 임장 `Inspection`
 
@@ -205,155 +286,64 @@ MVP의 `User`는 데모 사용자이며 실제 소셜 계정 정보와 연결하
 {
   "id": "44d25c46-8391-43cf-903b-b5b580023861",
   "propertyId": "b5df53ee-d948-4c16-879f-8a4ec0ca64cd",
-  "status": "in_progress",
-  "startedAt": "2026-08-12T08:00:00Z",
-  "completedAt": null,
-  "createdAt": "2026-08-12T08:00:00Z"
+  "status": "IN_PROGRESS",
+  "analysisStatus": "NOT_STARTED",
+  "startedAt": "2026-08-18T08:00:00Z",
+  "endedAt": null,
+  "cancelledAt": null,
+  "archivedAt": null,
+  "createdAt": "2026-08-18T08:00:00Z"
 }
 ```
 
-### 4.4 체크리스트 항목 `ChecklistItem`
+- `analysisStatus`와 집계 수치는 서버가 원본 미디어 상태에서 계산한다.
+- `endedAt`은 `ENDED`, `cancelledAt`은 `CANCELLED`로 전환할 때 기록한다.
+- `archivedAt`은 상태 전이와 별개이며 설정·해제 API는 아직 확정하지 않았다.
 
-```json
-{
-  "id": "31157362-8faa-4f90-af64-68b563ee9e52",
-  "inspectionId": "44d25c46-8391-43cf-903b-b5b580023861",
-  "key": "bathroom.wall.surface",
-  "title": "욕실 벽면 상태",
-  "status": "needs_review",
-  "note": "창가 쪽 얼룩 확인",
-  "confirmedByUser": true,
-  "updatedAt": "2026-08-12T08:10:00Z"
-}
-```
+### 4.4 휴대전화 원본 영상 `LocalRecordedVideo`
 
-`key`와 `title`의 기준 데이터는 체크리스트 설정 담당자가 별도 계약으로 관리한다.
+`LocalRecordedVideo`는 Android 로컬 개념이며 서버 리소스가 아니다.
 
-### 4.5 기기 `Device`
+- Android가 각 영상 클립에 불투명 UUID인 `sourceVideoId`를 부여할 수 있다.
+- `sourceVideoId`는 서버 영상 파일 ID가 아니며 원본 영상 파일을 찾는 URL도 아니다.
+- 원본 영상 파일, 갤러리 URI, 로컬 경로를 받는 API는 만들지 않는다.
 
-```json
-{
-  "id": "7df76d24-9669-45c7-aec5-86426153ec55",
-  "type": "smartphone",
-  "modelName": "Android device"
-}
-```
+### 4.5 분석 사진 `Media(PHOTO)`
 
-`type`의 MVP 허용값은 `smartphone`, `smart_glasses`다. 서버에는 기기 식별에 꼭 필요한 최소 정보만 보낸다.
+다음은 확정된 도메인 의미다. 업로드 요청·응답 DTO는 아직 확정하지 않았으므로 이 객체를 그대로 HTTP 요청으로 구현하지 않는다.
 
-### 4.6 분석 프레임 `Frame`
-
-```json
-{
-  "id": "13077d2f-7d31-42a9-89f4-a25feb68f4d5",
-  "inspectionId": "44d25c46-8391-43cf-903b-b5b580023861",
-  "checklistItemId": "31157362-8faa-4f90-af64-68b563ee9e52",
-  "deviceId": "7df76d24-9669-45c7-aec5-86426153ec55",
-  "frameOrigin": "post_recording_extraction",
-  "sourceVideoId": "db515c1d-a0d0-4f43-85bf-1a66ca164c82",
-  "sourceVideoOffsetMs": 252000,
-  "contentType": "image/jpeg",
-  "width": 720,
-  "height": 1280,
-  "contentLength": 286412,
-  "importantByUser": false,
-  "capturedAt": "2026-08-12T08:09:30Z",
-  "uploadStatus": "uploaded",
-  "createdAt": "2026-08-12T08:09:35Z"
-}
-```
-
-- API는 저장소의 실제 경로나 비공개 원본 URL을 영구 공개하지 않는다.
-- 화면 표시가 필요하면 만료 시간이 짧은 조회 URL을 별도로 발급한다.
-- 실제 이미지, 영상, 음성은 Git에 올리지 않는다.
-- `sourceVideoId`는 Android가 영상 클립마다 생성한 UUID이며 서버에 저장된 영상 파일 ID가 아니다.
-- 휴대전화 갤러리 URI와 로컬 파일 경로는 API에 보내지 않는다.
-- `sourceVideoOffsetMs`는 프레임이 원본 영상 시작 후 몇 밀리초 지점인지 나타낸다.
-- `capturedAt`은 촬영 중 동시 생성 사진이면 실제 캡처 시각, 사후 추출 사진이면 원본 영상 시작 시각과 `sourceVideoOffsetMs`로 계산한 시각이다.
-
-#### 자동 분석 프레임 기준
-
-| 항목 | 확정값 |
+| 필드 | 의미 |
 |---|---|
-| 원본 | Meta 안경 기본 고화질 영상 촬영본 |
-| 우선 생성 방식 | 기본 영상 녹화를 유지하면서 촬영 중 정지 사진 동시 생성. 공식 SDK·실기기 지원 시에만 사용 |
-| 보장되는 대체 방식 | 촬영 완료 후 Android에서 영상 프레임 추출 |
-| 분석 프레임 선택 | 원본 영상의 2~3초 구간마다 최대 1장 |
-| 해상도 | 선택한 원본 영상 프레임의 실제 해상도. 고정 스트림 해상도를 계약값으로 사용하지 않음 |
-| 저장 형식 | JPEG |
-| 앱 JPEG 품질 | `90` |
-| 예상 파일 크기 | 일반적으로 150~400KB. 강제 목표값은 아님 |
-| 서버 최대 허용 크기 | 프레임당 `1,048,576 bytes`(1MiB) |
+| `mediaId` | 서버가 부여한 UUID |
+| `clientMediaId` | Android가 생성하며 재시도에도 유지하는 UUID |
+| `inspectionId` | 사진이 속한 임장 |
+| `mediaType` | MVP에서는 `PHOTO`만 허용 |
+| `captureSource` | `META_GLASS` 또는 `ANDROID_CAMERA` |
+| `frameOrigin` | `DURING_RECORDING_CAPTURE` 또는 `POST_RECORDING_EXTRACTION` |
+| `sourceVideoId` | Android가 영상 클립에 부여한 UUID |
+| `sourceVideoOffsetMs` | 영상 시작 후 실제 프레임 시점(ms) |
+| `capturedAt` | 실제 촬영 시각 또는 영상 시점으로 계산한 시각 |
+| `uploadStatus` | 서버가 관리하는 업로드 상태 |
+| `analysisStatus` | 서버가 관리하는 분석 상태 |
+| `zone`, `zoneConfidence` | AI의 원본 구역 분류와 신뢰도 |
+| `width`, `height`, `contentLength` | 검증한 실제 JPEG 정보 |
 
-- 원본 영상은 Meta AI 동반 앱의 가져오기 기능을 통해 휴대전화 갤러리에 저장하며 서버에 업로드하지 않는다.
-- 촬영 중 정지 사진 동시 생성은 기본 영상 녹화 중단·화질 저하가 없는지 실기기에서 검증하기 전까지 보장 기능으로 표시하지 않는다.
-- 동시 생성이 지원되지 않거나 불안정하면 촬영 완료 후 추출 방식을 자동으로 사용한다.
-- 앱은 각 2~3초 구간 주변 프레임 중 심하게 흔들리거나 어둡거나 가려졌거나 직전 사진과 사실상 동일한 프레임을 가능한 범위에서 제외한다.
-- 앱은 실제 `width`, `height`, `contentLength`를 전송한다.
-- 1MiB를 초과하면 픽셀 크기를 줄이기 전에 JPEG 품질을 조정하며 세부 흔적 손실 여부를 실기기로 검증한다.
-- 서버는 JPEG 품질 숫자를 직접 검증하지 않고 `contentType`, 실제 파일 크기와 이미지 크기를 검증한다.
-- 1MiB를 초과하면 `413 FILE_TOO_LARGE`, JPEG가 아니면 `415 UNSUPPORTED_MEDIA_TYPE`을 반환한다.
+객체 저장소 내부 키는 서버 내부 전용이다. Android에는 요청 시 발급한 짧은 만료 시간의 서명 URL만 제공한다.
 
-#### 프레임 보관 및 삭제 기준
+### 4.6 JPEG 생성·검증·보관 규칙
 
-| 사진 종류 | 보관 기간 |
-|---|---:|
-| 업로드 실패·미완료 파일 | 생성 후 최대 24시간 |
-| 탐지 결과가 없는 자동 프레임 | 분석 완료 후 최대 7일 |
-| AI 탐지가 있는 근거 프레임 | 임장 종료 후 최대 30일 |
-| 사용자가 중요 표시한 사진 | 임장 종료 후 최대 30일 |
-| 사용자가 삭제한 임장의 사진 | 삭제 요청 즉시 사용을 중단하고 최대 7일 이내 완전 삭제 |
-| AI 탐지 JSON·사용자 확인 결과 | 사진과 분리하여 MVP 기간 동안만 보관 |
+- 기본 생성 방식은 촬영 완료 후 원본 영상의 고정 3초 구간마다 앞·중간·뒤 후보를 비교해 최대 한 장을 고르는 것이다.
+- 모든 후보가 흐리거나 어두워도 가장 나은 한 장을 남기고 화질 확인 필요 상태를 표시한다.
+- `sourceVideoOffsetMs`는 디코더가 제공한 실제 영상 시점을 사용한다.
+- JPEG 품질은 `90 → 85 → 80` 순으로 낮추고, 그래도 1MiB를 넘을 때만 픽셀 크기를 단계적으로 줄인다.
+- 서버는 JPEG(`.jpg`, `.jpeg`, MIME `image/jpeg`)와 사진당 최대 `1,048,576 bytes`만 허용한다.
+- 업로드 실패·미완료 파일은 최대 24시간, 관찰 없는 자동 사진은 분석 후 최대 7일, 관찰 근거·중요 사진은 임장 종료 후 최대 30일 보관한다.
+- 임장 삭제 요청 미디어는 즉시 사용을 막고 최대 7일 안에 완전히 삭제한다.
+- 이 보관 규칙은 실제 업로드 기능을 열기 전에 저장소 수명 주기와 서버 정리 작업으로 검증해야 한다.
 
-- 사용자에게 촬영 목적과 최대 30일 보관 정책을 촬영 전에 알린다.
-- 30일은 MVP 운영 정책이며 법률이 일률적으로 정한 기간이 아니다. 처리 목적을 먼저 달성하면 [개인정보 보호법 제21조](https://www.law.go.kr/LSW/lsLawLinkInfo.do?chrClsCd=010202&lsJoLnkSeq=900078981)에 따라 지체 없이 파기한다.
-- 보관기간이 지나거나 처리 목적이 먼저 달성되면 원본, 파생 이미지와 썸네일을 복구할 수 없도록 삭제한다.
-- AI 탐지 JSON과 사용자 확인 결과도 MVP 종료 시 재검토하며, 별도 보관 근거가 없으면 삭제한다.
-- 저장소 수명 주기와 정기 삭제 작업으로 위 기한을 집행하고 삭제 실패를 기록한다.
-- 휴대전화 갤러리의 원본 영상 보관·삭제는 사용자가 관리한다. 원본 영상이 삭제되어도 서버의 근거 사진은 위 정책에 따라 별도로 삭제된다.
+### 4.7 AI 원본 라벨과 바운딩 박스
 
-### 4.7 바운딩 박스 `Bbox`
-
-```json
-{
-  "x": 0.125,
-  "y": 0.2,
-  "width": 0.3,
-  "height": 0.25
-}
-```
-
-- 좌표 원점은 이미지의 왼쪽 위다.
-- 네 값은 원본 이미지 크기에 대한 `0.0` 이상 `1.0` 이하의 정규화 좌표다.
-- `x + width <= 1.0`, `y + height <= 1.0`이어야 한다.
-- 화면은 `Frame.width`, `Frame.height`를 이용해 픽셀 좌표로 변환한다.
-
-### 4.8 AI 탐지 `Detection`
-
-```json
-{
-  "id": "0ae532a0-7388-4c1c-a35e-5110f7833adc",
-  "analysisId": "e0942c43-a149-4f8c-b8eb-ac1ec01c34b7",
-  "frameId": "13077d2f-7d31-42a9-89f4-a25feb68f4d5",
-  "classId": 1,
-  "label": "mold",
-  "confidence": 0.87,
-  "bbox": {
-    "x": 0.125,
-    "y": 0.2,
-    "width": 0.3,
-    "height": 0.25
-  },
-  "reviewStatus": "needs_review",
-  "reviewedAt": null
-}
-```
-
-- `confidence`는 `0.0` 이상 `1.0` 이하이며 위험도나 안전 점수가 아니다.
-- `classId`와 `label`은 아래 고정 쌍과 일치해야 한다.
-- 서버는 일치하지 않는 AI 결과를 `400 INVALID_DETECTION_LABEL`로 거절한다.
-- `riskLevel`은 산정 기준이 확정되기 전까지 탐지 응답에 포함하지 않는다.
-- 모델 내부의 `bbox`가 중심점 또는 픽셀 좌표여도 AI 작업자가 API 계약의 왼쪽 위 기준 `0.0`~`1.0` 정규화 좌표로 변환한다.
+클래스 ID와 영문 라벨은 고정 쌍이다.
 
 | `classId` | `label` | 한글 표준명 |
 |---:|---|---|
@@ -369,48 +359,61 @@ MVP의 `User`는 데모 사용자이며 실제 소셜 계정 정보와 연결하
 | `9` | `surfacedefect` | 면불량 |
 | `10` | `stain` | 오염·얼룩 |
 | `11` | `trowelmark` | 흙손 자국 |
+| `12` | `other` | 기타 |
 
-### 4.9 AI 분석 `Analysis`
+`other`는 하자 후보 기준에는 부합하지만 기존 12개 유형으로 구체적으로 분류하지 못했을 때만 사용한다. 배경, 관찰 없음, 낮은 신뢰도 또는 분석 실패를 대신하지 않는다. `other`만 `OTHER_CHECK_NEEDED` 관찰 유형으로 변환하는 규칙이 확정됐으며 나머지 전체 변환표는 미확정이다.
+
+`bbox`는 이미지 왼쪽 위를 원점으로 하는 정규화 좌표다.
 
 ```json
 {
-  "id": "e0942c43-a149-4f8c-b8eb-ac1ec01c34b7",
-  "frameId": "13077d2f-7d31-42a9-89f4-a25feb68f4d5",
-  "status": "completed",
-  "modelVersion": "defect-detector-2026-08",
-  "detections": [],
-  "failureCode": null,
-  "createdAt": "2026-08-12T08:09:40Z",
-  "completedAt": "2026-08-12T08:09:44Z"
+  "x": 0.125,
+  "y": 0.2,
+  "width": 0.3,
+  "height": 0.25
 }
 ```
 
-모델 결과에는 `modelVersion`, 근거 `frameId`, `confidence`, 사용자 검토 상태를 남긴다.
+네 값은 `0.0` 이상 `1.0` 이하이고 `x + width <= 1.0`, `y + height <= 1.0`이어야 한다.
 
-## 5. Android 앱용 API
+### 4.8 관찰 `Observation`과 근거 사진
+
+- 관찰은 근거 JPEG가 있는 하자 의심 흔적이며 실제 하자 판정이 아니다.
+- 관찰 하나에는 같은 임장의 `UPLOADED` JPEG를 최소 1장, 최대 3장 연결한다.
+- 대표 근거 사진은 정확히 한 장 지정한다.
+- 한 사진을 여러 관찰의 근거로 사용하는 것은 허용한다.
+- 근거 사진이 삭제돼도 관찰과 연결 기록은 유지하고 `근거 사진 사용 불가`로 표시한다.
+- 최종 `ObservationType`과 AI 라벨 전체 변환표가 미확정이므로 Observation 요청·응답 스키마는 이번 OpenAPI에서 제외한다.
+
+### 4.9 리포트 `Report`
+
+리포트는 임장이 `ENDED`이고 분석 대상 미디어 집합이 확정됐으며 모든 분석이 성공 또는 최종 실패 상태가 된 뒤에만 생성할 수 있다.
+
+- 성공 미디어가 하나 이상이고 실패가 없으면 `COMPLETED`다.
+- 성공 미디어가 하나 이상이고 일부가 실패하면 `PARTIAL_COMPLETED`다.
+- 성공 미디어가 하나도 없으면 `FAILED`이며 `NO_ANALYZABLE_MEDIA` 사유를 제공한다.
+- `DISMISSED` 관찰은 기본 리포트에서 제외한다.
+- 사용자 메모는 `내 메모`, AI 관찰 설명은 `확인 필요 관찰`로 구분한다.
+- 상세 응답과 생성·갱신 정책이 미확정이므로 Report API는 이번 OpenAPI에서 제외한다.
+
+### 4.10 사용자 메모·안심 가이드·알림
+
+- MVP 사용자 메모는 텍스트만 지원하고 임장 전체 또는 선택한 구역에 연결한다.
+- 메모는 화면과 리포트에서 `내 메모`로 표시해 AI 설명과 구분한다.
+- 메모의 최대 길이와 수정·삭제 API가 미확정이므로 이번 OpenAPI에는 포함하지 않는다.
+- 음성·STT는 MVP 이후로 미룬다. 도입하더라도 STT 결과가 관찰 유형·구역·검토 상태를 자동 변경해서는 안 된다.
+- 방문 전 안심 가이드는 버전이 있는 Android 정적 콘텐츠로 제공하고 사용자가 건너뛸 수 있게 한다. 마지막 확인 버전은 Android 로컬에만 저장한다.
+- MVP는 푸시 대신 앱 내부 상태 조회와 새로고침을 사용한다.
+
+## 5. 이번 OpenAPI에 포함하는 Android API
+
+이번 OpenAPI에는 요청·응답 구조가 확정된 인증, 매물과 임장 생명주기만 포함한다.
 
 ### 5.1 데모 로그인
 
 | 메서드 | 경로 | 설명 |
 |---|---|---|
-| `POST` | `/api/v1/auth/demo` | MVP용 게스트 로그인과 접근 토큰 발급 |
-
-요청 본문은 없다. 소셜 로그인 버튼의 종류를 서버에 보내거나 소셜 계정으로 가장하지 않는다.
-
-응답:
-
-```json
-{
-  "accessToken": "<issued-demo-access-token>",
-  "tokenType": "Bearer",
-  "expiresAt": "2026-08-12T18:00:00Z",
-  "user": {
-    "id": "2fb2b214-523f-4fcf-bce7-72881a5ccb32",
-    "displayName": "데모 사용자",
-    "createdAt": "2026-08-12T07:30:00Z"
-  }
-}
-```
+| `POST` | `/api/v1/auth/demo` | 실제 소셜 연동 없는 데모 접근 토큰 발급 |
 
 ### 5.2 매물
 
@@ -419,252 +422,91 @@ MVP의 `User`는 데모 사용자이며 실제 소셜 계정 정보와 연결하
 | `POST` | `/api/v1/properties` | 매물 생성 |
 | `GET` | `/api/v1/properties` | 내 매물 목록 조회 |
 | `GET` | `/api/v1/properties/{propertyId}` | 매물 상세 조회 |
-| `PATCH` | `/api/v1/properties/{propertyId}` | 사용자가 입력한 매물 정보 수정 |
-| `DELETE` | `/api/v1/properties/{propertyId}` | 매물 삭제 요청 |
+| `PATCH` | `/api/v1/properties/{propertyId}` | 매물 정보 수정 |
+| `DELETE` | `/api/v1/properties/{propertyId}` | 매물 삭제 |
 
-매물 생성 요청:
+매물 PATCH에서 생략한 필드는 유지하고 명시적인 `null`은 선택값 삭제를 뜻한다.
 
-```json
-{
-  "name": "역세권 원룸",
-  "addressSummary": "서울시 ○○구",
-  "depositAmount": 10000000,
-  "monthlyRentAmount": 650000,
-  "maintenanceFeeAmount": 70000,
-  "areaSquareMeters": 18.5,
-  "floor": "2층",
-  "options": ["에어컨", "냉장고", "세탁기"],
-  "brokerContact": "○○부동산 02-0000-0000",
-  "note": "채광 확인 필요"
-}
-```
+현재 삭제 계약은 하위 임장이 없는 매물에만 확정 적용한다. 임장이 존재하는 매물의 삭제를 거부할지, 보관할지 또는 하위 데이터를 함께 처리할지는 P0 결정 전까지 구현하거나 클라이언트가 가정하지 않는다.
 
 ### 5.3 임장
 
 | 메서드 | 경로 | 설명 |
 |---|---|---|
-| `POST` | `/api/v1/properties/{propertyId}/inspections` | 새 임장 시작 |
+| `POST` | `/api/v1/properties/{propertyId}/inspections` | 실제 촬영 시작과 함께 `IN_PROGRESS` 임장 생성 |
 | `GET` | `/api/v1/properties/{propertyId}/inspections` | 매물의 임장 목록 조회 |
 | `GET` | `/api/v1/inspections/{inspectionId}` | 임장 상세 조회 |
-| `PATCH` | `/api/v1/inspections/{inspectionId}/status` | 임장 완료 또는 취소 |
-| `DELETE` | `/api/v1/inspections/{inspectionId}` | 임장과 연결된 사진 삭제 요청 |
+| `PATCH` | `/api/v1/inspections/{inspectionId}/status` | 임장을 `ENDED` 또는 `CANCELLED`로 전환 |
 
 상태 변경 요청:
 
 ```json
 {
-  "status": "completed"
+  "status": "ENDED"
 }
 ```
 
-### 5.4 체크리스트
+임장 삭제와 보관 설정·해제는 의미가 아직 완전히 합의되지 않아 이번 OpenAPI에서 제외한다.
 
-| 메서드 | 경로 | 설명 |
-|---|---|---|
-| `GET` | `/api/v1/inspections/{inspectionId}/checklist` | 임장 체크리스트 조회 |
-| `PATCH` | `/api/v1/inspections/{inspectionId}/checklist/{itemId}` | 사용자 확인 상태와 메모 저장 |
+## 6. API 서버와 AI Worker 사이의 의미 계약
 
-체크리스트 수정 요청:
+정확한 큐 메시지 스키마는 분석 재시도·실패 코드와 관찰 병합 규칙을 결정한 뒤 확정한다. 현재 반드시 지킬 의미는 다음과 같다.
 
-```json
-{
-  "status": "needs_review",
-  "note": "창가 쪽 얼룩 확인",
-  "confirmedByUser": true
-}
-```
+- 작업 입력은 서버에 `UPLOADED`로 확정된 JPEG의 `mediaId`와 내부 객체 키를 사용한다.
+- AI Worker는 휴대전화 원본 영상, 갤러리 URI 또는 로컬 경로를 요청하지 않는다.
+- 결과에는 `mediaId`, 원본 `classId`, `label`, `confidence`, `bbox`, `zone`, `zoneConfidence`, `modelVersion`을 보존한다.
+- 서버는 라벨 쌍, 신뢰도, bbox와 ID를 검증한다.
+- 같은 결과가 재전송돼도 관찰을 중복 생성하지 않는다.
+- 성공 결과는 다른 미디어의 실패 때문에 폐기하지 않는다.
+- MVP AI Worker에는 음성·STT 작업을 포함하지 않는다.
 
-`confirmedByUser`가 `false`이거나 없으면 서버는 `400 USER_CONFIRMATION_REQUIRED`를 반환한다.
+## 7. OpenAPI에서 제외한 미확정 항목
 
-### 5.5 분석 프레임 업로드
+아래 항목은 설명이나 방향만 합의됐고 정확한 HTTP 계약은 아직 없다. 담당자 합의 전에는 경로, DTO, enum 또는 오류 코드를 임의로 추가하지 않는다.
 
-| 메서드 | 경로 | 설명 |
-|---|---|---|
-| `POST` | `/api/v1/inspections/{inspectionId}/frames/upload-requests` | 촬영 종료 후 분석 프레임 메타데이터 등록 및 업로드 URL 발급 |
-| `POST` | `/api/v1/frames/{frameId}/upload-complete` | 저장소 업로드 완료 알림 |
-| `GET` | `/api/v1/frames/{frameId}` | 프레임 메타데이터 조회 |
-| `PATCH` | `/api/v1/frames/{frameId}` | 사용자 중요 표시 변경 |
-| `POST` | `/api/v1/frames/{frameId}/view-url` | 만료 시간이 짧은 조회 URL 발급 |
+| 우선순위 | 미확정 항목 |
+|---:|---|
+| P0 | 최종 `ObservationType`과 AI 13개 라벨 전체 변환표. `other → OTHER_CHECK_NEEDED`만 확정 |
+| P0 | 미디어 등록·업로드 완료·재시도·미디어 집합 확정 API의 요청·응답, 묶음 크기, URL 만료와 멱등성 오류 코드 |
+| P0 | 인접 프레임의 같은 흔적 병합, 분석 자동 재시도·백오프와 `failureCode` |
+| P0 | 촬영 중 JPEG 동시 생성과 영상 시점 동기화의 실기기 검증 |
+| P0 | 선명도·밝기·중복 임계값과 1MiB에서 2MiB로 상향할 AI 성능 기준 |
+| P1 | `UNKNOWN` 사용자 보정 API와 이력 조회 범위 |
+| P1 | 텍스트 메모 API와 이후 음성·STT 동의·보관 범위 |
+| P1 | `DISMISSED` 사유 enum |
+| P1 | 리포트 상세·자동 생성·갱신·편집·공유 API |
+| P1 | 푸시 토큰과 알림 API |
+| P2 | 서버형 안심 가이드와 열람 이력 API |
 
-업로드 URL 발급 요청:
+## 8. 1.2 계약에서 제거한 항목
 
-```json
-{
-  "checklistItemId": "31157362-8faa-4f90-af64-68b563ee9e52",
-  "deviceId": "7df76d24-9669-45c7-aec5-86426153ec55",
-  "frameOrigin": "post_recording_extraction",
-  "sourceVideoId": "db515c1d-a0d0-4f43-85bf-1a66ca164c82",
-  "sourceVideoOffsetMs": 252000,
-  "fileName": "frame-20260812-080930.jpg",
-  "contentType": "image/jpeg",
-  "contentLength": 286412,
-  "width": 720,
-  "height": 1280,
-  "importantByUser": false,
-  "capturedAt": "2026-08-12T08:09:30Z"
-}
-```
+다음 계약은 새 도메인과 충돌하므로 2.0 활성 계약과 OpenAPI에서 제거한다.
 
-응답:
+- `ChecklistStatus`, `ChecklistItem`, `confirmedByUser`와 체크리스트 API
+- 체크리스트 완료율과 AI의 체크리스트 자동 변경
+- `Frame.checklistItemId`와 `Device` 중심 프레임 계약
+- `/frames/*`, `/analyses/*`, `/detections/*` 기존 경로
+- `DetectionReviewStatus`의 `needs_review`, `accepted`, `rejected`
+- 분석 결과를 외부 `Detection`으로 직접 노출하는 방식
+- `comparison`과 상세 `report` API
 
-```json
-{
-  "frame": {
-    "id": "13077d2f-7d31-42a9-89f4-a25feb68f4d5",
-    "inspectionId": "44d25c46-8391-43cf-903b-b5b580023861",
-    "deviceId": "7df76d24-9669-45c7-aec5-86426153ec55",
-    "frameOrigin": "post_recording_extraction",
-    "sourceVideoId": "db515c1d-a0d0-4f43-85bf-1a66ca164c82",
-    "sourceVideoOffsetMs": 252000,
-    "contentType": "image/jpeg",
-    "width": 720,
-    "height": 1280,
-    "contentLength": 286412,
-    "importantByUser": false,
-    "capturedAt": "2026-08-12T08:09:30Z",
-    "uploadStatus": "pending",
-    "createdAt": "2026-08-12T08:09:35Z"
-  },
-  "upload": {
-    "method": "PUT",
-    "url": "https://storage.example.invalid/signed-upload",
-    "headers": {
-      "Content-Type": "image/jpeg"
-    },
-    "expiresAt": "2026-08-12T08:19:35Z"
-  }
-}
-```
+아직 이 API를 구현한 클라이언트가 있다면 병합 전에 영향도를 확인해야 한다. 현재 저장소의 서버와 Android 구현은 매물 API만 사용하므로 이 개정에서 매물 계약은 유지한다.
 
-앱은 현장 영상 촬영을 종료한 뒤 발급받은 URL에 JPEG를 올리고 `upload-complete`를 호출한다. 계약 1.2에서는 임장 상태가 `completed`일 때만 업로드 요청과 분석 요청을 허용하며, 이는 최신 도메인 규칙의 `ENDED`에 임시 대응한다. 촬영 중인 `in_progress` 임장에는 `409 Conflict`를 반환한다. 서버는 실제 저장소 객체의 존재와 크기를 확인한 후에만 상태를 `uploaded`로 바꾼다. 원본 영상 파일, 갤러리 URI와 로컬 경로를 받는 API는 MVP에 만들지 않는다.
+## 9. 계약 변경 규칙
 
-중요 표시 변경 요청:
-
-```json
-{
-  "importantByUser": true
-}
-```
-
-### 5.6 AI 분석과 사용자 검토
-
-| 메서드 | 경로 | 설명 |
-|---|---|---|
-| `POST` | `/api/v1/frames/{frameId}/analyses` | 업로드된 프레임 분석 요청 |
-| `GET` | `/api/v1/analyses/{analysisId}` | 분석 상태와 탐지 목록 조회 |
-| `PATCH` | `/api/v1/detections/{detectionId}/review` | 사용자가 탐지 후보를 수락 또는 반려 |
-
-분석 요청 응답은 `202 Accepted`와 다음 본문을 반환한다.
-
-```json
-{
-  "id": "e0942c43-a149-4f8c-b8eb-ac1ec01c34b7",
-  "frameId": "13077d2f-7d31-42a9-89f4-a25feb68f4d5",
-  "status": "queued",
-  "createdAt": "2026-08-12T08:09:40Z"
-}
-```
-
-탐지 검토 요청:
-
-```json
-{
-  "reviewStatus": "accepted"
-}
-```
-
-### 5.7 임장 리포트와 매물 비교
-
-| 메서드 | 경로 | 설명 |
-|---|---|---|
-| `GET` | `/api/v1/inspections/{inspectionId}/report` | 임장 리포트 조회 |
-| `POST` | `/api/v1/comparisons` | 둘 이상의 완료된 임장 비교 |
-
-비교 요청:
-
-```json
-{
-  "inspectionIds": [
-    "44d25c46-8391-43cf-903b-b5b580023861",
-    "0709c4dc-ab61-428f-a50e-1242e75d9a07"
-  ]
-}
-```
-
-리포트와 비교의 `riskLevel`은 산정 규칙, 단계 이름, 근거 표시 방법이 확정된 뒤 추가한다.
-
-## 6. API 서버와 AI 작업자 사이의 계약
-
-이 계약은 내부 큐 메시지 또는 내부 API에만 사용한다. Android 앱에 AI 제공자 정보나 저장소 내부 경로를 노출하지 않는다.
-
-분석 작업 요청 `AnalysisJob`:
-
-```json
-{
-  "analysisId": "e0942c43-a149-4f8c-b8eb-ac1ec01c34b7",
-  "frameId": "13077d2f-7d31-42a9-89f4-a25feb68f4d5",
-  "objectKey": "private/frames/13077d2f-7d31-42a9-89f4-a25feb68f4d5.jpg",
-  "requestedAt": "2026-08-12T08:09:40Z"
-}
-```
-
-분석 결과 `AnalysisResult`:
-
-```json
-{
-  "analysisId": "e0942c43-a149-4f8c-b8eb-ac1ec01c34b7",
-  "frameId": "13077d2f-7d31-42a9-89f4-a25feb68f4d5",
-  "modelVersion": "defect-detector-2026-08",
-  "detections": [
-    {
-      "classId": 1,
-      "label": "mold",
-      "confidence": 0.87,
-      "bbox": {
-        "x": 0.125,
-        "y": 0.2,
-        "width": 0.3,
-        "height": 0.25
-      }
-    }
-  ],
-  "completedAt": "2026-08-12T08:09:44Z"
-}
-```
-
-- AI 작업자는 사용자 체크리스트나 사용자 검토 상태를 직접 변경할 수 없다.
-- 서버는 결과의 `analysisId`, `frameId`, 라벨 쌍, 신뢰도와 좌표 범위를 검증한다.
-- AI 작업자는 모델의 `bbox`를 API 공통 형식으로 변환한 뒤 결과를 전달한다.
-- 같은 `analysisId` 결과가 재전송되어도 중복 탐지가 생기지 않도록 멱등하게 처리한다.
-- 실패 결과에는 자유 형식 오류 대신 합의된 `failureCode`를 사용하며 상세 내부 오류는 로그에만 남긴다.
-
-## 7. 아직 확정하지 않은 항목
-
-아래 항목은 담당자 합의와 관련 문서 갱신 전까지 구현 계약이 아니다.
-
-- 데모 접근 토큰의 만료 시간
-- 실제 소셜 인증 제공자, 토큰 재발급 방식과 장기 로그인 정책
-- 체크리스트 전체 항목, 중요도, 질문 템플릿
-- 업로드 URL 만료 시간
-- AI 분석 재시도 횟수와 `failureCode` 목록
-- `risk_level` 단계 이름과 계산 기준
-- `report`와 `comparison`의 상세 응답 필드
-- 매물과 사용자 계정 메타데이터를 즉시 삭제할지 복구 가능한 소프트 삭제로 처리할지 여부
-
-## 8. 계약 변경 규칙
-
-1. 용어의 이름이나 의미를 바꾸면 공통 용어집의 변경 규칙과 이력을 먼저 반영한다.
-2. 필드 삭제, 타입 변경, enum 값 변경은 호환성 검토와 적용 날짜 없이 진행하지 않는다.
-3. 공통 요청·응답 또는 상태값 변경은 Android, API, AI 작업자 담당자가 함께 검토한다.
-4. 현재 확정된 계약을 기준으로 OpenAPI 명세를 작성하고 `server/shared-types`의 타입을 생성하거나 구현한다.
-5. 실제 구현과 계약 테스트까지 끝난 항목만 작업 체크리스트에서 완료 처리한다.
+1. 용어의 이름이나 의미를 바꾸면 공통 용어집과 변경 이력을 먼저 반영한다.
+2. 필드 삭제, 타입 변경과 enum 값 변경은 Android·API·AI 담당자가 함께 검토한다.
+3. 확정한 변경은 이 문서, OpenAPI, 생성 코드 사용처와 계약 테스트를 같은 변경에서 수정한다.
+4. 미확정 항목은 OpenAPI나 구현에서 먼저 결정하지 않는다.
+5. 자동 생성된 `build/generated` 코드는 직접 수정하거나 Git에 커밋하지 않는다.
+6. OpenAPI 문법 검사, Kotlin 코드 생성, 컴파일과 관련 테스트까지 통과한 항목만 완료 처리한다.
 
 ## 변경 이력
 
 | 날짜 | 버전 | 변경 내용 |
 |---|---|---|
 | 2026-08-12 | Draft 0.1 | 공통 용어집을 기준으로 MVP 리소스, 상태값, API와 AI 결과 계약 초안 작성 |
-| 2026-08-12 | 1.0 | 데모 로그인, `project` 제외, 체크리스트 상태, AI 라벨·bbox 변환, 프레임 규격·보관 정책을 확정하여 MVP 계약 승인 |
-| 2026-08-13 | 1.1 | 사용자가 직접 입력하는 매물의 보증금, 월세, 관리비, 전용면적, 층수, 옵션, 부동산 연락처를 추가 |
-| 2026-08-13 | 1.1 | 면적은 ㎡를 기준값으로 유지하고 앱에서 평 단위로 변환해 입력·표시하는 규칙을 명확히 함 |
-| 2026-08-14 | 1.2 | 실시간 스트리밍 분석을 제외하고 안경 기본 영상 촬영, 휴대전화 원본 보관, 촬영 중 또는 촬영 후 생성한 JPEG의 출처·영상 내 시점 계약을 확정함 |
+| 2026-08-12 | 1.0 | 데모 로그인, 체크리스트 상태, AI 라벨·bbox, 프레임 규격·보관 정책 확정 |
+| 2026-08-13 | 1.1 | 매물의 금액·면적·층·옵션·연락처와 ㎡·평 변환 규칙 추가 |
+| 2026-08-14 | 1.2 | 실시간 스트리밍을 제외하고 휴대전화 원본 영상과 JPEG 분석 방식으로 전환 |
+| 2026-08-18 | 검토 초안 2.0 | 체크리스트·Frame·Detection 계약을 제거하고 세션·구역·Media·Observation·근거 중심 계약으로 전환. 미확정 Media·Observation·Report HTTP API는 OpenAPI에서 제외 |

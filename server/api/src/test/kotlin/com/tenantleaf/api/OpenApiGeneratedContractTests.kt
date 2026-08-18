@@ -1,16 +1,23 @@
 package com.tenantleaf.api
 
 import com.tenantleaf.api.generated.api.PropertiesApi
-import com.tenantleaf.api.generated.model.ChecklistStatus
-import com.tenantleaf.api.generated.model.CreateFrameUploadRequest
+import com.tenantleaf.api.generated.model.AiLabel
+import com.tenantleaf.api.generated.model.CaptureSource
 import com.tenantleaf.api.generated.model.CreatePropertyRequest
-import com.tenantleaf.api.generated.model.DetectionLabel
 import com.tenantleaf.api.generated.model.FrameOrigin
+import com.tenantleaf.api.generated.model.InspectionAnalysisStatus
+import com.tenantleaf.api.generated.model.InspectionStatus
+import com.tenantleaf.api.generated.model.MediaAnalysisStatus
+import com.tenantleaf.api.generated.model.MediaUploadStatus
+import com.tenantleaf.api.generated.model.ObservationStatus
+import com.tenantleaf.api.generated.model.ReportStatus
+import com.tenantleaf.api.generated.model.Zone
+import com.tenantleaf.api.generated.model.ZoneAnalysisStatus
 import jakarta.validation.Validation
 import org.junit.jupiter.api.Test
-import java.time.OffsetDateTime
-import java.util.UUID
+import java.io.File
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class OpenApiGeneratedContractTests {
@@ -23,15 +30,31 @@ class OpenApiGeneratedContractTests {
 	}
 
 	@Test
-	fun `체크리스트 상태 네 가지를 생성한다`() {
+	fun `임장 상태는 진행 종료 취소만 생성한다`() {
 		assertEquals(
-			listOf("unchecked", "normal", "needs_review", "not_applicable"),
-			ChecklistStatus.entries.map { it.value },
+			listOf("IN_PROGRESS", "ENDED", "CANCELLED"),
+			InspectionStatus.entries.map { it.value },
 		)
 	}
 
 	@Test
-	fun `AI 탐지 라벨 열두 가지를 생성한다`() {
+	fun `임장 전체 분석 상태는 서버 집계값 일곱 가지를 생성한다`() {
+		assertEquals(
+			listOf(
+				"NOT_STARTED",
+				"UPLOADING",
+				"QUEUED",
+				"ANALYZING",
+				"PARTIAL_COMPLETED",
+				"COMPLETED",
+				"FAILED",
+			),
+			InspectionAnalysisStatus.entries.map { it.value },
+		)
+	}
+
+	@Test
+	fun `AI 원본 라벨 열세 가지와 other를 생성한다`() {
 		assertEquals(
 			listOf(
 				"crack",
@@ -46,37 +69,56 @@ class OpenApiGeneratedContractTests {
 				"surfacedefect",
 				"stain",
 				"trowelmark",
+				"other",
 			),
-			DetectionLabel.entries.map { it.value },
+			AiLabel.entries.map { it.value },
 		)
 	}
 
 	@Test
-	fun `프레임 크기 제한을 생성된 요청 타입에서 검증한다`() {
-		val request = CreateFrameUploadRequest(
-			deviceId = UUID.randomUUID(),
-			frameOrigin = FrameOrigin.post_recording_extraction,
-			sourceVideoId = UUID.randomUUID(),
-			sourceVideoOffsetMs = 252_000,
-			fileName = "frame.jpg",
-			contentType = CreateFrameUploadRequest.ContentType.imageSlashJpeg,
-			contentLength = 1_048_577,
-			width = 1920,
-			height = 1080,
-			capturedAt = OffsetDateTime.now(),
-		)
-
-		val violations = validator.validate(request)
-
-		assertTrue(violations.any { it.propertyPath.toString() == "contentLength" })
-	}
-
-	@Test
-	fun `분석 프레임 생성 방식 두 가지를 생성한다`() {
+	fun `구역과 미디어 상태 공통 타입을 생성한다`() {
 		assertEquals(
-			listOf("during_recording_capture", "post_recording_extraction"),
+			listOf("ENTRANCE_COMMON", "KITCHEN", "WINDOW_VENTILATION", "LIVING_ROOM", "BATHROOM", "UNKNOWN"),
+			Zone.entries.map { it.value },
+		)
+		assertEquals(
+			listOf("NO_MEDIA", "UPLOADING", "QUEUED", "ANALYZING", "COMPLETED", "PARTIAL_FAILED", "FAILED"),
+			ZoneAnalysisStatus.entries.map { it.value },
+		)
+		assertEquals(listOf("PENDING", "UPLOADING", "UPLOADED", "FAILED"), MediaUploadStatus.entries.map { it.value })
+		assertEquals(
+			listOf("NOT_REQUESTED", "QUEUED", "ANALYZING", "COMPLETED", "FAILED"),
+			MediaAnalysisStatus.entries.map { it.value },
+		)
+		assertEquals(listOf("META_GLASS", "ANDROID_CAMERA"), CaptureSource.entries.map { it.value })
+		assertEquals(
+			listOf("DURING_RECORDING_CAPTURE", "POST_RECORDING_EXTRACTION"),
 			FrameOrigin.entries.map { it.value },
 		)
+	}
+
+	@Test
+	fun `관찰과 리포트 상태 공통 타입을 생성한다`() {
+		assertEquals(listOf("ACTIVE", "VIEWED", "DISMISSED"), ObservationStatus.entries.map { it.value })
+		assertEquals(
+			listOf("NOT_REQUESTED", "WAITING_FOR_ANALYSIS", "GENERATING", "COMPLETED", "PARTIAL_COMPLETED", "FAILED"),
+			ReportStatus.entries.map { it.value },
+		)
+	}
+
+	@Test
+	fun `미확정 또는 폐기된 HTTP 계약은 명세에서 제외한다`() {
+		val specification = File("../shared-types/openapi/openapi.yaml").readText()
+
+		assertFalse(specification.contains("/checklist"))
+		assertFalse(specification.contains("/frames/"))
+		assertFalse(specification.contains("/media"))
+		assertFalse(specification.contains("/analyses/"))
+		assertFalse(specification.contains("/detections/"))
+		assertFalse(specification.contains("/observations"))
+		assertFalse(specification.contains("/report"))
+		assertFalse(specification.contains("checklistItemId"))
+		assertFalse(specification.contains("CreateFrameUploadRequest"))
 	}
 
 	@Test
