@@ -5,6 +5,7 @@ import com.tenantleaf.api.generated.model.ChecklistStatus
 import com.tenantleaf.api.generated.model.CreateFrameUploadRequest
 import com.tenantleaf.api.generated.model.CreatePropertyRequest
 import com.tenantleaf.api.generated.model.DetectionLabel
+import com.tenantleaf.api.generated.model.FrameOrigin
 import jakarta.validation.Validation
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
@@ -54,6 +55,9 @@ class OpenApiGeneratedContractTests {
 	fun `프레임 크기 제한을 생성된 요청 타입에서 검증한다`() {
 		val request = CreateFrameUploadRequest(
 			deviceId = UUID.randomUUID(),
+			frameOrigin = FrameOrigin.post_recording_extraction,
+			sourceVideoId = UUID.randomUUID(),
+			sourceVideoOffsetMs = 252_000,
 			fileName = "frame.jpg",
 			contentType = CreateFrameUploadRequest.ContentType.imageSlashJpeg,
 			contentLength = 1_048_577,
@@ -65,6 +69,14 @@ class OpenApiGeneratedContractTests {
 		val violations = validator.validate(request)
 
 		assertTrue(violations.any { it.propertyPath.toString() == "contentLength" })
+	}
+
+	@Test
+	fun `분석 프레임 생성 방식 두 가지를 생성한다`() {
+		assertEquals(
+			listOf("during_recording_capture", "post_recording_extraction"),
+			FrameOrigin.entries.map { it.value },
+		)
 	}
 
 	@Test
