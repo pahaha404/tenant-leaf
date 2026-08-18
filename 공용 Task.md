@@ -72,3 +72,4 @@
 - 2026-08-14 — 실시간 스트리밍 분석을 MVP에서 제외하고 안경 기본 고화질 영상→휴대전화 갤러리→촬영 중 생성 또는 촬영 후 추출한 JPEG→비동기 분석 흐름으로 문서와 API 계약 1.2를 갱신함. OpenAPI 문법 검사·Kotlin 코드 생성과 `server/api`의 `clean test` 통과를 확인함.
 
 - 2026-08-18 Android 앱을 `android/app`으로 이전하고 `:app:assembleDebug` 빌드 성공을 확인했다. 실제 에뮬레이터 흐름은 새 경로에서 재확인 필요.
+- 2026-08-18 — Android 기본 구조를 `:app`, `:core`, `:feature:property`로 구성하고 Compose·Navigation·Hilt·OpenAPI 기반 매물 CRUD를 연결함. OpenAPI 검사·생성, clean Debug 빌드, JVM 테스트 24개, Lint와 Galaxy SM-G991N(Android 15) Compose UI 테스트 2개를 통과하고 에뮬레이터에서 서버를 통한 등록·조회·수정·삭제까지 확인함.
