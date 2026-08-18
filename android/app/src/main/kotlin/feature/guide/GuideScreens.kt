@@ -44,11 +44,11 @@ fun GuideZoneScreen(
     val nextZone = UiCatalog.nextZone(zoneId)
     val headline = if (zoneId == "entry") "첫 집 보기 전,\n현관부터 살펴봐요" else "${zone.title}을(를)\n살펴봐요"
     val description = if (zoneId == "entry") "안전과 생활 편의를 결정하는 네 가지예요." else zone.subtitle
-    val nextLabel = if (nextZone != null) "${nextZone.title} 가이드 보기" else "점검 시작하기"
+    val nextLabel = if (nextZone != null) "${nextZone.title} 가이드 보기" else "홈으로 가기"
 
     Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Column(
-            modifier = Modifier.fillMaxWidth().height(260.dp).background(Green).padding(horizontal = 24.dp, vertical = 14.dp),
+            modifier = Modifier.fillMaxWidth().height(230.dp).background(Green).padding(horizontal = 24.dp, vertical = 12.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().height(40.dp),
@@ -65,13 +65,13 @@ fun GuideZoneScreen(
                     color = Color(0xFFDCE9D6), fontSize = 10.sp, fontWeight = FontWeight.ExtraBold,
                 )
             }
-            Column(modifier = Modifier.padding(top = 18.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                Text(headline, color = Color.White, fontSize = 25.sp, lineHeight = 31.sp, fontWeight = FontWeight.ExtraBold)
+            Column(modifier = Modifier.padding(top = 13.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(headline, color = Color.White, fontSize = 23.sp, lineHeight = 28.sp, fontWeight = FontWeight.ExtraBold)
                 Text(description, color = Color(0xFFDCE9D6), fontSize = 12.sp)
             }
         }
         Column(
-            modifier = Modifier.fillMaxWidth().weight(1f).padding(start = 20.dp, top = 24.dp, end = 20.dp, bottom = 20.dp),
+            modifier = Modifier.fillMaxWidth().weight(1f).padding(start = 20.dp, top = 16.dp, end = 20.dp, bottom = 14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -134,8 +134,8 @@ fun GuideDetailScreen(
             )
         }
         Column(
-            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Box(Modifier.size(40.dp).clip(RoundedCornerShape(13.dp)).background(PaleGreen), contentAlignment = Alignment.Center) {
@@ -144,7 +144,7 @@ fun GuideDetailScreen(
                 Text(item.title, color = Green, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
                 Text(item.description, color = Secondary, fontSize = 12.sp, lineHeight = 17.sp)
             }
-            Box(modifier = Modifier.fillMaxWidth().height(190.dp).clip(RoundedCornerShape(18.dp)).background(PaleGreen)) {
+            Box(modifier = Modifier.fillMaxWidth().height(154.dp).clip(RoundedCornerShape(18.dp)).background(PaleGreen)) {
                 Image(
                     painter = painterResource(imageRes),
                     contentDescription = "${item.title} 사진 예시",
@@ -159,8 +159,8 @@ fun GuideDetailScreen(
 
             }
             Column(
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(PaleGreen).padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(9.dp),
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(PaleGreen).padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Text("이렇게 살펴보세요", color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
                 steps.forEachIndexed { index, step -> GuideStep(index + 1, step) }
@@ -175,7 +175,7 @@ fun GuideDetailScreen(
             }
         }
         Box(
-            modifier = Modifier.fillMaxWidth().height(82.dp).padding(start = 20.dp, top = 10.dp, end = 20.dp, bottom = 20.dp).clip(RoundedCornerShape(14.dp)).background(Orange).clickable {
+            modifier = Modifier.fillMaxWidth().height(72.dp).padding(start = 20.dp, top = 8.dp, end = 20.dp, bottom = 14.dp).clip(RoundedCornerShape(14.dp)).background(Orange).clickable {
                 onNext()
             },
             contentAlignment = Alignment.Center,
@@ -206,7 +206,7 @@ private fun GuideItemRow(item: GuideItem, number: Int, onClick: () -> Unit) {
     val rowColor = if (number % 2 == 1) PaleGreen else Color(0xFFFFF8F1)
     val iconLabel = when (number) { 1 -> "⌂"; 2 -> "⌕"; 3 -> "▣"; else -> "◌" }
     Row(
-        modifier = Modifier.fillMaxWidth().height(66.dp).clip(RoundedCornerShape(15.dp)).background(rowColor).clickable(onClick = onClick).padding(horizontal = 11.dp),
+        modifier = Modifier.fillMaxWidth().height(60.dp).clip(RoundedCornerShape(15.dp)).background(rowColor).clickable(onClick = onClick).padding(horizontal = 11.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.size(39.dp).clip(RoundedCornerShape(13.dp)).background(Color.White.copy(alpha = .58f)), contentAlignment = Alignment.Center) {

@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import com.seipseip.app.Complete
 import com.seipseip.app.Consent
 import com.seipseip.app.Denied
+import com.seipseip.app.FirstUse
 import com.seipseip.app.Login
 import com.seipseip.app.Permissions
 import com.seipseip.app.SignUp
@@ -17,6 +18,7 @@ import com.seipseip.app.feature.guide.GuideDetailScreen
 import com.seipseip.app.feature.guide.GuideZoneScreen
 import com.seipseip.app.feature.home.HomeScreen
 import com.seipseip.app.feature.inspection.AnalysisProgressScreen
+import com.seipseip.app.feature.inspection.CaptureResultsScreen
 import com.seipseip.app.feature.inspection.FinishConfirmScreen
 import com.seipseip.app.feature.inspection.InspectionPrepScreen
 import com.seipseip.app.feature.inspection.LiveInspectionScreen
@@ -40,6 +42,7 @@ object Route {
     const val Loading = "loading"
     const val Login = "login"
     const val SignUp = "signup"
+    const val FirstUse = "first_use"
     const val Welcome = "welcome"
     const val Consent = "consent"
     const val Permissions = "permissions"
@@ -60,6 +63,7 @@ object Route {
     const val LiveInspection = "live/{zone}"
     const val FinishConfirm = "finish_confirm"
     const val Analysis = "analysis"
+    const val CaptureResults = "capture_results"
     const val Observation = "observation/{zone}"
     const val Reports = "reports"
     const val ReportDetail = "report_detail"
@@ -98,7 +102,13 @@ fun AppNavGraph(navController: NavHostController) {
         composable(Route.SignUp) {
             SignUp(
                 back = navController::popBackStack,
-                next = { navController.navigate(Route.Welcome) },
+                next = { navController.navigate(Route.FirstUse) },
+            )
+        }
+        composable(Route.FirstUse) {
+            FirstUse(
+                back = navController::popBackStack,
+                next = { navController.navigate(Route.Consent) },
             )
         }
         composable(Route.Welcome) {
@@ -135,6 +145,7 @@ fun AppNavGraph(navController: NavHostController) {
                 onOpenProperties = { navController.navigate(Route.PropertyList) },
                 onOpenReports = { navController.navigate(Route.Reports) },
                 onOpenMagazine = { navController.navigate(Route.Magazine) },
+                onOpenMagazineArticle = { navController.navigate(Route.MagazineDetail) },
                 onStartInspection = { navController.navigate(Route.InspectionPrep) },
                 onTabSelected = { tab ->
                     goToTab(
@@ -246,7 +257,7 @@ fun AppNavGraph(navController: NavHostController) {
                 onBack = navController::popBackStack,
                 onOpenDetail = { item -> navController.navigate(Route.guideDetail(zone, item)) },
                 onNextGuide = { nextZone -> navController.navigate(Route.guideZone(nextZone)) },
-                onStartInspection = { navController.navigate(Route.liveInspection(zone)) },
+                onStartInspection = { navController.navigate(Route.Home) },
             )
         }
         composable(
@@ -287,7 +298,7 @@ fun AppNavGraph(navController: NavHostController) {
             LiveInspectionScreen(
                 zoneId = zone,
                 onBack = navController::popBackStack,
-                onOpenGuide = { navController.navigate(Route.guideZone(zone)) },
+                onOpenGuide = { item -> navController.navigate(Route.guideDetail(zone, item)) },
                 onNextZone = { nextZone -> navController.navigate(Route.liveInspection(nextZone)) },
                 onFinish = { navController.navigate(Route.FinishConfirm) },
             )
@@ -305,7 +316,18 @@ fun AppNavGraph(navController: NavHostController) {
                         popUpTo(Route.Home) { inclusive = true }
                     }
                 },
-                onOpenObservation = { navController.navigate(Route.observation("entry")) },
+                onOpenResults = { navController.navigate(Route.CaptureResults) },
+            )
+        }
+        composable(Route.CaptureResults) {
+            CaptureResultsScreen(
+                onBack = navController::popBackStack,
+                onOpenObservation = { zone -> navController.navigate(Route.observation(zone)) },
+                onHome = {
+                    navController.navigate(Route.Home) {
+                        popUpTo(Route.Home) { inclusive = true }
+                    }
+                },
             )
         }
         composable(

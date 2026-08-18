@@ -59,6 +59,7 @@ fun HomeScreen(
     onOpenProperties: () -> Unit,
     onOpenReports: () -> Unit,
     onOpenMagazine: () -> Unit,
+    onOpenMagazineArticle: () -> Unit,
     onStartInspection: () -> Unit,
     onTabSelected: (String) -> Unit,
 ) {
@@ -67,6 +68,7 @@ fun HomeScreen(
         onOpenProperties = onOpenProperties,
         onOpenReports = onOpenReports,
         onOpenMagazine = onOpenMagazine,
+        onOpenMagazineArticle = onOpenMagazineArticle,
         onStartInspection = onStartInspection,
         onTabSelected = onTabSelected,
     )
@@ -78,6 +80,7 @@ fun TenantLeafHomeLayout(
     onOpenProperties: () -> Unit,
     onOpenReports: () -> Unit,
     onOpenMagazine: () -> Unit,
+    onOpenMagazineArticle: () -> Unit = onOpenMagazine,
     onTabSelected: (String) -> Unit,
     onStartInspection: () -> Unit = onOpenProperties,
     processing: Boolean = false,
@@ -93,7 +96,7 @@ fun TenantLeafHomeLayout(
             HomeQuickActions(onOpenProperties)
             RecentReportCard(onOpenReports, processing)
             InspectionTipCard()
-            MagazineSection(onOpenMagazine)
+            MagazineSection(onOpenAll = onOpenMagazine, onOpenArticle = onOpenMagazineArticle)
         }
         HomeBottomNavigation(selectedTab, onTabSelected, Modifier.align(Alignment.BottomCenter))
     }
@@ -167,20 +170,35 @@ private fun HomeHeroCard(icon: ImageVector, title: String, description: String, 
 @Composable
 private fun HomeQuickActions(onOpenProperties: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        QuickAction(Modifier.weight(1f), Icons.Outlined.AddHome, "매물 등록", "새 방 정보 추가", onOpenProperties)
-        QuickAction(Modifier.weight(1f), Icons.Outlined.Checklist, "체크리스트", "방문 전 미리 보기", onOpenProperties)
+        QuickAction(Modifier.weight(1f), Icons.Outlined.AddHome, "매물 등록하기", "직접 정보 입력", PaleGreen, onOpenProperties)
+        QuickAction(Modifier.weight(1f), Icons.Outlined.Checklist, "체크리스트 확인", "방문 전 미리 보기", HomeOrangeLight, onOpenProperties)
     }
 }
 
 @Composable
-private fun QuickAction(modifier: Modifier, icon: ImageVector, title: String, description: String, onClick: () -> Unit) {
+private fun QuickAction(
+    modifier: Modifier,
+    icon: ImageVector,
+    title: String,
+    description: String,
+    background: Color,
+    onClick: () -> Unit,
+) {
     Column(
-        modifier = modifier.height(92.dp).clip(RoundedCornerShape(16.dp)).background(Color.White).clickable(onClick = onClick).padding(13.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = modifier
+            .height(142.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(background)
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Icon(icon, null, tint = Green, modifier = Modifier.size(20.dp))
-        Text(title, color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
-        Text(description, color = Secondary, fontSize = 9.sp)
+        Icon(icon, null, tint = Green, modifier = Modifier.size(31.dp))
+        Spacer(Modifier.height(8.dp))
+        Text(title, color = Green, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        Spacer(Modifier.height(5.dp))
+        Text(description, color = Secondary, fontSize = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }
 
@@ -217,16 +235,16 @@ private fun InspectionTipCard() {
 }
 
 @Composable
-private fun MagazineSection(onClick: () -> Unit) {
+private fun MagazineSection(onOpenAll: () -> Unit, onOpenArticle: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("자취 매거진", color = DeepGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
             Spacer(Modifier.weight(1f))
-            Text("전체보기  ›", modifier = Modifier.clickable(onClick = onClick), color = Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text("전체보기  ›", modifier = Modifier.clickable(onClick = onOpenAll), color = Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
-        MagazineArticle(R.drawable.magazine_1, "생활 꿀팁", "첫 자취생 필수템 체크리스트", onClick)
-        MagazineArticle(R.drawable.magazine_2, "집 구하기", "집 볼 때 흔히 하는 5가지 실수", onClick)
-        MagazineArticle(R.drawable.magazine_3, "계약 전", "계약서 쓰기 전 반드시 확인할 것", onClick)
+        MagazineArticle(R.drawable.magazine_1, "생활 꿀팁", "첫 자취생 필수템 체크리스트", onOpenArticle)
+        MagazineArticle(R.drawable.magazine_2, "집 구하기", "집 볼 때 흔히 하는 5가지 실수", onOpenArticle)
+        MagazineArticle(R.drawable.magazine_3, "계약 전", "계약서 쓰기 전 반드시 확인할 것", onOpenArticle)
     }
 }
 

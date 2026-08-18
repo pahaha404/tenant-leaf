@@ -52,7 +52,7 @@ internal fun Welcome(back: () -> Unit, next: () -> Unit) {
     val page = pagerState.currentPage
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF)).padding(horizontal = 24.dp, vertical = 22.dp),
+        modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF)).padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -76,15 +76,15 @@ internal fun Welcome(back: () -> Unit, next: () -> Unit) {
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Spacer(Modifier.height(42.dp))
+                Spacer(Modifier.height(28.dp))
                 Box(
-                    modifier = Modifier.size(270.dp).background(PaleGreen, RoundedCornerShape(135.dp)),
+                    modifier = Modifier.size(230.dp).background(PaleGreen, RoundedCornerShape(115.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
                     // UI.pen의 생성 캐릭터 이미지를 drawable로 추가하면 이 자리에 연결합니다.
                     Icon(Icons.Outlined.Spa, null, tint = Green, modifier = Modifier.size(72.dp))
                 }
-                Spacer(Modifier.height(34.dp))
+                Spacer(Modifier.height(24.dp))
                 Text(title, modifier = Modifier.fillMaxWidth(), color = Green, fontSize = 25.sp, lineHeight = 32.sp, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.height(11.dp))
                 Text(description, modifier = Modifier.fillMaxWidth(), color = Secondary, fontSize = 13.sp, lineHeight = 20.sp)
@@ -100,6 +100,120 @@ internal fun Welcome(back: () -> Unit, next: () -> Unit) {
         Spacer(Modifier.height(18.dp))
         MainButton(if (page == slides.lastIndex) "서비스 시작하기" else "다음", Orange) {
             if (page == slides.lastIndex) next() else scope.launch { pagerState.animateScrollToPage(page + 1) }
+        }
+    }
+}
+
+@Composable
+internal fun FirstUse(back: () -> Unit, next: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF6F4EF)),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(
+                onClick = back,
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.White, RoundedCornerShape(99.dp)),
+            ) {
+                Icon(Icons.Outlined.ArrowBack, contentDescription = "뒤로가기", tint = Green)
+            }
+            Text(
+                "첫 이용 안내",
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.Center,
+                color = Green,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
+            Spacer(Modifier.size(40.dp))
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            Spacer(Modifier.height(30.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth().height(190.dp),
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(containerColor = PaleGreen),
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(62.dp)
+                            .background(Color.White, RoundedCornerShape(18.dp)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Outlined.Spa, null, tint = Green, modifier = Modifier.size(31.dp))
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    Text("WELCOME TO SEIPSEIP", color = Green, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            Text("처음 오셨군요!", color = Green, fontSize = 25.sp, fontWeight = FontWeight.ExtraBold)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "필수 동의와 권한 설정을 마치면 튜토리얼을 보고 세입세잎을 시작할 수 있어요.",
+                color = Secondary,
+                fontSize = 12.sp,
+                lineHeight = 18.sp,
+            )
+            Spacer(Modifier.height(16.dp))
+            FirstUseStep(1, "약관·개인정보 동의", active = true)
+            Spacer(Modifier.height(8.dp))
+            FirstUseStep(2, "카메라·마이크·블루투스 권한", active = false)
+            Spacer(Modifier.height(8.dp))
+            FirstUseStep(3, "튜토리얼과 안심 가이드", active = false)
+            Spacer(Modifier.height(12.dp))
+        }
+
+        Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp)) {
+            MainButton("필수 동의 확인하기", Orange, click = next)
+        }
+    }
+}
+
+@Composable
+private fun FirstUseStep(number: Int, label: String, active: Boolean) {
+    val container = if (active) Color(0xFFFFF0E4) else Color.White
+    val border = if (active) Color(0xFFF2C69F) else Color(0xFFD9E1DA)
+    val badge = if (active) Orange else Color(0xFFDCE9D6)
+    Card(
+        modifier = Modifier.fillMaxWidth().height(52.dp),
+        shape = RoundedCornerShape(13.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, border),
+        colors = CardDefaults.cardColors(containerColor = container),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 11.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier.size(26.dp).background(badge, RoundedCornerShape(99.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(number.toString(), color = if (active) Color.White else Green, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+            }
+            Spacer(Modifier.width(9.dp))
+            Text(label, color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
         }
     }
 }
