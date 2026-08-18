@@ -1,0 +1,14 @@
+{
+  "folders": [
+    {
+      "name": "Android frontend",
+      "path": "android"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.gradle": true,
+      "**/build": true
+    }
+  }
+}
