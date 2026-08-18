@@ -61,7 +61,7 @@
 - 2026-08-10 — `docs/team/pm/01_2026-08-10_MVP-계획.md` 작성 완료. MVP 범위, 사용자 흐름, UI/UX, 일정, 완료 조건을 기록함.
 - 2026-08-11 — 백엔드 개발 도구 설치 확인 완료. `scripts/check-prerequisites.ps1`로 Temurin JDK·javac 21.0.12, Docker CLI와 Docker Desktop engine 29.7.2 실행을 확인함.
 - 2026-08-11 — PostgreSQL 로컬 개발 환경 구성 완료. Docker Compose에서 PostgreSQL 17을 `healthy` 상태로 실행하고, 빈 볼륨 재생성 후 Flyway 마이그레이션과 `server/api`의 `clean test` 통과를 확인함. 헬스 체크는 DB 연결 시 `UP(200)`, 중지 시 `DOWN(503)`을 반환함.
-- 2026-08-12 — 공통 API 계약 1.0 확정. 데모 로그인, 사용자→매물→임장 구조, 체크리스트 상태 4개, AI 라벨·bbox 형식, 프레임 규격과 보관 정책을 `docs/technical/api-spec.md`에서 확인함.
+- 2026-08-12 — 공통 API 계약 1.0 확정. 데모 로그인, 사용자→매물→임장 구조, 체크리스트 상태 4개, AI 라벨·bbox 형식, 프레임 규격과 보관 정책을 `team/00_shared/공통 api 계약.md`에서 확인함.
 - 2026-08-12 — 확정된 HTTP API의 OpenAPI 3.0.3 명세 작성 완료. Redocly CLI와 OpenAPI Generator 7.24.0으로 `packages/shared-types/openapi/openapi.yaml` 문법과 참조 유효성을 확인함.
 - 2026-08-13 — OpenAPI 기반 Spring Boot Kotlin 코드 생성 환경 구성 완료. OpenAPI Generator 7.24.0으로 요청·응답 타입과 API 인터페이스를 생성하고 `server/api`의 `clean test` 통과를 확인함.
 - 2026-08-13 — 공통 API 계약 1.1에 사용자가 직접 입력하는 매물 조건 7개를 추가함. 보증금·월세·관리비·전용면적·층수·옵션·부동산 연락처의 OpenAPI Kotlin 타입 생성과 `server/api`의 `clean test` 통과를 확인함.
@@ -70,3 +70,6 @@
 - 2026-08-13 — 매물 CRUD API 구현 완료. PostgreSQL 마이그레이션과 Kotlin Controller·Service·Repository를 구성하고 등록·목록/상세 조회·부분 수정·삭제·소유권·오류 응답을 `server/api`의 `clean test`로 확인함.
 - 2026-08-14 — 최신 UX 변경을 반영한 서버 도메인 규칙 초안 0.2를 작성함. 현장 체크리스트 중심 구조를 구역 분류·미디어 분석·확인 필요 관찰·근거 미디어·리포트 구조로 전환하고 기존 API·UI의 교체 대상과 미확정 계약을 기록함.
 - 2026-08-14 — 실시간 스트리밍 분석을 MVP에서 제외하고 안경 기본 고화질 영상→휴대전화 갤러리→촬영 중 생성 또는 촬영 후 추출한 JPEG→비동기 분석 흐름으로 문서와 API 계약 1.2를 갱신함. OpenAPI 문법 검사·Kotlin 코드 생성과 `server/api`의 `clean test` 통과를 확인함.
+
+- 2026-08-18 Android 앱을 `android/app`으로 이전하고 `:app:assembleDebug` 빌드 성공을 확인했다. 실제 에뮬레이터 흐름은 새 경로에서 재확인 필요.
+- 2026-08-18 — Android 기본 구조를 `:app`, `:core`, `:feature:property`로 구성하고 Compose·Navigation·Hilt·OpenAPI 기반 매물 CRUD를 연결함. OpenAPI 검사·생성, clean Debug 빌드, JVM 테스트 24개, Lint와 Galaxy SM-G991N(Android 15) Compose UI 테스트 2개를 통과하고 에뮬레이터에서 서버를 통한 등록·조회·수정·삭제까지 확인함.

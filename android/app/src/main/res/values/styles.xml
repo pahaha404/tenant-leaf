@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.Seipseip" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">#1E4933</item>
+    </style>
+</resources>

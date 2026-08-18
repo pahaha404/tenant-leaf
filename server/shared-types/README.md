@@ -2,7 +2,7 @@
 
 Android 앱과 Kotlin 서버가 함께 참조하는 데이터 계약을 정의합니다.
 
-계약의 기준 문서는 [`../technical/api-spec.md`](../technical/api-spec.md)입니다. 이 패키지의 타입과 상태값은 확정된 계약 1.2를 기준으로 구현합니다.
+계약의 기준 문서는 [`공통 api 계약.md`](../../team/00_shared/공통%20api%20계약.md)입니다. 이 패키지의 타입과 상태값은 확정된 계약 1.2를 기준으로 구현합니다.
 
 기계가 읽고 검증할 수 있는 명세는 [`openapi/openapi.yaml`](openapi/openapi.yaml)에 있습니다. 아직 상세 형식이 확정되지 않은 리포트, 매물 비교, 위험도와 AI 실패 결과는 명세에서 제외합니다.
 

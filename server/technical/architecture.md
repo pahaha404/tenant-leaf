@@ -31,4 +31,4 @@
 - 휴대전화의 원본 영상 경로와 갤러리 URI는 서버에 전송하지 않는다.
 - API 서버의 HTTP 요청 안에서 무거운 AI 분석을 끝내지 않는다.
 - AI 결과는 `Detection`이며 하자 후보인 `확인 필요 관찰 결과`다. `ChecklistItem`의 최종 상태는 사용자가 확정한다.
-- 계약 변경은 `server/shared-types`와 `server/technical/api-spec.md`를 같은 변경 묶음에서 갱신한다.
+- 계약 변경은 `server/shared-types`와 `team/00_shared/공통 api 계약.md`를 같은 변경 묶음에서 갱신한다.

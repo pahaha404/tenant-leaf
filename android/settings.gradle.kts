@@ -1,7 +1,20 @@
-rootProject.name = "tenant-leaf-android"
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
 
-// Each module remains independently deployable. Add a module here when its
-// Gradle build file is created, for example:
-// include(":app")
-// include(":feature")
-// include(":core")
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "tenant-leaf-android"
+include(":app")
+include(":core")
+include(":feature:property")
