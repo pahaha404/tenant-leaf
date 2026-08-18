@@ -1,10 +1,12 @@
 openapi: 3.0.3
 info:
   title: Tenant Leaf API
-  version: 1.1.0
+  version: 1.2.0
   description: |
     세입세잎 Android 앱과 Kotlin API 서버가 공유하는 MVP HTTP API 계약입니다.
     AI 탐지는 확인이 필요한 하자 후보이며, 체크리스트의 최종 상태는 사용자가 확정합니다.
+    MVP는 실시간 스트리밍 분석을 하지 않으며 원본 영상은 휴대전화 갤러리에만 보관합니다.
+    서버에는 촬영 중 생성하거나 촬영 완료 영상에서 추출한 JPEG만 업로드합니다.
 servers:
   - url: http://localhost:8080/api/v1
     description: 로컬 개발 서버
@@ -18,7 +20,7 @@ tags:
   - name: Checklist
     description: 사용자 체크리스트
   - name: Frames
-    description: 촬영 프레임 업로드와 조회
+    description: 촬영 후 분석할 JPEG 프레임 업로드와 조회
   - name: Analyses
     description: AI 분석과 탐지 검토
 
@@ -332,7 +334,8 @@ paths:
       - $ref: "#/components/parameters/InspectionId"
     post:
       tags: [Frames]
-      summary: 프레임 메타데이터 등록 및 업로드 URL 발급
+      summary: 촬영 후 분석 프레임 메타데이터 등록 및 업로드 URL 발급
+      description: 임장 상태가 completed일 때만 호출합니다. 원본 영상 파일과 휴대전화 갤러리 URI는 받지 않고 JPEG와 영상 내 시점 메타데이터만 등록합니다. 촬영 중인 in_progress 임장에는 409를 반환합니다.
       operationId: createFrameUploadRequest
       requestBody:
         required: true
@@ -355,6 +358,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "413":
           $ref: "#/components/responses/FileTooLarge"
         "415":
@@ -473,6 +478,7 @@ paths:
     post:
       tags: [Analyses]
       summary: 업로드된 프레임 분석 요청
+      description: 촬영 종료 후 completed 상태인 임장의 uploaded JPEG만 비동기 분석 대상으로 접수합니다.
       operationId: createAnalysis
       responses:
         "202":
@@ -1019,12 +1025,20 @@ components:
       type: string
       enum: [pending, uploaded, failed, deleted]
 
+    FrameOrigin:
+      type: string
+      description: 분석 프레임을 만든 방식입니다. 촬영 중 동시 생성은 기본 영상 녹화와의 실기기 호환성이 검증된 경우에만 사용합니다.
+      enum: [during_recording_capture, post_recording_extraction]
+
     Frame:
       type: object
       required:
         - id
         - inspectionId
         - deviceId
+        - frameOrigin
+        - sourceVideoId
+        - sourceVideoOffsetMs
         - contentType
         - width
         - height
@@ -1047,17 +1061,28 @@ components:
         deviceId:
           type: string
           format: uuid
+        frameOrigin:
+          $ref: "#/components/schemas/FrameOrigin"
+        sourceVideoId:
+          type: string
+          format: uuid
+          description: Android가 휴대전화의 원본 영상 클립에 부여한 불투명 식별자입니다. 서버 영상 파일 ID나 갤러리 URI가 아닙니다.
+        sourceVideoOffsetMs:
+          type: integer
+          format: int64
+          minimum: 0
+          description: 이 프레임이 원본 영상 시작 후 몇 밀리초 지점에 해당하는지 나타냅니다.
         contentType:
           type: string
           enum: [image/jpeg]
         width:
           type: integer
           minimum: 1
-          description: SDK에서 받은 실제 프레임 너비입니다.
+          description: 촬영 중 생성하거나 원본 영상에서 추출한 실제 JPEG 너비입니다.
         height:
           type: integer
           minimum: 1
-          description: SDK에서 받은 실제 프레임 높이입니다.
+          description: 촬영 중 생성하거나 원본 영상에서 추출한 실제 JPEG 높이입니다.
         contentLength:
           type: integer
           format: int64
@@ -1068,6 +1093,7 @@ components:
         capturedAt:
           type: string
           format: date-time
+          description: 촬영 중 동시 생성 시 실제 캡처 시각이며 사후 추출 시 원본 영상 시작 시각과 sourceVideoOffsetMs로 계산한 시각입니다.
         uploadStatus:
           $ref: "#/components/schemas/FrameUploadStatus"
         createdAt:
@@ -1078,6 +1104,9 @@ components:
       type: object
       required:
         - deviceId
+        - frameOrigin
+        - sourceVideoId
+        - sourceVideoOffsetMs
         - fileName
         - contentType
         - contentLength
@@ -1091,6 +1120,17 @@ components:
         deviceId:
           type: string
           format: uuid
+        frameOrigin:
+          $ref: "#/components/schemas/FrameOrigin"
+        sourceVideoId:
+          type: string
+          format: uuid
+          description: Android가 로컬 원본 영상 클립에 부여한 UUID입니다. 갤러리 URI나 로컬 경로를 보내지 않습니다.
+        sourceVideoOffsetMs:
+          type: integer
+          format: int64
+          minimum: 0
+          description: 분석 프레임의 원본 영상 내 시점입니다.
         fileName:
           type: string
           minLength: 1
@@ -1106,17 +1146,18 @@ components:
         width:
           type: integer
           minimum: 1
-          description: HIGH 요청값이 아니라 수신한 실제 프레임 너비입니다.
+          description: 생성된 실제 JPEG의 너비입니다. 고정 스트림 해상도를 전제로 하지 않습니다.
         height:
           type: integer
           minimum: 1
-          description: HIGH 요청값이 아니라 수신한 실제 프레임 높이입니다.
+          description: 생성된 실제 JPEG의 높이입니다. 고정 스트림 해상도를 전제로 하지 않습니다.
         importantByUser:
           type: boolean
           default: false
         capturedAt:
           type: string
           format: date-time
+          description: 실제 촬영 장면의 시각입니다. 사후 추출 시 영상 시작 시각과 sourceVideoOffsetMs로 계산합니다.
 
     UploadInstruction:
       type: object
