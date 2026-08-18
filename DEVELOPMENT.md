@@ -16,9 +16,9 @@ PowerShell에서 아래 명령을 실행해 도구 설치 상태를 확인합니
 
 | 단위 | 경로 | 기본 도구 |
 | --- | --- | --- |
-| Android 앱 | `apps/android` | Android Studio, Kotlin, JDK 21 |
-| API | `services/api` | Kotlin, Spring Boot, PostgreSQL, Redis |
-| AI 작업자 | `services/ai-worker` | Python 또는 Kotlin, 큐, AI 제공자 |
-| AI 학습·평가 | `ml` | Python 3.11+, GPU 환경은 선택 |
+| Android 앱 | `android` | Android Studio, Kotlin, JDK 21 |
+| API | `server/api` | Kotlin, Spring Boot, PostgreSQL, Redis |
+| AI 작업자 | `server/ai-worker` | Python 또는 Kotlin, 큐, AI 제공자 |
+| AI 학습·평가 | `ai/ml` | Python 3.11+, GPU 환경은 선택 |
 
 각 서비스의 실제 실행 명령은 빌드 파일을 추가할 때 해당 폴더의 README에 기록합니다. 아직 구현되지 않은 실행 명령을 문서에 가정해서 쓰지 않습니다.
