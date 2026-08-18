@@ -41,7 +41,7 @@
 
 1. 루트 `AGENTS.md`
 2. `server/backendmds/도메인 규칙.md`
-3. `server/technical/api-spec.md`
+3. `team/00_shared/공통 api 계약.md`
 4. `server/shared-types/openapi/openapi.yaml`
 5. `server/backendmds/10. Android 앱 개발 요청.md`
 6. `design/UI/UI.pen`

@@ -61,7 +61,7 @@
 - 2026-08-10 — `docs/team/pm/01_2026-08-10_MVP-계획.md` 작성 완료. MVP 범위, 사용자 흐름, UI/UX, 일정, 완료 조건을 기록함.
 - 2026-08-11 — 백엔드 개발 도구 설치 확인 완료. `scripts/check-prerequisites.ps1`로 Temurin JDK·javac 21.0.12, Docker CLI와 Docker Desktop engine 29.7.2 실행을 확인함.
 - 2026-08-11 — PostgreSQL 로컬 개발 환경 구성 완료. Docker Compose에서 PostgreSQL 17을 `healthy` 상태로 실행하고, 빈 볼륨 재생성 후 Flyway 마이그레이션과 `server/api`의 `clean test` 통과를 확인함. 헬스 체크는 DB 연결 시 `UP(200)`, 중지 시 `DOWN(503)`을 반환함.
-- 2026-08-12 — 공통 API 계약 1.0 확정. 데모 로그인, 사용자→매물→임장 구조, 체크리스트 상태 4개, AI 라벨·bbox 형식, 프레임 규격과 보관 정책을 `docs/technical/api-spec.md`에서 확인함.
+- 2026-08-12 — 공통 API 계약 1.0 확정. 데모 로그인, 사용자→매물→임장 구조, 체크리스트 상태 4개, AI 라벨·bbox 형식, 프레임 규격과 보관 정책을 `team/00_shared/공통 api 계약.md`에서 확인함.
 - 2026-08-12 — 확정된 HTTP API의 OpenAPI 3.0.3 명세 작성 완료. Redocly CLI와 OpenAPI Generator 7.24.0으로 `packages/shared-types/openapi/openapi.yaml` 문법과 참조 유효성을 확인함.
 - 2026-08-13 — OpenAPI 기반 Spring Boot Kotlin 코드 생성 환경 구성 완료. OpenAPI Generator 7.24.0으로 요청·응답 타입과 API 인터페이스를 생성하고 `server/api`의 `clean test` 통과를 확인함.
 - 2026-08-13 — 공통 API 계약 1.1에 사용자가 직접 입력하는 매물 조건 7개를 추가함. 보증금·월세·관리비·전용면적·층수·옵션·부동산 연락처의 OpenAPI Kotlin 타입 생성과 `server/api`의 `clean test` 통과를 확인함.

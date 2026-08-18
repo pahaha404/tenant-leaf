@@ -321,8 +321,10 @@ tenant-leaf/
 ├─ packages/
 │  ├─ shared-types/                 # 앱·서버 공용 데이터 타입
 │  ├─ checklist-config/             # 점검 항목·중요도·질문 템플릿
+├─ team/
+│  └─ 00_shared/
+│     └─ 공통 api 계약.md            # 공통 API 명세
 ├─ docs/
-│  ├─ api-spec.md                   # API 명세
 │  ├─ data-model.md                 # DB·데이터 모델
 │  ├─ privacy-policy-draft.md       # 개인정보·촬영 동의 초안
 │  └─ ai-evaluation.md              # AI 오탐·성능 검증 기준
