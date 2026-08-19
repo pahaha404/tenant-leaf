@@ -1,12 +1,15 @@
 openapi: 3.0.3
 info:
   title: Tenant Leaf API
-  version: 1.2.0
+  version: 2.0.0-draft.1
+  x-contract-status: review-draft
   description: |
-    세입세잎 Android 앱과 Kotlin API 서버가 공유하는 MVP HTTP API 계약입니다.
-    AI 탐지는 확인이 필요한 하자 후보이며, 체크리스트의 최종 상태는 사용자가 확정합니다.
-    MVP는 실시간 스트리밍 분석을 하지 않으며 원본 영상은 휴대전화 갤러리에만 보관합니다.
-    서버에는 촬영 중 생성하거나 촬영 완료 영상에서 추출한 JPEG만 업로드합니다.
+    세입세잎 Android 앱과 Kotlin API 서버가 공유하는 MVP HTTP API 계약의 2.0 검토 초안입니다.
+    현장 점검은 체크리스트 대신 구역·관찰·근거 JPEG를 중심으로 처리합니다.
+    원본 영상은 휴대전화 갤러리에만 보관하고 서버에는 업로드하지 않습니다.
+    AI 결과는 실제 하자나 안전 상태를 확정하지 않는 확인 필요 관찰 후보입니다.
+    이 명세에는 요청·응답 구조가 확정된 인증, 매물과 임장 생명주기 API만 포함합니다.
+    Media, Observation과 Report HTTP API는 남은 P0 계약이 확정될 때까지 제외합니다.
 servers:
   - url: http://localhost:8080/api/v1
     description: 로컬 개발 서버
@@ -16,13 +19,7 @@ tags:
   - name: Properties
     description: 매물 관리
   - name: Inspections
-    description: 임장 관리
-  - name: Checklist
-    description: 사용자 체크리스트
-  - name: Frames
-    description: 촬영 후 분석할 JPEG 프레임 업로드와 조회
-  - name: Analyses
-    description: AI 분석과 탐지 검토
+    description: 임장 생명주기 관리
 
 security:
   - bearerAuth: []
@@ -113,6 +110,7 @@ paths:
     patch:
       tags: [Properties]
       summary: 매물 수정
+      description: 생략한 필드는 유지하고 명시적인 null은 선택값 삭제를 의미합니다.
       operationId: updateProperty
       requestBody:
         required: true
@@ -139,12 +137,12 @@ paths:
           $ref: "#/components/responses/InternalError"
     delete:
       tags: [Properties]
-      summary: 매물 삭제 요청
-      description: 저장 방식이 즉시 삭제인지 소프트 삭제인지는 구현 전에 별도로 확정합니다.
+      summary: 매물 삭제
+      description: 현재 확정 범위는 하위 임장이 없는 매물의 삭제입니다. 임장이 존재할 때의 거부·보관·하위 데이터 처리 방식은 P0 합의 전까지 구현하거나 클라이언트가 가정하지 않습니다.
       operationId: deleteProperty
       responses:
         "204":
-          description: 매물 삭제 요청 처리 성공
+          description: 매물 삭제 성공
         "401":
           $ref: "#/components/responses/Unauthenticated"
         "403":
@@ -160,6 +158,7 @@ paths:
     post:
       tags: [Inspections]
       summary: 새 임장 시작
+      description: 사용자가 실제 영상 촬영을 시작할 때 IN_PROGRESS 임장을 생성합니다.
       operationId: createInspection
       responses:
         "201":
@@ -221,29 +220,14 @@ paths:
           $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalError"
-    delete:
-      tags: [Inspections]
-      summary: 임장과 연결 사진 삭제 요청
-      description: 사진은 즉시 사용을 중단하고 요청 후 최대 7일 이내 완전히 삭제합니다.
-      operationId: deleteInspection
-      responses:
-        "204":
-          description: 임장 삭제 요청 처리 성공
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalError"
 
   /inspections/{inspectionId}/status:
     parameters:
       - $ref: "#/components/parameters/InspectionId"
     patch:
       tags: [Inspections]
-      summary: 임장 완료 또는 취소
+      summary: 임장 종료 또는 취소
+      description: IN_PROGRESS 임장을 ENDED 또는 CANCELLED로 한 번만 전환합니다.
       operationId: updateInspectionStatus
       requestBody:
         required: true
@@ -268,290 +252,6 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
-  /inspections/{inspectionId}/checklist:
-    parameters:
-      - $ref: "#/components/parameters/InspectionId"
-    get:
-      tags: [Checklist]
-      summary: 임장 체크리스트 조회
-      operationId: listChecklistItems
-      parameters:
-        - $ref: "#/components/parameters/Page"
-        - $ref: "#/components/parameters/Size"
-      responses:
-        "200":
-          description: 체크리스트 조회 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ChecklistItemPage"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
-  /inspections/{inspectionId}/checklist/{itemId}:
-    parameters:
-      - $ref: "#/components/parameters/InspectionId"
-      - $ref: "#/components/parameters/ChecklistItemId"
-    patch:
-      tags: [Checklist]
-      summary: 사용자 확인 상태와 메모 저장
-      operationId: updateChecklistItem
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateChecklistItemRequest"
-      responses:
-        "200":
-          description: 체크리스트 항목 수정 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ChecklistItem"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
-  /inspections/{inspectionId}/frames/upload-requests:
-    parameters:
-      - $ref: "#/components/parameters/InspectionId"
-    post:
-      tags: [Frames]
-      summary: 촬영 후 분석 프레임 메타데이터 등록 및 업로드 URL 발급
-      description: 임장 상태가 completed일 때만 호출합니다. 원본 영상 파일과 휴대전화 갤러리 URI는 받지 않고 JPEG와 영상 내 시점 메타데이터만 등록합니다. 촬영 중인 in_progress 임장에는 409를 반환합니다.
-      operationId: createFrameUploadRequest
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateFrameUploadRequest"
-      responses:
-        "201":
-          description: 업로드 요청 생성 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreateFrameUploadResponse"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "413":
-          $ref: "#/components/responses/FileTooLarge"
-        "415":
-          $ref: "#/components/responses/UnsupportedMediaType"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
-  /frames/{frameId}/upload-complete:
-    parameters:
-      - $ref: "#/components/parameters/FrameId"
-    post:
-      tags: [Frames]
-      summary: 저장소 업로드 완료 알림
-      description: 서버가 저장소 객체의 존재와 크기를 검증한 후 uploaded 상태로 변경합니다.
-      operationId: completeFrameUpload
-      responses:
-        "200":
-          description: 업로드 완료 확인 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Frame"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "413":
-          $ref: "#/components/responses/FileTooLarge"
-        "415":
-          $ref: "#/components/responses/UnsupportedMediaType"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
-  /frames/{frameId}:
-    parameters:
-      - $ref: "#/components/parameters/FrameId"
-    get:
-      tags: [Frames]
-      summary: 프레임 메타데이터 조회
-      operationId: getFrame
-      responses:
-        "200":
-          description: 프레임 조회 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Frame"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalError"
-    patch:
-      tags: [Frames]
-      summary: 사용자 중요 표시 변경
-      operationId: updateFrame
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateFrameRequest"
-      responses:
-        "200":
-          description: 프레임 중요 표시 변경 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Frame"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
-  /frames/{frameId}/view-url:
-    parameters:
-      - $ref: "#/components/parameters/FrameId"
-    post:
-      tags: [Frames]
-      summary: 만료 시간이 짧은 프레임 조회 URL 발급
-      operationId: createFrameViewUrl
-      responses:
-        "200":
-          description: 조회 URL 발급 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreateFrameViewUrlResponse"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
-  /frames/{frameId}/analyses:
-    parameters:
-      - $ref: "#/components/parameters/FrameId"
-    post:
-      tags: [Analyses]
-      summary: 업로드된 프레임 분석 요청
-      description: 촬영 종료 후 completed 상태인 임장의 uploaded JPEG만 비동기 분석 대상으로 접수합니다.
-      operationId: createAnalysis
-      responses:
-        "202":
-          description: 분석 요청 접수 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Analysis"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "409":
-          $ref: "#/components/responses/Conflict"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
-  /analyses/{analysisId}:
-    parameters:
-      - $ref: "#/components/parameters/AnalysisId"
-    get:
-      tags: [Analyses]
-      summary: 분석 상태와 탐지 목록 조회
-      operationId: getAnalysis
-      responses:
-        "200":
-          description: 분석 조회 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Analysis"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          $ref: "#/components/responses/InternalError"
-
-  /detections/{detectionId}/review:
-    parameters:
-      - $ref: "#/components/parameters/DetectionId"
-    patch:
-      tags: [Analyses]
-      summary: AI 탐지 후보 사용자 검토
-      description: accepted는 법적 하자 또는 안전 상태 확정이 아닌 사용자 관찰 기록을 뜻합니다.
-      operationId: reviewDetection
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ReviewDetectionRequest"
-      responses:
-        "200":
-          description: 탐지 검토 상태 변경 성공
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Detection"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthenticated"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "404":
-          $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalError"
 
@@ -593,34 +293,6 @@ components:
       schema:
         type: string
         format: uuid
-    ChecklistItemId:
-      name: itemId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    FrameId:
-      name: frameId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    AnalysisId:
-      name: analysisId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    DetectionId:
-      name: detectionId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
 
   responses:
     BadRequest:
@@ -642,25 +314,13 @@ components:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     NotFound:
-      description: 요청한 리소스가 없음
+      description: 요청한 리소스가 없거나 접근할 수 없음
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/ErrorResponse"
     Conflict:
       description: 현재 상태에서는 요청을 수행할 수 없음
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ErrorResponse"
-    FileTooLarge:
-      description: 프레임당 최대 1MiB 초과
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/ErrorResponse"
-    UnsupportedMediaType:
-      description: JPEG가 아닌 프레임 형식
       content:
         application/json:
           schema:
@@ -894,11 +554,16 @@ components:
 
     InspectionStatus:
       type: string
-      enum: [in_progress, completed, cancelled]
+      enum: [IN_PROGRESS, ENDED, CANCELLED]
+
+    InspectionAnalysisStatus:
+      type: string
+      description: 서버가 등록 미디어의 업로드·분석 상태와 미디어 집합 확정 여부에서 계산하는 임장 전체 분석 상태입니다. UPLOADING은 등록, PENDING, 업로드, 객체 확인, 재시도와 집합 미확정 상태에서 최종 실패만 남은 경우를 포함합니다. QUEUED는 분석 요청 준비 또는 대기열 처리 중을 뜻하며 UPLOADED이면서 NOT_REQUESTED인 미디어도 포함합니다. COMPLETED와 FAILED는 미디어 집합 확정 후에만 반환합니다.
+      enum: [NOT_STARTED, UPLOADING, QUEUED, ANALYZING, PARTIAL_COMPLETED, COMPLETED, FAILED]
 
     Inspection:
       type: object
-      required: [id, propertyId, status, startedAt, createdAt]
+      required: [id, propertyId, status, analysisStatus, startedAt, createdAt]
       properties:
         id:
           type: string
@@ -908,17 +573,29 @@ components:
           format: uuid
         status:
           $ref: "#/components/schemas/InspectionStatus"
+        analysisStatus:
+          allOf:
+            - $ref: "#/components/schemas/InspectionAnalysisStatus"
+          readOnly: true
         startedAt:
           type: string
           format: date-time
-        completedAt:
+        endedAt:
           type: string
           format: date-time
           nullable: true
+        cancelledAt:
+          type: string
+          format: date-time
+          nullable: true
+        archivedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: 목록 보관 시각이며 임장 상태값이 아닙니다.
         createdAt:
           type: string
           format: date-time
-
     InspectionPage:
       allOf:
         - $ref: "#/components/schemas/PageMetadata"
@@ -936,286 +613,50 @@ components:
       properties:
         status:
           type: string
-          description: 진행 중인 임장은 완료 또는 취소 상태로만 변경할 수 있습니다.
-          enum: [completed, cancelled]
+          description: IN_PROGRESS 임장은 ENDED 또는 CANCELLED로만 변경할 수 있습니다.
+          enum: [ENDED, CANCELLED]
 
-    ChecklistStatus:
+    Zone:
       type: string
-      enum: [unchecked, normal, needs_review, not_applicable]
+      enum: [ENTRANCE_COMMON, KITCHEN, WINDOW_VENTILATION, LIVING_ROOM, BATHROOM, UNKNOWN]
 
-    ChecklistItem:
-      type: object
-      required:
-        - id
-        - inspectionId
-        - key
-        - title
-        - status
-        - confirmedByUser
-        - updatedAt
-      properties:
-        id:
-          type: string
-          format: uuid
-        inspectionId:
-          type: string
-          format: uuid
-        key:
-          type: string
-          minLength: 1
-          example: bathroom.wall.surface
-        title:
-          type: string
-          minLength: 1
-          example: 욕실 벽면 상태
-        status:
-          $ref: "#/components/schemas/ChecklistStatus"
-        note:
-          type: string
-          nullable: true
-        confirmedByUser:
-          type: boolean
-        updatedAt:
-          type: string
-          format: date-time
-
-    ChecklistItemPage:
-      allOf:
-        - $ref: "#/components/schemas/PageMetadata"
-        - type: object
-          required: [items]
-          properties:
-            items:
-              type: array
-              items:
-                $ref: "#/components/schemas/ChecklistItem"
-
-    UpdateChecklistItemRequest:
-      type: object
-      required: [status, confirmedByUser]
-      properties:
-        status:
-          $ref: "#/components/schemas/ChecklistStatus"
-        note:
-          type: string
-          nullable: true
-        confirmedByUser:
-          type: boolean
-          enum: [true]
-          description: AI가 아닌 사용자가 최종 상태를 확인했음을 뜻합니다.
-
-    DeviceType:
+    MediaType:
       type: string
-      enum: [smartphone, smart_glasses]
+      enum: [PHOTO]
 
-    Device:
-      type: object
-      required: [id, type, modelName]
-      properties:
-        id:
-          type: string
-          format: uuid
-        type:
-          $ref: "#/components/schemas/DeviceType"
-        modelName:
-          type: string
-          minLength: 1
-
-    FrameUploadStatus:
+    CaptureSource:
       type: string
-      enum: [pending, uploaded, failed, deleted]
+      enum: [META_GLASS, ANDROID_CAMERA]
 
     FrameOrigin:
       type: string
-      description: 분석 프레임을 만든 방식입니다. 촬영 중 동시 생성은 기본 영상 녹화와의 실기기 호환성이 검증된 경우에만 사용합니다.
-      enum: [during_recording_capture, post_recording_extraction]
+      description: 촬영 후 추출이 MVP 기본값이며 촬영 중 생성은 실기기 검증 후에만 사용합니다.
+      enum: [DURING_RECORDING_CAPTURE, POST_RECORDING_EXTRACTION]
 
-    Frame:
-      type: object
-      required:
-        - id
-        - inspectionId
-        - deviceId
-        - frameOrigin
-        - sourceVideoId
-        - sourceVideoOffsetMs
-        - contentType
-        - width
-        - height
-        - contentLength
-        - importantByUser
-        - capturedAt
-        - uploadStatus
-        - createdAt
-      properties:
-        id:
-          type: string
-          format: uuid
-        inspectionId:
-          type: string
-          format: uuid
-        checklistItemId:
-          type: string
-          format: uuid
-          nullable: true
-        deviceId:
-          type: string
-          format: uuid
-        frameOrigin:
-          $ref: "#/components/schemas/FrameOrigin"
-        sourceVideoId:
-          type: string
-          format: uuid
-          description: Android가 휴대전화의 원본 영상 클립에 부여한 불투명 식별자입니다. 서버 영상 파일 ID나 갤러리 URI가 아닙니다.
-        sourceVideoOffsetMs:
-          type: integer
-          format: int64
-          minimum: 0
-          description: 이 프레임이 원본 영상 시작 후 몇 밀리초 지점에 해당하는지 나타냅니다.
-        contentType:
-          type: string
-          enum: [image/jpeg]
-        width:
-          type: integer
-          minimum: 1
-          description: 촬영 중 생성하거나 원본 영상에서 추출한 실제 JPEG 너비입니다.
-        height:
-          type: integer
-          minimum: 1
-          description: 촬영 중 생성하거나 원본 영상에서 추출한 실제 JPEG 높이입니다.
-        contentLength:
-          type: integer
-          format: int64
-          minimum: 1
-          maximum: 1048576
-        importantByUser:
-          type: boolean
-        capturedAt:
-          type: string
-          format: date-time
-          description: 촬영 중 동시 생성 시 실제 캡처 시각이며 사후 추출 시 원본 영상 시작 시각과 sourceVideoOffsetMs로 계산한 시각입니다.
-        uploadStatus:
-          $ref: "#/components/schemas/FrameUploadStatus"
-        createdAt:
-          type: string
-          format: date-time
-
-    CreateFrameUploadRequest:
-      type: object
-      required:
-        - deviceId
-        - frameOrigin
-        - sourceVideoId
-        - sourceVideoOffsetMs
-        - fileName
-        - contentType
-        - contentLength
-        - width
-        - height
-        - capturedAt
-      properties:
-        checklistItemId:
-          type: string
-          format: uuid
-        deviceId:
-          type: string
-          format: uuid
-        frameOrigin:
-          $ref: "#/components/schemas/FrameOrigin"
-        sourceVideoId:
-          type: string
-          format: uuid
-          description: Android가 로컬 원본 영상 클립에 부여한 UUID입니다. 갤러리 URI나 로컬 경로를 보내지 않습니다.
-        sourceVideoOffsetMs:
-          type: integer
-          format: int64
-          minimum: 0
-          description: 분석 프레임의 원본 영상 내 시점입니다.
-        fileName:
-          type: string
-          minLength: 1
-          example: frame-20260812-080930.jpg
-        contentType:
-          type: string
-          enum: [image/jpeg]
-        contentLength:
-          type: integer
-          format: int64
-          minimum: 1
-          maximum: 1048576
-        width:
-          type: integer
-          minimum: 1
-          description: 생성된 실제 JPEG의 너비입니다. 고정 스트림 해상도를 전제로 하지 않습니다.
-        height:
-          type: integer
-          minimum: 1
-          description: 생성된 실제 JPEG의 높이입니다. 고정 스트림 해상도를 전제로 하지 않습니다.
-        importantByUser:
-          type: boolean
-          default: false
-        capturedAt:
-          type: string
-          format: date-time
-          description: 실제 촬영 장면의 시각입니다. 사후 추출 시 영상 시작 시각과 sourceVideoOffsetMs로 계산합니다.
-
-    UploadInstruction:
-      type: object
-      required: [method, url, headers, expiresAt]
-      properties:
-        method:
-          type: string
-          enum: [PUT]
-        url:
-          type: string
-          format: uri
-          description: 만료 시간이 있는 서명된 업로드 URL입니다.
-        headers:
-          type: object
-          additionalProperties:
-            type: string
-        expiresAt:
-          type: string
-          format: date-time
-
-    CreateFrameUploadResponse:
-      type: object
-      required: [frame, upload]
-      properties:
-        frame:
-          $ref: "#/components/schemas/Frame"
-        upload:
-          $ref: "#/components/schemas/UploadInstruction"
-
-    UpdateFrameRequest:
-      type: object
-      required: [importantByUser]
-      properties:
-        importantByUser:
-          type: boolean
-
-    CreateFrameViewUrlResponse:
-      type: object
-      required: [url, expiresAt]
-      properties:
-        url:
-          type: string
-          format: uri
-          description: 만료 시간이 있는 서명된 조회 URL입니다.
-        expiresAt:
-          type: string
-          format: date-time
-
-    AnalysisStatus:
+    MediaUploadStatus:
       type: string
-      enum: [queued, processing, completed, failed]
+      enum: [PENDING, UPLOADING, UPLOADED, FAILED]
 
-    DetectionReviewStatus:
+    MediaAnalysisStatus:
       type: string
-      enum: [needs_review, accepted, rejected]
+      enum: [NOT_REQUESTED, QUEUED, ANALYZING, COMPLETED, FAILED]
 
-    DetectionLabel:
+    ZoneAnalysisStatus:
       type: string
+      enum: [NO_MEDIA, UPLOADING, QUEUED, ANALYZING, COMPLETED, PARTIAL_FAILED, FAILED]
+
+    ObservationStatus:
+      type: string
+      description: DISMISSED는 하자 아님이나 오탐 확정이 아니라 기본 리포트 제외 상태입니다.
+      enum: [ACTIVE, VIEWED, DISMISSED]
+
+    ReportStatus:
+      type: string
+      enum: [NOT_REQUESTED, WAITING_FOR_ANALYSIS, GENERATING, COMPLETED, PARTIAL_COMPLETED, FAILED]
+
+    AiLabel:
+      type: string
+      description: 모델 클래스 ID 0~12와 고정 쌍으로 사용하는 원본 영문 라벨입니다.
       enum:
         - crack
         - mold
@@ -1229,13 +670,12 @@ components:
         - surfacedefect
         - stain
         - trowelmark
+        - other
 
     Bbox:
       type: object
-      description: |
-        이미지 왼쪽 위를 원점으로 하는 0.0~1.0 정규화 좌표입니다.
-        x + width와 y + height는 각각 1.0 이하여야 합니다.
       required: [x, y, width, height]
+      description: 이미지 왼쪽 위를 원점으로 하는 0.0~1.0 정규화 좌표입니다.
       properties:
         x:
           type: number
@@ -1257,144 +697,6 @@ components:
           format: double
           minimum: 0
           maximum: 1
-
-    Detection:
-      type: object
-      description: AI가 제시한 확인 필요 하자 후보이며 확정 판정이 아닙니다.
-      required:
-        - id
-        - analysisId
-        - frameId
-        - classId
-        - label
-        - confidence
-        - bbox
-        - reviewStatus
-      properties:
-        id:
-          type: string
-          format: uuid
-        analysisId:
-          type: string
-          format: uuid
-        frameId:
-          type: string
-          format: uuid
-        classId:
-          type: integer
-          minimum: 0
-          maximum: 11
-          description: label과 공통 용어집의 고정 쌍으로 일치해야 합니다.
-        label:
-          $ref: "#/components/schemas/DetectionLabel"
-        confidence:
-          type: number
-          format: double
-          minimum: 0
-          maximum: 1
-          description: 모델 확신 정도이며 위험도나 안전 점수가 아닙니다.
-        bbox:
-          $ref: "#/components/schemas/Bbox"
-        reviewStatus:
-          $ref: "#/components/schemas/DetectionReviewStatus"
-        reviewedAt:
-          type: string
-          format: date-time
-          nullable: true
-
-    Analysis:
-      type: object
-      required: [id, frameId, status, detections, createdAt]
-      properties:
-        id:
-          type: string
-          format: uuid
-        frameId:
-          type: string
-          format: uuid
-        status:
-          $ref: "#/components/schemas/AnalysisStatus"
-        modelVersion:
-          type: string
-          nullable: true
-          description: 분석이 시작되거나 완료되면 사용한 모델 버전을 기록합니다.
-        detections:
-          type: array
-          items:
-            $ref: "#/components/schemas/Detection"
-        createdAt:
-          type: string
-          format: date-time
-        completedAt:
-          type: string
-          format: date-time
-          nullable: true
-
-    ReviewDetectionRequest:
-      type: object
-      required: [reviewStatus]
-      properties:
-        reviewStatus:
-          type: string
-          enum: [accepted, rejected]
-
-    AnalysisJob:
-      type: object
-      description: API 서버가 AI 작업자에게 전달하는 내부 작업 계약입니다.
-      required: [analysisId, frameId, objectKey, requestedAt]
-      properties:
-        analysisId:
-          type: string
-          format: uuid
-        frameId:
-          type: string
-          format: uuid
-        objectKey:
-          type: string
-          minLength: 1
-        requestedAt:
-          type: string
-          format: date-time
-
-    AnalysisResultDetection:
-      type: object
-      required: [classId, label, confidence, bbox]
-      properties:
-        classId:
-          type: integer
-          minimum: 0
-          maximum: 11
-        label:
-          $ref: "#/components/schemas/DetectionLabel"
-        confidence:
-          type: number
-          format: double
-          minimum: 0
-          maximum: 1
-        bbox:
-          $ref: "#/components/schemas/Bbox"
-
-    AnalysisResult:
-      type: object
-      description: AI 작업자가 API 서버에 전달하는 내부 성공 결과 계약입니다.
-      required: [analysisId, frameId, modelVersion, detections, completedAt]
-      properties:
-        analysisId:
-          type: string
-          format: uuid
-        frameId:
-          type: string
-          format: uuid
-        modelVersion:
-          type: string
-          minLength: 1
-        detections:
-          type: array
-          items:
-            $ref: "#/components/schemas/AnalysisResultDetection"
-        completedAt:
-          type: string
-          format: date-time
 
     PageMetadata:
       type: object
