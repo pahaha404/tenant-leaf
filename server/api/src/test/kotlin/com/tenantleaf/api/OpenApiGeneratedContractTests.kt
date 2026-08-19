@@ -1,6 +1,7 @@
 package com.tenantleaf.api
 
 import com.tenantleaf.api.generated.api.PropertiesApi
+import com.tenantleaf.api.generated.api.InspectionsApi
 import com.tenantleaf.api.generated.model.AiLabel
 import com.tenantleaf.api.generated.model.CaptureSource
 import com.tenantleaf.api.generated.model.CreatePropertyRequest
@@ -27,6 +28,7 @@ class OpenApiGeneratedContractTests {
 	@Test
 	fun `API 인터페이스는 공통 기본 경로를 사용한다`() {
 		assertEquals("/api/v1", PropertiesApi.BASE_PATH)
+		assertEquals("/api/v1", InspectionsApi.BASE_PATH)
 	}
 
 	@Test

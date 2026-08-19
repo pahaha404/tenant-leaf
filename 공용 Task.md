@@ -75,3 +75,4 @@
 - 2026-08-18 Android 앱을 `android/app`으로 이전하고 `:app:assembleDebug` 빌드 성공을 확인했다. 실제 에뮬레이터 흐름은 새 경로에서 재확인 필요.
 - 2026-08-18 — Android 기본 구조를 `:app`, `:core`, `:feature:property`로 구성하고 Compose·Navigation·Hilt·OpenAPI 기반 매물 CRUD를 연결함. OpenAPI 검사·생성, clean Debug 빌드, JVM 테스트 24개, Lint와 Galaxy SM-G991N(Android 15) Compose UI 테스트 2개를 통과하고 에뮬레이터에서 서버를 통한 등록·조회·수정·삭제까지 확인함.
 - 2026-08-18 — 공통 API 계약을 체크리스트·Frame·Detection 중심 1.2에서 구역·Media·Observation·근거 중심 검토 초안 2.0으로 전환함. 미확정 Media·Observation·Report HTTP API는 OpenAPI에서 제외하고, 서버 OpenAPI 검사·Kotlin 생성·계약 테스트와 Android clean Debug 빌드·단위 테스트·Lint 통과를 확인함.
+- 2026-08-19 — 확정된 임장 생명주기 API의 PostgreSQL·Spring Boot 구현을 추가함. 임장 생성·목록·상세·종료·취소, 소유권, 단방향 상태 전이와 임장이 있는 매물 삭제 보호를 별도 테스트 스키마에서 검증함. 미디어·관찰·리포트와 임장 보관 API는 미확정 범위로 유지함.

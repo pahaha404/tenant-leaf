@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: ${TEST_DATABASE_URL:jdbc:postgresql://localhost:5432/tenant_leaf_test}
+    username: ${POSTGRES_USER:tenant_leaf}
+    password: ${POSTGRES_PASSWORD:tenant_leaf_local}
+  flyway:
+    enabled: true
+    create-schemas: true
+    default-schema: tenant_leaf_test
+    schemas: tenant_leaf_test
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: tenant_leaf_test
+    open-in-view: false
