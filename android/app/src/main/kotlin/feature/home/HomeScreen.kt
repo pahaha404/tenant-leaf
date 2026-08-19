@@ -31,6 +31,8 @@ import androidx.compose.material.icons.outlined.RealEstateAgent
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +43,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import android.app.Activity
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
@@ -63,6 +68,9 @@ fun HomeScreen(
     onStartInspection: () -> Unit,
     onTabSelected: (String) -> Unit,
 ) {
+    val glassViewModel: GlassConnectionViewModel = viewModel()
+    val glassState by glassViewModel.uiState.collectAsState()
+    val activity = LocalContext.current as? Activity
     TenantLeafHomeLayout(
         selectedTab = AppTab.Home,
         onOpenProperties = onOpenProperties,
@@ -70,6 +78,8 @@ fun HomeScreen(
         onOpenMagazine = onOpenMagazine,
         onOpenMagazineArticle = onOpenMagazineArticle,
         onStartInspection = onStartInspection,
+        glassState = glassState,
+        onGlassClick = { activity?.let(glassViewModel::connect) },
         onTabSelected = onTabSelected,
     )
 }
@@ -84,6 +94,8 @@ fun TenantLeafHomeLayout(
     onTabSelected: (String) -> Unit,
     onStartInspection: () -> Unit = onOpenProperties,
     processing: Boolean = false,
+    glassState: GlassConnectionUiState = GlassConnectionUiState(),
+    onGlassClick: () -> Unit = {},
 ) {
     Box(modifier = Modifier.fillMaxSize().background(if (processing) Color(0xFFF6F4EF) else HomeBackground)) {
         Column(
@@ -91,7 +103,7 @@ fun TenantLeafHomeLayout(
             verticalArrangement = Arrangement.spacedBy(13.dp),
         ) {
             HomeHeader(processing)
-            GlassStatusCard(onOpenProperties)
+            GlassStatusCard(glassState, onGlassClick)
             if (processing) ReportProcessingCard(onOpenReports) else StartInspectionCard(onStartInspection)
             HomeQuickActions(onOpenProperties)
             RecentReportCard(onOpenReports, processing)
@@ -116,7 +128,7 @@ private fun HomeHeader(processing: Boolean) {
 }
 
 @Composable
-private fun GlassStatusCard(onClick: () -> Unit) {
+private fun GlassStatusCard(state: GlassConnectionUiState, onClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(DeepGreen).clickable(onClick = onClick).padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -126,8 +138,8 @@ private fun GlassStatusCard(onClick: () -> Unit) {
         }
         Spacer(Modifier.width(11.dp))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text("세입세잎 Glass 연결됨", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
-            Text("배터리 84% · 촬영 준비 완료", color = HomeGlassText, fontSize = 10.sp)
+            Text(state.title, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+            Text(state.detail, color = HomeGlassText, fontSize = 10.sp)
         }
         Icon(Icons.Outlined.ArrowForward, null, tint = Color.White, modifier = Modifier.size(18.dp))
     }

@@ -1,7 +1,10 @@
 # Android / Gradle
 .gradle/
+.kotlin/
+**/.kotlin/
 **/build/
 local.properties
+**/gradle/gradle-daemon-jvm.properties
 *.apk
 *.aab
 
