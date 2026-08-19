@@ -6,6 +6,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.seipseip.feature.inspection.presentation.InspectionDetailRoute
+import com.seipseip.feature.inspection.presentation.InspectionDetailViewModel
+import com.seipseip.feature.inspection.presentation.InspectionListRoute
+import com.seipseip.feature.inspection.presentation.InspectionListViewModel
 import com.seipseip.feature.property.presentation.PropertyDetailRoute
 import com.seipseip.feature.property.presentation.PropertyDetailViewModel
 import com.seipseip.feature.property.presentation.PropertyFormRoute
@@ -18,9 +22,13 @@ private object Routes {
     const val PROPERTY_CREATE = "properties/create"
     const val PROPERTY_DETAIL = "properties/{propertyId}"
     const val PROPERTY_EDIT = "properties/{propertyId}/edit"
+    const val INSPECTION_LIST = "properties/{propertyId}/inspections"
+    const val INSPECTION_DETAIL = "inspections/{inspectionId}"
 
     fun detail(id: UUID) = "properties/$id"
     fun edit(id: UUID) = "properties/$id/edit"
+    fun inspections(propertyId: UUID) = "properties/$propertyId/inspections"
+    fun inspectionDetail(inspectionId: UUID) = "inspections/$inspectionId"
 }
 
 @Composable
@@ -49,6 +57,7 @@ fun TenantLeafNavHost() {
         ) {
             PropertyDetailRoute(
                 onBack = navController::popBackStack,
+                onInspections = { navController.navigate(Routes.inspections(it)) },
                 onEdit = { navController.navigate(Routes.edit(it)) },
                 onDeleted = {
                     navController.navigate(Routes.PROPERTY_LIST) {
@@ -69,6 +78,21 @@ fun TenantLeafNavHost() {
                     }
                 },
             )
+        }
+        composable(
+            route = Routes.INSPECTION_LIST,
+            arguments = listOf(navArgument(InspectionListViewModel.PROPERTY_ID_ARGUMENT) { type = NavType.StringType }),
+        ) {
+            InspectionListRoute(
+                onBack = navController::popBackStack,
+                onSelect = { navController.navigate(Routes.inspectionDetail(it)) },
+            )
+        }
+        composable(
+            route = Routes.INSPECTION_DETAIL,
+            arguments = listOf(navArgument(InspectionDetailViewModel.INSPECTION_ID_ARGUMENT) { type = NavType.StringType }),
+        ) {
+            InspectionDetailRoute(onBack = navController::popBackStack)
         }
     }
 }

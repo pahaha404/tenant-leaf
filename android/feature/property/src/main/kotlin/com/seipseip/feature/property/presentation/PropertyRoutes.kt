@@ -25,6 +25,7 @@ fun PropertyListRoute(
 @Composable
 fun PropertyDetailRoute(
     onBack: () -> Unit,
+    onInspections: (UUID) -> Unit,
     onEdit: (UUID) -> Unit,
     onDeleted: () -> Unit,
     viewModel: PropertyDetailViewModel = hiltViewModel(),
@@ -39,6 +40,7 @@ fun PropertyDetailRoute(
         state = state,
         onBack = onBack,
         onRetry = viewModel::load,
+        onInspections = onInspections,
         onEdit = onEdit,
         onDelete = viewModel::delete,
     )

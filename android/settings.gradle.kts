@@ -18,3 +18,4 @@ rootProject.name = "tenant-leaf-android"
 include(":app")
 include(":core")
 include(":feature:property")
+include(":feature:inspection")

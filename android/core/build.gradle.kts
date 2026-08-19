@@ -80,8 +80,8 @@ openApiGenerate {
     modelPackage.set("com.seipseip.core.network.generated.model")
     globalProperties.set(
         mapOf(
-            "apis" to "Properties",
-            "models" to "CreatePropertyRequest,UpdatePropertyRequest,Property,PropertyPage,PageMetadata,ErrorResponse,FieldError",
+            "apis" to "Properties,Inspections",
+            "models" to "CreatePropertyRequest,UpdatePropertyRequest,Property,PropertyPage,PageMetadata,Inspection,InspectionPage,InspectionStatus,InspectionAnalysisStatus,UpdateInspectionStatusRequest,ErrorResponse,FieldError",
             "supportingFiles" to "CollectionFormats.kt",
             "apiDocs" to "false",
             "apiTests" to "false",

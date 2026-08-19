@@ -153,6 +153,7 @@ fun PropertyDetailScreen(
     state: PropertyDetailUiState,
     onBack: () -> Unit,
     onRetry: () -> Unit,
+    onInspections: (UUID) -> Unit,
     onEdit: (UUID) -> Unit,
     onDelete: () -> Unit,
 ) {
@@ -176,6 +177,7 @@ fun PropertyDetailScreen(
             is ContentState.Success -> PropertyDetailContent(
                 property = content.value,
                 deleting = state.deleting,
+                onInspections = { onInspections(content.value.id) },
                 onEdit = { onEdit(content.value.id) },
                 onDelete = { confirmDelete = true },
                 modifier = Modifier.padding(padding),
@@ -191,7 +193,7 @@ fun PropertyDetailScreen(
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
             title = { Text("매물을 삭제할까요?") },
-            text = { Text("삭제 후 복원 가능 여부는 아직 정해지지 않았습니다.") },
+            text = { Text("현재는 임장 기록이 없는 매물만 삭제할 수 있습니다. 임장 기록이 있는 매물의 처리 정책은 아직 정해지지 않았습니다.") },
             confirmButton = {
                 TextButton(onClick = {
                     confirmDelete = false
@@ -207,6 +209,7 @@ fun PropertyDetailScreen(
 private fun PropertyDetailContent(
     property: Property,
     deleting: Boolean,
+    onInspections: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
@@ -234,6 +237,14 @@ private fun PropertyDetailContent(
         DetailRow("부동산 연락처", property.brokerContact)
         DetailRow("메모", property.note)
         DetailRow("최근 수정", property.updatedAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+        Button(
+            onClick = onInspections,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("property-inspections"),
+        ) {
+            Text("임장 기록 보기")
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(onClick = onEdit, modifier = Modifier.weight(1f)) {
                 Icon(Icons.Outlined.Edit, contentDescription = null)

@@ -1,6 +1,7 @@
 package com.seipseip.core.network
 
 import com.seipseip.core.BuildConfig
+import com.seipseip.core.network.generated.api.InspectionsApi
 import com.seipseip.core.network.generated.api.PropertiesApi
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -49,4 +50,8 @@ object NetworkModule {
     @Provides
     @Singleton
     fun providePropertiesApi(retrofit: Retrofit): PropertiesApi = retrofit.create(PropertiesApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideInspectionsApi(retrofit: Retrofit): InspectionsApi = retrofit.create(InspectionsApi::class.java)
 }
