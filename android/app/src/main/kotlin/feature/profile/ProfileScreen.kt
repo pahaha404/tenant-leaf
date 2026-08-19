@@ -16,6 +16,7 @@ import com.seipseip.app.feature.common.StateBadge
 
 @Composable
 fun ProfileScreen(
+    nickname: String,
     onTabSelected: (String) -> Unit,
 ) {
     AppPageScaffold(
@@ -32,7 +33,7 @@ fun ProfileScreen(
             )
         },
     ) {
-        Text("민지님", color = DeepGreen, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
+        Text("${nickname}님", color = DeepGreen, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
         Text("세입세잎과 안전한 첫 자취를 준비해요", color = Secondary, fontSize = 13.sp)
         StateBadge("안심 패스 이용 중", Green)
         SectionTitle("내 계정과 점검 환경")

@@ -1,11 +1,23 @@
 package com.seipseip.app.feature.inspection
 
+import android.app.Activity
+import android.content.res.Configuration
+import android.content.pm.ActivityInfo
 import android.net.Uri
+import android.os.SystemClock
+import android.speech.tts.TextToSpeech
 import android.widget.MediaController
 import android.widget.VideoView
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,7 +38,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,6 +53,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Locale
+import kotlinx.coroutines.delay
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
@@ -60,22 +75,84 @@ fun InspectionPrepScreen(
     onSelectProperty: () -> Unit,
 ) {
     AppPageScaffold(title = "점검 준비", onBack = onBack) {
+        Card(
+            modifier = Modifier.fillMaxWidth().border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(18.dp)),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF241A1A)),
+        ) {
+            Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                Text("⚠  촬영 허가를 반드시 받아주세요", color = Color(0xFFFFD6D2), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                Text("임대인과 기존 세입자에게 허가를 받고 촬영을 해야 합니다.", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, lineHeight = 18.sp)
+                Text("허가 없이 촬영을 진행하지 마세요. 촬영·녹음에 동의하지 않은 사람이 포함되면 법적 책임이 발생할 수 있습니다.", color = Color(0xFFFFB4AB), fontSize = 11.sp, lineHeight = 17.sp)
+            }
+        }
         SectionTitle("점검을 시작하기 전이에요", "망원동 리버뷰 · 오늘 오후 4:00")
-        InfoCard(
-            title = "점검할 매물",
-            description = "망원동 리버뷰 · 서울시 마포구 망원동",
-            onClick = onSelectProperty,
-        )
-        InfoCard(
-            title = "촬영 전 확인",
-            description = "휴대전화 카메라와 마이크 권한을 허용해 주세요.",
-            accent = PaleGreen,
-        )
-        InfoCard(
-            title = "세입세잎 Glass 연결",
-            description = "연결하지 않아도 휴대전화 카메라로 점검을 진행할 수 있어요.",
-        )
+        InfoCard(title = "점검할 매물", description = "망원동 리버뷰 · 서울시 마포구 망원동", onClick = onSelectProperty)
+        InfoCard(title = "촬영 전 확인", description = "휴대전화 카메라와 마이크 권한을 허용해 주세요.", accent = PaleGreen)
+        InfoCard(title = "세입세잎 Glass 연결", description = "연결하지 않아도 휴대전화 카메라로 점검을 진행할 수 있어요.")
         PrimaryButton("점검 시작하기", onStartInspection)
+    }
+}
+@Composable
+fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit) {
+    AppPageScaffold(title = "촬영 전 경고", onBack = onBack) {
+        Card(
+            modifier = Modifier.fillMaxWidth().border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(18.dp)),
+            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF241A1A)),
+        ) {
+            Column(modifier = Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text("⚠  촬영 전 반드시 확인", color = Color(0xFFFFD6D2), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                Text("허가를 받고 촬영을 해야 합니다.", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                Text("임대인과 기존 세입자 모두에게 촬영·녹음 허가를 명확히 받으세요. 허가를 받지 못했다면 촬영을 시작하지 마세요.", color = Color(0xFFFFB4AB), fontSize = 12.sp, lineHeight = 19.sp)
+                Text("공개되지 않은 타인 간 대화의 녹음·청취는 통신비밀보호법의 제한을 받을 수 있습니다. 위반 시 상황에 따라 민·형사상 책임이 발생할 수 있습니다.", color = Color(0xFFFFE4E1), fontSize = 11.sp, lineHeight = 17.sp)
+            }
+        }
+        Box(
+            modifier = Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFB42318)).clickable(onClick = onContinue),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("허가를 확인했고 촬영을 계속합니다", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+        }
+    }
+}
+@Composable
+fun InspectionCountdownScreen(onFinished: () -> Unit) {
+    val context = LocalContext.current
+    var count by remember { mutableStateOf(3) }
+
+    DisposableEffect(context) {
+        var engine: TextToSpeech? = null
+        engine = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                engine?.language = Locale.KOREAN
+                engine?.speak("3초 뒤 촬영이 시작됩니다.", TextToSpeech.QUEUE_FLUSH, null, "inspection_countdown")
+            }
+        }
+        onDispose {
+            engine?.stop()
+            engine?.shutdown()
+        }
+    }
+    LaunchedEffect(Unit) {
+        count = 3
+        delay(1_000)
+        count = 2
+        delay(1_000)
+        count = 1
+        delay(1_000)
+        onFinished()
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = .78f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("촬영을 시작합니다", color = Color.White.copy(alpha = .82f), fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(12.dp))
+            Text(count.toString(), color = Color(0xFFFFCC45), fontSize = 120.sp, fontWeight = FontWeight.ExtraBold)
+        }
     }
 }
 
@@ -144,7 +221,10 @@ fun TutorialScreen(
             TutorialVideoPlayer(
                 videoResId = tutorialVideoId,
                 onDismiss = { showVideo = false },
-                onFinished = onNext,
+                onFinished = {
+                    showVideo = false
+                    onNext()
+                },
             )
         } else {
             TutorialVideoMissingDialog(onDismiss = { showVideo = false })
@@ -159,22 +239,62 @@ private fun TutorialVideoPlayer(
     onFinished: () -> Unit,
 ) {
     val context = LocalContext.current
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.Black),
+    val activity = context as? Activity
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    var videoAspectRatio by remember { mutableStateOf(16f / 9f) }
+
+    DisposableEffect(activity) {
+        val originalOrientation = activity?.requestedOrientation
+        activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        activity?.window?.let { window ->
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            WindowCompat.getInsetsController(window, window.decorView)
+                .hide(WindowInsetsCompat.Type.systemBars())
+        }
+        onDispose {
+            activity?.requestedOrientation = originalOrientation ?: ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            activity?.window?.let { window ->
+                WindowCompat.setDecorFitsSystemWindows(window, true)
+                WindowCompat.getInsetsController(window, window.decorView)
+                    .show(WindowInsetsCompat.Type.systemBars())
+            }
+        }
+    }
+
+    BackHandler(onBack = onDismiss)
+    if (isLandscape) {
+        Dialog(
+            onDismissRequest = onDismiss,
+            properties = DialogProperties(
+                dismissOnClickOutside = false,
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false,
+            ),
         ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxSize().background(Color.Black),
+                contentAlignment = Alignment.Center,
+            ) {
+                val containerAspectRatio = maxWidth.value / maxHeight.value
+                val videoModifier = if (videoAspectRatio > containerAspectRatio) {
+                    Modifier.fillMaxWidth().aspectRatio(videoAspectRatio)
+                } else {
+                    Modifier.fillMaxHeight().aspectRatio(videoAspectRatio)
+                }
                 AndroidView(
-                    modifier = Modifier.fillMaxWidth().height(220.dp),
+                    modifier = videoModifier,
                     factory = { viewContext ->
                         VideoView(viewContext).apply {
                             val controller = MediaController(viewContext)
                             controller.setAnchorView(this)
                             setMediaController(controller)
                             setVideoURI(Uri.parse("android.resource://${context.packageName}/$videoResId"))
-                            setOnPreparedListener { player -> player.start() }
+                            setOnPreparedListener { player ->
+                                if (player.videoWidth > 0 && player.videoHeight > 0) {
+                                    videoAspectRatio = player.videoWidth.toFloat() / player.videoHeight
+                                }
+                                player.start()
+                            }
                             setOnCompletionListener { onFinished() }
                         }
                     },
@@ -182,13 +302,15 @@ private fun TutorialVideoPlayer(
                 Text(
                     "닫기",
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .align(Alignment.TopEnd)
+                        .padding(20.dp)
+                        .clip(RoundedCornerShape(99.dp))
+                        .background(Color.Black.copy(alpha = .55f))
                         .clickable(onClick = onDismiss)
-                        .padding(16.dp),
+                        .padding(horizontal = 14.dp, vertical = 9.dp),
                     color = Color.White,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 )
             }
         }
@@ -224,44 +346,50 @@ fun TutorialChecklistScreen(
     onStart: () -> Unit,
 ) {
     AppPageScaffold(title = "점검 시작 전", onBack = onBack) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("이제 체크리스트를\n확인해 볼까요?", color = Green, fontSize = 25.sp, fontWeight = FontWeight.ExtraBold)
-            Spacer(Modifier.height(16.dp))
-            Text("2 / 2", color = Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-        }
-        Text("방을 둘러보며 놓치기 쉬운 부분을 하나씩 기록해요.", color = Secondary, fontSize = 13.sp)
+        Text(
+            "집 처음 구하는 사람을 위한\n기본 체크리스트",
+            color = Green,
+            fontSize = 28.sp,
+            lineHeight = 34.sp,
+            fontWeight = FontWeight.ExtraBold,
+        )
+        Text(
+            "체크리스트를 훑어보며 집을 볼 때 무엇을 직접 확인해야 하는지 먼저 익혀봐요.",
+            color = Secondary,
+            fontSize = 15.sp,
+            lineHeight = 22.sp,
+        )
         Card(
-            modifier = Modifier.fillMaxWidth().height(188.dp),
+            modifier = Modifier.fillMaxWidth().height(260.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             shape = RoundedCornerShape(18.dp),
         ) {
-            Column(modifier = Modifier.padding(13.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(13.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.size(42.dp).clip(RoundedCornerShape(13.dp)).background(PaleGreen), contentAlignment = Alignment.Center) {
-                        Text("✓", color = Green, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                    Box(modifier = Modifier.size(48.dp).clip(RoundedCornerShape(15.dp)).background(PaleGreen), contentAlignment = Alignment.Center) {
+                        Text("✓", color = Green, fontSize = 25.sp, fontWeight = FontWeight.ExtraBold)
                     }
-                    Spacer(Modifier.width(10.dp))
+                    Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("방문 점검 체크리스트", color = DeepGreen, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
-                        Text("총 28개 항목 · 약 15분", color = Secondary, fontSize = 11.sp)
+                        Text("방문 전 기본 체크리스트", color = DeepGreen, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                        Text("5개 구역 · 20개 기본 항목", color = Secondary, fontSize = 12.sp)
                     }
                 }
-                ChecklistGuideLine("◉", "중요한 부분은 사진으로 남겨요")
-                ChecklistGuideLine("✋", "최종 상태는 내가 직접 선택해요")
-                ChecklistGuideLine("▣", "기록은 리포트로 한눈에 정리돼요")
+                ChecklistGuideLine("◉", "문과 창문은 직접 열고 닫아봐요")
+                ChecklistGuideLine("✋", "물은 틀어보고 배수까지 확인해요")
+                ChecklistGuideLine("▣", "곰팡이와 누수 흔적은 가까이서 봐요")
+                ChecklistGuideLine("◌", "관리비와 수리 약속은 꼭 기록해요")
             }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color(0xFFFFF0E4)).padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("✦", color = Orange, fontSize = 18.sp)
-            Spacer(Modifier.width(8.dp))
-            Text("AI 관찰은 촬영 근거를 돕고, 최종 확인은 사용자가 해요.", color = Color(0xFF8B542D), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-        }
-        Spacer(Modifier.height(16.dp))
-        PrimaryButton("체크리스트 확인하기", onOpenGuide)
-        Text("바로 점검 시작하기", modifier = Modifier.fillMaxWidth().clickable(onClick = onStart).padding(vertical = 4.dp), color = Secondary, fontSize = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        Spacer(Modifier.height(10.dp))
+        PrimaryButton("기본 체크리스트 훑어보기", onOpenGuide)
+        Text(
+            "건너뛰기",
+            modifier = Modifier.fillMaxWidth().clickable(onClick = onStart).padding(vertical = 10.dp),
+            color = Secondary,
+            fontSize = 14.sp,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
     }
 }
 
@@ -270,7 +398,7 @@ private fun ChecklistGuideLine(symbol: String, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(symbol, color = Green, fontSize = 15.sp)
         Spacer(Modifier.width(8.dp))
-        Text(text, color = Secondary, fontSize = 11.sp)
+        Text(text, color = Secondary, fontSize = 13.sp)
     }
 }
 
@@ -313,13 +441,25 @@ private fun liveInspectionContent(zoneId: String): LiveInspectionContent = when 
         items = listOf("천장 · 벽 곰팡이", "바닥 배수 · 역류", "환풍기 · 문틀 · 조명", "샤워기 수압 · 온수"),
     )
 }
+private fun formatInspectionDuration(totalSeconds: Long): String {
+    val hours = totalSeconds / 3_600
+    val minutes = (totalSeconds % 3_600) / 60
+    val seconds = totalSeconds % 60
+    return if (hours > 0) {
+        "%02d:%02d:%02d".format(hours, minutes, seconds)
+    } else {
+        "%02d:%02d".format(minutes, seconds)
+    }
+}
+
 @Composable
 fun LiveInspectionScreen(
     zoneId: String,
+    startedAt: Long,
     onBack: () -> Unit,
     onOpenGuide: (Int) -> Unit,
     onNextZone: (String) -> Unit,
-    onFinish: () -> Unit,
+    onFinish: (Long) -> Unit,
 ) {
     val zone = UiCatalog.zone(zoneId)
     val nextZone = UiCatalog.nextZone(zoneId)
@@ -327,6 +467,14 @@ fun LiveInspectionScreen(
     val liveContent = liveInspectionContent(zoneId)
     var showFinishDialog by remember { mutableStateOf(false) }
     var isPaused by remember { mutableStateOf(false) }
+    var nowElapsed by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
+    LaunchedEffect(startedAt) {
+        while (true) {
+            nowElapsed = SystemClock.elapsedRealtime()
+            delay(1_000)
+        }
+    }
+    val durationSeconds = ((nowElapsed - startedAt) / 1_000L).coerceAtLeast(0L)
 
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -366,7 +514,7 @@ fun LiveInspectionScreen(
                         Spacer(Modifier.width(5.dp))
                         Text("현재 구역 · ${zone.title}", color = DeepGreen, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
                     }
-                    Text("00:04:28", modifier = Modifier.align(Alignment.BottomEnd).padding(13.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(formatInspectionDuration(durationSeconds), modifier = Modifier.align(Alignment.BottomEnd).padding(13.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.White).padding(14.dp),
@@ -440,7 +588,12 @@ fun LiveInspectionScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.PhotoCamera, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                        Icon(
+                            imageVector = if (isPaused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause,
+                            contentDescription = if (isPaused) "촬영 재개" else "일시중지",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp),
+                        )
                         Spacer(Modifier.width(7.dp))
                         Text(if (isPaused) "촬영 재개" else "일시중지", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
                     }
@@ -479,7 +632,7 @@ fun LiveInspectionScreen(
                         contentAlignment = Alignment.Center,
                     ) { Text("아니요, 계속 촬영할게요", color = Green, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
                     Box(
-                        modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(Orange).clickable(onClick = onFinish),
+                        modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(Orange).clickable { onFinish(durationSeconds) },
                         contentAlignment = Alignment.Center,
                     ) { Text("네, 종료할게요", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
                 }
@@ -489,6 +642,7 @@ fun LiveInspectionScreen(
 @Composable
 fun FinishConfirmScreen(
     onBack: () -> Unit,
+    durationSeconds: Long,
     onConfirm: () -> Unit,
 ) {
     val zones = UiCatalog.guideZones
@@ -522,7 +676,7 @@ fun FinishConfirmScreen(
                 ) {
                     Text("총 촬영 시간", color = Color(0xFFDCE9D6), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                     Spacer(Modifier.weight(1f))
-                    Text("04:28", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(formatInspectionDuration(durationSeconds), color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
         }
@@ -560,7 +714,6 @@ fun FinishConfirmScreen(
 @Composable
 fun AnalysisProgressScreen(
     onBackToHome: () -> Unit,
-    onOpenResults: () -> Unit,
 ) {
     AppPageScaffold(title = "분석 진행", onBack = onBackToHome) {
         SectionTitle("구역별 기록을 정리하고 있어요", "촬영한 사진과 메모를 점검 구역별로 묶는 중이에요.")
@@ -602,7 +755,7 @@ fun AnalysisProgressScreen(
                 }
             }
         }
-        PrimaryButton("촬영 결과 보기", onOpenResults)
+        PrimaryButton("홈으로 이동", onBackToHome)
     }
 }
 

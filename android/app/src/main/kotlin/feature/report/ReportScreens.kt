@@ -53,9 +53,11 @@ fun ReportListScreen(
     onTabSelected: (String) -> Unit,
 ) {
     var selectedProperty by remember { mutableStateOf("망원동 리버뷰") }
+    val selectedHasReport = selectedProperty == "망원동 리버뷰"
     AppPageScaffold(
         title = "리포트 선택",
         selectedTab = AppTab.Report,
+        bottomAction = { PrimaryButton("선택한 매물 리포트 확인하기", onOpenReport, enabled = selectedHasReport) },
         onTabSelected = { tab ->
             onTabSelected(
                 when (tab) {
@@ -84,7 +86,7 @@ fun ReportListScreen(
             detail = "아직 점검을 시작하지 않았어요",
             selected = false,
             available = false,
-            onClick = { },
+            onClick = { selectedProperty = "연남동 햇살 원룸" },
         )
         ReportPropertyCard(
             name = "성산동 테라스 하우스",
@@ -92,9 +94,9 @@ fun ReportListScreen(
             detail = "아직 점검을 시작하지 않았어요",
             selected = false,
             available = false,
-            onClick = { },
+            onClick = { selectedProperty = "연남동 햇살 원룸" },
         )
-        PrimaryButton("선택한 매물 리포트 확인하기", onOpenReport)
+
     }
 }
 
@@ -109,7 +111,7 @@ private fun ReportPropertyCard(
 ) {
     val cardColor = if (selected) Color(0xFFEEF4EA) else Color.White
     Card(
-        modifier = Modifier.fillMaxWidth().height(78.dp).clickable(enabled = available, onClick = onClick),
+        modifier = Modifier.fillMaxWidth().height(78.dp).clickable(onClick = onClick),
         shape = RoundedCornerShape(15.dp),
         colors = CardDefaults.cardColors(containerColor = cardColor),
         border = if (selected) BorderStroke(2.dp, Green) else BorderStroke(1.dp, Border),
@@ -135,6 +137,7 @@ private fun ReportPropertyCard(
 
 @Composable
 fun ReportDetailScreen(
+    nickname: String,
     onBack: () -> Unit,
     onOpenProperty: () -> Unit,
 ) {
@@ -145,7 +148,7 @@ fun ReportDetailScreen(
             StateBadge("작성 완료", Green)
         }
         Text("망원동 리버뷰\n집 리포트", color = Green, fontSize = 23.sp, lineHeight = 29.sp, fontWeight = FontWeight.ExtraBold)
-        Text("AI 글래스 촬영 기록과 민지님의 직접 확인을 바탕으로 정리했어요.", color = Secondary, fontSize = 12.sp, lineHeight = 18.sp)
+        Text("AI 글래스 촬영 기록과 ${nickname}님의 직접 확인을 바탕으로 정리했어요.", color = Secondary, fontSize = 12.sp, lineHeight = 18.sp)
         Column(
             modifier = Modifier.fillMaxWidth().background(PaleGreen, RoundedCornerShape(16.dp)).padding(15.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),

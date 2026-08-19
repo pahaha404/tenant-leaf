@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import com.seipseip.app.PageWithBottomAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
@@ -223,7 +224,9 @@ private fun FirstUseStep(number: Int, label: String, active: Boolean) {
     var ageConfirmed by remember { mutableStateOf(false) }
     val allAgreed = termsAgreed && privacyAgreed && ageConfirmed
 
-    Page("약관 및 개인정보 동의", back) {
+    PageWithBottomAction("약관 및 개인정보 동의", back, action = {
+        MainButton("동의하고 계속하기", Orange, enabled = allAgreed) { next() }
+    }) {
         Text(
             "안전한 이용을 위해\n동의가 필요해요",
             style = MaterialTheme.typography.headlineSmall,
@@ -249,13 +252,7 @@ private fun FirstUseStep(number: Int, label: String, active: Boolean) {
         }
 
         Tip("필수 약관에 모두 동의해야 다음 단계로 갈 수 있어요.")
-        MainButton(
-            "동의하고 계속하기",
-            Orange,
-            enabled = allAgreed,
-        ) {
-            next()
-        }
+
     }
 }
 
@@ -270,7 +267,9 @@ internal fun Permissions(
     ) { results ->
         if (results[Manifest.permission.CAMERA] == true) onGranted() else onDenied()
     }
-    Page("권한 설정", back) {
+    PageWithBottomAction("권한 설정", back, action = {
+        MainButton("권한 설정 계속하기", Orange) { launcher.launch(tenantLeafRuntimePermissions()) }
+    }) {
         Text("점검에 필요한 권한을\n확인해 주세요", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = Green)
         Text("필수 권한은 점검 사진과 기록을 위해 사용돼요.", color = Secondary, fontSize = 12.sp)
         Permission("카메라", "점검 사진을 촬영해요", "필수")
@@ -278,13 +277,17 @@ internal fun Permissions(
         Permission("블루투스", "세입세잎 Glass를 연결해요", "선택")
         Permission("알림", "분석 완료 소식을 알려드려요", "선택")
         Tip("권한은 휴대폰 설정에서 언제든 바꿀 수 있어요.")
-        MainButton("권한 설정 계속하기", Orange) { launcher.launch(tenantLeafRuntimePermissions()) }
+
     }
 }
 
 @Composable
-internal fun Denied(back: () -> Unit) = Page("권한 거부 안내", back) {
+internal fun Denied(back: () -> Unit) = PageWithBottomAction("권한 거부 안내", back, action = {
     val context = LocalContext.current
+    MainButton("휴대폰 설정 열기", Orange) {
+        context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
+    }
+}) {
     Text("필수 권한이 꺼져 있어요", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = Green)
     Text("카메라 권한이 없으면 점검 사진을 촬영할 수 없어요.", color = Secondary, fontSize = 12.sp)
     Card(colors = CardDefaults.cardColors(containerColor = PaleOrange), shape = RoundedCornerShape(16.dp)) {
@@ -292,14 +295,6 @@ internal fun Denied(back: () -> Unit) = Page("권한 거부 안내", back) {
     }
     Permission("카메라", "현재: 허용 안 함", "필수")
     Permission("마이크", "현재: 허용 안 함", "선택")
-    MainButton("휴대폰 설정 열기", Orange) {
-        context.startActivity(
-            Intent(
-                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                Uri.parse("package:${context.packageName}"),
-            ),
-        )
-    }
 }
 private fun tenantLeafRuntimePermissions(): Array<String> = buildList {
     add(Manifest.permission.CAMERA)
@@ -312,5 +307,4 @@ private fun tenantLeafRuntimePermissions(): Array<String> = buildList {
         add(Manifest.permission.POST_NOTIFICATIONS)
     }
 }.toTypedArray()
-@Composable internal fun Complete(next:()->Unit) { Column(Modifier.fillMaxSize().padding(24.dp),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally) { Card(colors=CardDefaults.cardColors(containerColor=Green),shape=RoundedCornerShape(18.dp)) { Column(Modifier.fillMaxWidth().padding(32.dp),horizontalAlignment=Alignment.CenterHorizontally) { Icon(Icons.Outlined.Spa,null,tint=Color.White,modifier=Modifier.size(38.dp)); Text("로그인 완료",color=Color.White,fontWeight=FontWeight.ExtraBold,modifier=Modifier.padding(top=10.dp)); Text("세입세잎",color=SoftGreen,fontSize=12.sp) } }; Spacer(Modifier.height(30.dp)); Text("다시 만나서 반가워요",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.ExtraBold,color=Green); Text("이제 내 매물과 점검 기록을 관리할 수 있어요.",color=Secondary,fontSize=12.sp,modifier=Modifier.padding(top = 8.dp)); Spacer(Modifier.height(24.dp)); Tip("점검 기록은 내 계정에 안전하게 보관돼요."); Spacer(Modifier.height(24.dp)); MainButton("홈으로 돌아가기",Orange){next()} } }
-
+@Composable internal fun Complete(next:()->Unit) { Column(Modifier.fillMaxSize().padding(24.dp)) { Column(Modifier.weight(1f).fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) { Card(colors=CardDefaults.cardColors(containerColor=Green),shape=RoundedCornerShape(18.dp)) { Column(Modifier.fillMaxWidth().padding(32.dp),horizontalAlignment=Alignment.CenterHorizontally) { Icon(Icons.Outlined.Spa,null,tint=Color.White,modifier=Modifier.size(38.dp)); Text("로그인 완료",color=Color.White,fontWeight=FontWeight.ExtraBold,modifier=Modifier.padding(top=10.dp)); Text("세입세잎",color=SoftGreen,fontSize=12.sp) } }; Spacer(Modifier.height(30.dp)); Text("다시 만나서 반가워요",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.ExtraBold,color=Green); Text("이제 내 매물과 점검 기록을 관리할 수 있어요.",color=Secondary,fontSize=12.sp,modifier=Modifier.padding(top = 8.dp)); Spacer(Modifier.height(24.dp)); Tip("점검 기록은 내 계정에 안전하게 보관돼요.") }; MainButton("홈으로 돌아가기",Orange){next()} } }

@@ -60,12 +60,16 @@ fun AppPageScaffold(
     onBack: (() -> Unit)? = null,
     selectedTab: AppTab? = null,
     onTabSelected: ((AppTab) -> Unit)? = null,
+    bottomAction: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     Scaffold(
         bottomBar = {
-            if (selectedTab != null && onTabSelected != null) {
-                AppBottomNavigation(selectedTab, onTabSelected)
+            Column {
+                bottomAction?.invoke()
+                if (selectedTab != null && onTabSelected != null) {
+                    AppBottomNavigation(selectedTab, onTabSelected)
+                }
             }
         },
     ) { innerPadding ->
@@ -107,15 +111,18 @@ fun AppPageScaffold(
 }
 
 @Composable
-private fun AppBottomNavigation(
+fun AppBottomNavigation(
     selectedTab: AppTab,
     onTabSelected: (AppTab) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    NavigationBar(containerColor = Color.White) {
+    NavigationBar(modifier = modifier, containerColor = Color.White) {
         AppTab.entries.forEach { tab ->
             NavigationBarItem(
                 selected = tab == selectedTab,
-                onClick = { onTabSelected(tab) },
+                onClick = {
+                    if (tab != selectedTab) onTabSelected(tab)
+                },
                 icon = {
                     Icon(
                         imageVector = when (tab) {

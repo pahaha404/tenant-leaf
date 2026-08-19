@@ -33,25 +33,40 @@ import androidx.navigation.compose.rememberNavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun Login(go: (String) -> Unit) {
-    var email by remember { mutableStateOf("") }; var password by remember { mutableStateOf("") }
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        Column(Modifier.fillMaxWidth().height(176.dp).background(DeepGreen).statusBarsPadding().padding(24.dp,14.dp)) {
-            Row(verticalAlignment=Alignment.CenterVertically) { Icon(Icons.Outlined.Spa,null,tint=SoftGreen); Text("세입세잎",color=Color.White,fontWeight=FontWeight.Bold,modifier=Modifier.padding(start=8.dp)) }
-            Spacer(Modifier.height(16.dp)); Text("첫 자취를 위한\n안심 점검, 시작해 볼까요?",color=Color.White,fontSize=25.sp,lineHeight=31.sp,fontWeight=FontWeight.ExtraBold); Spacer(Modifier.height(6.dp)); Text("내 매물과 점검 기록을 안전하게 보관하세요.",color=SoftGreen,fontSize=12.sp)
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF)).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 22.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(
+            modifier = Modifier.background(PaleGreen, RoundedCornerShape(99.dp)).padding(horizontal = 11.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Outlined.Spa, null, tint = Green, modifier = Modifier.size(17.dp))
+            Text("세입세잎", color = Green, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(start = 5.dp))
         }
-        Column(Modifier.padding(24.dp,22.dp), verticalArrangement=Arrangement.spacedBy(10.dp)) {
-            Text("로그인",fontSize=19.sp,fontWeight=FontWeight.ExtraBold,color=DeepGreen)
-            Field("아이디 또는 이메일",email,{email=it},false); Field("비밀번호",password,{password=it},true)
-            Text("아이디 찾기   비밀번호 찾기",Modifier.fillMaxWidth(),color=Secondary,fontSize=10.sp,textAlign=TextAlign.End)
-            MainButton("로그인",Green,enabled=email.isNotBlank()&&password.isNotBlank()) { go("login") }
-            Divider(); MainButton("메타로 로그인하기",Color(0xFFEEF1FF),text=Color(0xFF3655C9)){go("login")}; MainButton("게스트 모드로 로그인하기",Color.White,text=Secondary,bordered=true){go("guest")}
-            Text("처음 오셨나요? 회원가입",Modifier.fillMaxWidth().clickable { go("signup") }.padding(8.dp),color=Green,fontWeight=FontWeight.Bold,fontSize=12.sp,textAlign=TextAlign.Center)
+        Spacer(Modifier.height(8.dp))
+        Text("첫 자취를 위한\n안심 점검, 시작해 볼까요?", color = Green, fontSize = 26.sp, lineHeight = 33.sp, fontWeight = FontWeight.ExtraBold)
+        Text("내 매물과 점검 기록을 안전하게 보관하세요.", color = Secondary, fontSize = 13.sp, lineHeight = 19.sp)
+        Spacer(Modifier.height(8.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("로그인", fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, color = DeepGreen)
+            Field("아이디 또는 이메일", email, { email = it }, false)
+            Field("비밀번호", password, { password = it }, true)
+            Text("아이디 찾기   비밀번호 찾기", Modifier.fillMaxWidth(), color = Secondary, fontSize = 10.sp, textAlign = TextAlign.End)
+            MainButton("로그인", Orange, enabled = email.isNotBlank() && password.isNotBlank()) { go("login") }
+            Divider()
+            MainButton("메타로 로그인하기", Color(0xFFEEF1FF), text = Color(0xFF3655C9)) { go("login") }
+            MainButton("게스트 모드로 로그인하기", Color.White, text = Secondary, bordered = true) { go("guest") }
+            Text("처음 오셨나요? 회원가입", Modifier.fillMaxWidth().clickable { go("signup") }.padding(8.dp), color = Green, fontWeight = FontWeight.Bold, fontSize = 12.sp, textAlign = TextAlign.Center)
         }
     }
 }
 
 @Composable
-internal fun SignUp(back: () -> Unit, next: () -> Unit) {
+internal fun SignUp(back: () -> Unit, next: (String) -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordConfirm by remember { mutableStateOf("") }
@@ -118,7 +133,7 @@ internal fun SignUp(back: () -> Unit, next: () -> Unit) {
                 .height(82.dp)
                 .padding(start = 20.dp, top = 10.dp, end = 20.dp, bottom = 20.dp),
         ) {
-            SignUpNextButton(next)
+            SignUpNextButton { next(nickname.trim().ifBlank { "민지" }) }
         }
     }
 }
@@ -131,7 +146,7 @@ private fun SignUpNextButton(click: () -> Unit) {
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(containerColor = Orange, contentColor = Color.White),
     ) {
-        Text("다음", fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+        Text("회원가입 하기", fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -149,7 +164,7 @@ private fun SignUpField(
         OutlinedTextField(
             value = value,
             onValueChange = onChange,
-            modifier = Modifier.fillMaxWidth().height(50.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
             placeholder = { Text(placeholder, color = Color(0xFFA3AAA3), fontSize = 11.sp) },
             leadingIcon = {
                 Icon(
