@@ -1,5 +1,7 @@
 package com.seipseip.feature.media.domain
 
+import java.util.UUID
+
 object MediaPlanning {
     const val INTERVAL_MS = 3_000L
     const val MAX_JPEG_BYTES = 2 * 1024 * 1024

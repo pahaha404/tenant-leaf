@@ -37,7 +37,7 @@ class MediaBatchUploader @Inject constructor(
                 mediaApi.createMediaUploadRequests(
                     inspectionId,
                     batchKey,
-                    CreateMediaUploadBatchRequest(batch.map(ExtractedJpeg::toRequest)),
+                    CreateMediaUploadBatchRequest(batch.map { it.toRequest() }),
                 )
             }
             val instructions = when (registration) {
