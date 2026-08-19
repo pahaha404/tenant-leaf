@@ -1,5 +1,6 @@
 package com.tenantleaf.api.property
 
+import com.tenantleaf.api.inspection.InspectionRepository
 import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,10 +26,12 @@ import java.util.UUID
 class PropertyApiIntegrationTests(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
+    @Autowired private val inspectionRepository: InspectionRepository,
     @Autowired private val repository: PropertyRepository,
 ) {
     @BeforeEach
     fun cleanDatabase() {
+        inspectionRepository.deleteAll()
         repository.deleteAll()
     }
 

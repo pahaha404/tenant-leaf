@@ -2,6 +2,9 @@ package com.tenantleaf.api.error
 
 import com.tenantleaf.api.generated.model.ErrorResponse
 import com.tenantleaf.api.generated.model.FieldError
+import com.tenantleaf.api.inspection.InspectionNotFoundException
+import com.tenantleaf.api.inspection.InspectionStateTransitionException
+import com.tenantleaf.api.inspection.PropertyHasInspectionsException
 import com.tenantleaf.api.property.PropertyNotFoundException
 import com.tenantleaf.api.property.PropertyValidationException
 import jakarta.validation.ConstraintViolationException
@@ -18,6 +21,18 @@ class ApiExceptionHandler {
     @ExceptionHandler(PropertyNotFoundException::class)
     fun handleNotFound(): ResponseEntity<ErrorResponse> =
         response(HttpStatus.NOT_FOUND, "PROPERTY_NOT_FOUND", "요청한 매물을 찾을 수 없습니다.")
+
+    @ExceptionHandler(InspectionNotFoundException::class)
+    fun handleInspectionNotFound(): ResponseEntity<ErrorResponse> =
+        response(HttpStatus.NOT_FOUND, "INSPECTION_NOT_FOUND", "요청한 임장 기록을 찾을 수 없습니다.")
+
+    @ExceptionHandler(InspectionStateTransitionException::class)
+    fun handleInspectionStateTransition(): ResponseEntity<ErrorResponse> =
+        response(HttpStatus.CONFLICT, "INVALID_STATE_TRANSITION", "현재 임장 상태에서는 요청을 수행할 수 없습니다.")
+
+    @ExceptionHandler(PropertyHasInspectionsException::class)
+    fun handlePropertyHasInspections(): ResponseEntity<ErrorResponse> =
+        response(HttpStatus.CONFLICT, "INVALID_STATE_TRANSITION", "임장 기록이 있는 매물은 현재 삭제할 수 없습니다.")
 
     @ExceptionHandler(PropertyValidationException::class)
     fun handlePropertyValidation(exception: PropertyValidationException): ResponseEntity<ErrorResponse> =

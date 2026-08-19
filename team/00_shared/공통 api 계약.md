@@ -96,6 +96,7 @@ Authorization: Bearer <access-token>
 | `401` | `UNAUTHENTICATED` | 로그인이 필요함 |
 | `403` | `FORBIDDEN` | 인증된 사용자가 수행할 수 없는 동작 |
 | `404` | `PROPERTY_NOT_FOUND` | 요청한 리소스가 없거나 접근할 수 없음 |
+| `404` | `INSPECTION_NOT_FOUND` | 요청한 임장 기록이 없거나 접근할 수 없음 |
 | `409` | `INVALID_STATE_TRANSITION` | 현재 상태에서는 요청을 수행할 수 없음 |
 | `413` | `FILE_TOO_LARGE` | JPEG 업로드 허용 크기 초과 |
 | `415` | `UNSUPPORTED_MEDIA_TYPE` | JPEG가 아닌 파일 형식 |
