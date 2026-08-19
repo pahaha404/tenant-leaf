@@ -10,6 +10,8 @@ import com.seipseip.feature.inspection.presentation.InspectionDetailRoute
 import com.seipseip.feature.inspection.presentation.InspectionDetailViewModel
 import com.seipseip.feature.inspection.presentation.InspectionListRoute
 import com.seipseip.feature.inspection.presentation.InspectionListViewModel
+import com.seipseip.feature.media.presentation.MediaUploadRoute
+import com.seipseip.feature.media.presentation.MediaUploadViewModel
 import com.seipseip.feature.property.presentation.PropertyDetailRoute
 import com.seipseip.feature.property.presentation.PropertyDetailViewModel
 import com.seipseip.feature.property.presentation.PropertyFormRoute
@@ -24,11 +26,13 @@ private object Routes {
     const val PROPERTY_EDIT = "properties/{propertyId}/edit"
     const val INSPECTION_LIST = "properties/{propertyId}/inspections"
     const val INSPECTION_DETAIL = "inspections/{inspectionId}"
+    const val MEDIA_UPLOAD = "inspections/{inspectionId}/media-upload"
 
     fun detail(id: UUID) = "properties/$id"
     fun edit(id: UUID) = "properties/$id/edit"
     fun inspections(propertyId: UUID) = "properties/$propertyId/inspections"
     fun inspectionDetail(inspectionId: UUID) = "inspections/$inspectionId"
+    fun mediaUpload(inspectionId: UUID) = "inspections/$inspectionId/media-upload"
 }
 
 @Composable
@@ -92,7 +96,16 @@ fun TenantLeafNavHost() {
             route = Routes.INSPECTION_DETAIL,
             arguments = listOf(navArgument(InspectionDetailViewModel.INSPECTION_ID_ARGUMENT) { type = NavType.StringType }),
         ) {
-            InspectionDetailRoute(onBack = navController::popBackStack)
+            InspectionDetailRoute(
+                onBack = navController::popBackStack,
+                onPrepareMedia = { navController.navigate(Routes.mediaUpload(it)) },
+            )
+        }
+        composable(
+            route = Routes.MEDIA_UPLOAD,
+            arguments = listOf(navArgument(MediaUploadViewModel.INSPECTION_ID_ARGUMENT) { type = NavType.StringType }),
+        ) {
+            MediaUploadRoute(onBack = navController::popBackStack)
         }
     }
 }

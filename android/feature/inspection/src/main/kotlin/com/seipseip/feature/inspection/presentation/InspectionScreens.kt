@@ -170,6 +170,7 @@ fun InspectionDetailScreen(
     onRetry: () -> Unit,
     onEnd: () -> Unit,
     onCancel: () -> Unit,
+    onPrepareMedia: (java.util.UUID) -> Unit,
 ) {
     var requestedStatus by remember { mutableStateOf<InspectionStatus?>(null) }
     Scaffold(
@@ -197,6 +198,7 @@ fun InspectionDetailScreen(
                 updating = state.updating,
                 onEnd = { requestedStatus = InspectionStatus.ENDED },
                 onCancel = { requestedStatus = InspectionStatus.CANCELLED },
+                onPrepareMedia = onPrepareMedia,
                 modifier = Modifier.padding(padding),
             )
         }
@@ -232,6 +234,7 @@ private fun InspectionDetailContent(
     updating: Boolean,
     onEnd: () -> Unit,
     onCancel: () -> Unit,
+    onPrepareMedia: (java.util.UUID) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -259,7 +262,10 @@ private fun InspectionDetailContent(
                 }
             }
         } else if (inspection.status == InspectionStatus.ENDED) {
-            Text("JPEG 추출·업로드 기능은 미디어 API 계약 확정 후 연결됩니다.")
+            Text("휴대전화 갤러리의 임장 영상에서 3초마다 분석용 JPEG를 준비합니다.")
+            Button(onClick = { onPrepareMedia(inspection.id) }, modifier = Modifier.fillMaxWidth()) {
+                Text("사진 준비 및 분석 요청")
+            }
         }
     }
 }

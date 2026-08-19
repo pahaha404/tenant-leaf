@@ -2,6 +2,7 @@ package com.tenantleaf.api
 
 import com.tenantleaf.api.generated.api.PropertiesApi
 import com.tenantleaf.api.generated.api.InspectionsApi
+import com.tenantleaf.api.generated.api.MediaApi
 import com.tenantleaf.api.generated.model.AiLabel
 import com.tenantleaf.api.generated.model.CaptureSource
 import com.tenantleaf.api.generated.model.CreatePropertyRequest
@@ -29,6 +30,7 @@ class OpenApiGeneratedContractTests {
 	fun `API 인터페이스는 공통 기본 경로를 사용한다`() {
 		assertEquals("/api/v1", PropertiesApi.BASE_PATH)
 		assertEquals("/api/v1", InspectionsApi.BASE_PATH)
+		assertEquals("/api/v1", MediaApi.BASE_PATH)
 	}
 
 	@Test
@@ -114,7 +116,12 @@ class OpenApiGeneratedContractTests {
 
 		assertFalse(specification.contains("/checklist"))
 		assertFalse(specification.contains("/frames/"))
-		assertFalse(specification.contains("/media"))
+		assertTrue(specification.contains("/inspections/{inspectionId}/media/upload-requests"))
+		assertTrue(specification.contains("/media/{mediaId}/upload-complete"))
+		assertTrue(specification.contains("/media/{mediaId}/upload-retry"))
+		assertTrue(specification.contains("maxItems: 20"))
+		assertTrue(specification.contains("maximum: 2097152"))
+		assertFalse(specification.contains("maximum: 1048576"))
 		assertFalse(specification.contains("/analyses/"))
 		assertFalse(specification.contains("/detections/"))
 		assertFalse(specification.contains("/observations"))

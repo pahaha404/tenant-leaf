@@ -23,3 +23,7 @@
 
 - 2026-08-18 — `:app`, `:core`, `:feature:property` 구조와 Compose·Hilt·OpenAPI 네트워크 경계를 구성함. OpenAPI 검사·코드 생성·Debug APK·JVM 테스트·Lint를 통과하고 Galaxy SM-G991N(Android 15)에서 Compose UI 테스트 2개를 통과함. 에뮬레이터에서 매물 등록·조회·수정·삭제 후 테스트 데이터 삭제까지 확인함.
 - 2026-08-18 — OpenAPI 2.0의 확정된 임장 계약만 사용해 `:feature:inspection` 모듈, 매물별 임장 목록, 시작·상세·종료·취소 화면과 상태 매핑을 구현함. OpenAPI 검사·코드 생성과 변경 Kotlin 소스 컴파일, ViewModel 단위 테스트 3개를 통과함. 서버 임장 API가 아직 구현되지 않아 실서버 연동은 미검증이며, 미확정 미디어·관찰·리포트 API는 추가하지 않음.
+
+## 진행 기록
+
+- 2026-08-19 — `:feature:media`에 종료된 임장의 최근 영상 자동 탐색·Photo Picker 대체 흐름, 고정 3초 구간 JPEG 품질 선별·2MiB 변환, OpenAPI 미디어 등록·MinIO 직접 PUT·완료·최대 3회 재시도와 진행 화면을 구현함. 단위·MockWebServer·Compose UI 테스트를 추가했으나 현재 자동 실행 환경의 Gradle 배포 파일 접근 제한으로 빌드하지 못했고, Meta 영상 가져오기·실기기·실서버·MinIO·PostgreSQL 연동도 미검증이므로 관련 항목은 완료 처리하지 않음.

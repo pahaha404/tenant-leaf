@@ -1,6 +1,8 @@
 package com.tenantleaf.api.inspection
 
 import com.tenantleaf.api.property.DemoUserContext
+import com.tenantleaf.api.media.ApiIdempotencyRecordRepository
+import com.tenantleaf.api.media.MediaRepository
 import com.tenantleaf.api.property.PropertyEntity
 import com.tenantleaf.api.property.PropertyRepository
 import org.hamcrest.Matchers.hasSize
@@ -27,9 +29,13 @@ class InspectionApiIntegrationTests(
     @Autowired private val objectMapper: ObjectMapper,
     @Autowired private val inspectionRepository: InspectionRepository,
     @Autowired private val propertyRepository: PropertyRepository,
+    @Autowired private val mediaRepository: MediaRepository,
+    @Autowired private val idempotencyRepository: ApiIdempotencyRecordRepository,
 ) {
     @BeforeEach
     fun cleanDatabase() {
+        idempotencyRepository.deleteAll()
+        mediaRepository.deleteAll()
         inspectionRepository.deleteAll()
         propertyRepository.deleteAll()
     }

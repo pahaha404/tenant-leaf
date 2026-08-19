@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":feature:property"))
     implementation(project(":feature:inspection"))
+    implementation(project(":feature:media"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)
