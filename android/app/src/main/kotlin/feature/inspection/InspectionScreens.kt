@@ -3,6 +3,9 @@ package com.seipseip.app.feature.inspection
 import android.net.Uri
 import android.widget.MediaController
 import android.widget.VideoView
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.AndroidExternalSurface
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
@@ -20,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,6 +34,8 @@ import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +46,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.meta.wearable.dat.core.Wearables
+import com.meta.wearable.dat.core.types.Permission
+import com.meta.wearable.dat.core.types.PermissionStatus
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
@@ -52,6 +62,7 @@ import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SectionTitle
 import com.seipseip.app.feature.common.StateBadge
 import com.seipseip.app.feature.common.UiCatalog
+import com.seipseip.app.feature.home.GlassConnectionViewModel
 
 @Composable
 fun InspectionPrepScreen(
@@ -321,12 +332,22 @@ fun LiveInspectionScreen(
     onNextZone: (String) -> Unit,
     onFinish: () -> Unit,
 ) {
+    val activity = LocalContext.current as ComponentActivity
+    val glassViewModel: GlassConnectionViewModel = viewModel(viewModelStoreOwner = activity)
+    val glassState by glassViewModel.uiState.collectAsState()
+    val previewState by glassViewModel.previewUiState.collectAsState()
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(Wearables.RequestPermissionContract()) { result ->
+        glassViewModel.onCameraPermissionResult(result.getOrDefault(PermissionStatus.Denied))
+    }
+    LaunchedEffect(previewState.needsCameraPermission) {
+        if (previewState.needsCameraPermission) cameraPermissionLauncher.launch(Permission.CAMERA)
+    }
     val zone = UiCatalog.zone(zoneId)
     val nextZone = UiCatalog.nextZone(zoneId)
     val zoneRows = UiCatalog.guideZones
     val liveContent = liveInspectionContent(zoneId)
     var showFinishDialog by remember { mutableStateOf(false) }
-    var isPaused by remember { mutableStateOf(false) }
+    val isPaused = previewState.state.name == "PAUSED"
 
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -347,7 +368,17 @@ fun LiveInspectionScreen(
                 ) {
                     Box(Modifier.size(7.dp).clip(RoundedCornerShape(9.dp)).background(if (isPaused) Green else Color(0xFFC9573D)))
                     Spacer(Modifier.width(5.dp))
-                    Text(if (isPaused) "일시중지" else "녹화 중", color = if (isPaused) Green else Color(0xFFC9573D), fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(
+                        when {
+                            previewState.isLive -> "프리뷰 중"
+                            isPaused -> "일시중지"
+                            glassState.connected -> "프리뷰 대기"
+                            else -> "안경 연결 필요"
+                        },
+                        color = if (isPaused || previewState.isLive) Green else Color(0xFFC9573D),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
                 }
             }
             Column(
@@ -355,9 +386,29 @@ fun LiveInspectionScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Box(
-                    modifier = Modifier.fillMaxWidth().height(156.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xFF2F4437)),
+                    modifier = Modifier.fillMaxWidth().height(300.dp).clip(RoundedCornerShape(18.dp)).background(Color.Black),
                 ) {
-                    Text("AI 글래스 카메라 프리뷰", modifier = Modifier.align(Alignment.Center), color = Color.White.copy(alpha = .8f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    if (glassState.connected) {
+                        // Keep the decoder Surface at the portrait source ratio, then clip its
+                        // centered overflow to the landscape inspection viewport (center-crop).
+                        BoxWithConstraints(
+                            modifier = Modifier.fillMaxSize().clipToBounds(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            AndroidExternalSurface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .requiredHeight(maxWidth * (16f / 9f)),
+                            ) {
+                                onSurface { surface, _, _ ->
+                                    glassViewModel.setPreviewSurface(surface)
+                                    surface.onDestroyed { glassViewModel.setPreviewSurface(null) }
+                                }
+                            }
+                        }
+                    } else {
+                        Text("안경을 연결하면 카메라 프리뷰가 표시돼요", modifier = Modifier.align(Alignment.Center), color = Color.White.copy(alpha = .8f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
                     Row(
                         modifier = Modifier.align(Alignment.TopStart).padding(13.dp).clip(RoundedCornerShape(16.dp)).background(Color.White.copy(alpha = .92f)).padding(horizontal = 10.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -366,7 +417,7 @@ fun LiveInspectionScreen(
                         Spacer(Modifier.width(5.dp))
                         Text("현재 구역 · ${zone.title}", color = DeepGreen, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
                     }
-                    Text("00:04:28", modifier = Modifier.align(Alignment.BottomEnd).padding(13.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(if (previewState.isLive) "라이브" else "대기", modifier = Modifier.align(Alignment.BottomEnd).padding(13.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.White).padding(14.dp),
@@ -435,14 +486,25 @@ fun LiveInspectionScreen(
             ) {
                 Box(
                     modifier = Modifier.weight(1f).height(48.dp).clip(RoundedCornerShape(14.dp)).background(Green).clickable {
-                        isPaused = !isPaused
+                        if (!glassState.connected) glassViewModel.connect(activity)
+                        else if (previewState.isActive) glassViewModel.stopPreview()
+                        else glassViewModel.startPreview()
                     },
                     contentAlignment = Alignment.Center,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.PhotoCamera, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(7.dp))
-                        Text(if (isPaused) "촬영 재개" else "일시중지", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(
+                            when {
+                                !glassState.connected -> "안경 연결"
+                                previewState.isActive -> "프리뷰 중지"
+                                else -> "프리뷰 시작"
+                            },
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
                     }
                 }
                 Box(
@@ -479,7 +541,10 @@ fun LiveInspectionScreen(
                         contentAlignment = Alignment.Center,
                     ) { Text("아니요, 계속 촬영할게요", color = Green, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
                     Box(
-                        modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(Orange).clickable(onClick = onFinish),
+                        modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(Orange).clickable {
+                            glassViewModel.stopPreview()
+                            onFinish()
+                        },
                         contentAlignment = Alignment.Center,
                     ) { Text("네, 종료할게요", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
                 }

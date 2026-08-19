@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import android.app.Activity
+import androidx.activity.ComponentActivity
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
@@ -68,9 +68,9 @@ fun HomeScreen(
     onStartInspection: () -> Unit,
     onTabSelected: (String) -> Unit,
 ) {
-    val glassViewModel: GlassConnectionViewModel = viewModel()
+    val activity = LocalContext.current as ComponentActivity
+    val glassViewModel: GlassConnectionViewModel = viewModel(viewModelStoreOwner = activity)
     val glassState by glassViewModel.uiState.collectAsState()
-    val activity = LocalContext.current as? Activity
     TenantLeafHomeLayout(
         selectedTab = AppTab.Home,
         onOpenProperties = onOpenProperties,
@@ -79,7 +79,7 @@ fun HomeScreen(
         onOpenMagazineArticle = onOpenMagazineArticle,
         onStartInspection = onStartInspection,
         glassState = glassState,
-        onGlassClick = { activity?.let(glassViewModel::connect) },
+        onGlassClick = { glassViewModel.connect(activity) },
         onTabSelected = onTabSelected,
     )
 }
