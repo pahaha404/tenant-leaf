@@ -58,6 +58,7 @@ enum class AppTab(val label: String) {
 fun AppPageScaffold(
     title: String,
     onBack: (() -> Unit)? = null,
+    scrollable: Boolean = true,
     selectedTab: AppTab? = null,
     onTabSelected: ((AppTab) -> Unit)? = null,
     bottomAction: (@Composable () -> Unit)? = null,
@@ -78,7 +79,7 @@ fun AppPageScaffold(
                 .fillMaxSize()
                 .background(Color(0xFFFCFBF8))
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
+                .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {

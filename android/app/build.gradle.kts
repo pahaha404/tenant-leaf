@@ -6,20 +6,49 @@ plugins {
     id("com.google.dagger.hilt.android")
 }
 
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
+}
+val datDeveloperMode = localProperties.getProperty("mwdat_developer_mode") == "true"
+fun projectSecret(name: String): String =
+    providers.gradleProperty(name).orNull ?: localProperties.getProperty(name, "")
+
 android {
     namespace = "com.seipseip.app"
     compileSdk = 35
 
     defaultConfig {
         applicationId = "com.seipseip.app"
-        minSdk = 24
+        minSdk = 29
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
+        // The SDK reads these manifest entries as strings. Keep development-mode values empty,
+        // matching Meta's CameraAccess sample; XML would otherwise coerce a bare 0 to an integer.
+        manifestPlaceholders["mwdat_application_id"] = if (datDeveloperMode) "" else localProperties.getProperty("mwdat_application_id", "")
+        manifestPlaceholders["mwdat_client_token"] = if (datDeveloperMode) "" else localProperties.getProperty("mwdat_client_token", "")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+
+    defaultConfig {
+        buildConfigField(
+            "String",
+            "KAKAO_NATIVE_APP_KEY",
+            "\"${projectSecret("KAKAO_NATIVE_APP_KEY")}\"",
+        )
+        buildConfigField(
+            "String",
+            "KAKAO_REST_API_KEY",
+            "\"${projectSecret("KAKAO_REST_API_KEY")}\"",
+        )
+    }
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -44,6 +73,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
+    implementation("com.meta.wearable:mwdat-core:0.9.0")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("com.google.dagger:hilt-android:2.60.1")
     kapt("com.google.dagger:hilt-compiler:2.60.1")
@@ -52,6 +82,7 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.ui:ui-text-google-fonts")
+    implementation("com.kakao.maps.open:android:2.15.1")
     debugImplementation("androidx.compose.ui:ui-tooling")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")

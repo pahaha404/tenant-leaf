@@ -44,6 +44,9 @@ fun PropertyListApiRoute(
 fun PropertyFormApiRoute(
     onBack: () -> Unit,
     onSaved: (String) -> Unit,
+    onOpenAddressPicker: () -> Unit,
+    onOpenLocationPicker: () -> Unit,
+    selectedAddress: String,
     viewModel: PropertyFormViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -56,6 +59,9 @@ fun PropertyFormApiRoute(
         onBack = onBack,
         saving = state.saving,
         errorMessage = state.errorMessage,
+        onOpenAddressPicker = onOpenAddressPicker,
+        onOpenLocationPicker = onOpenLocationPicker,
+        selectedAddress = selectedAddress,
         onSaved = { input ->
             viewModel.updateFields { fields ->
                 fields.copy(
