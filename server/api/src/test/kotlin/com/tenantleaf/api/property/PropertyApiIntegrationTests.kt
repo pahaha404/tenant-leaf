@@ -1,5 +1,8 @@
 package com.tenantleaf.api.property
 
+import com.tenantleaf.api.inspection.InspectionRepository
+import com.tenantleaf.api.media.ApiIdempotencyRecordRepository
+import com.tenantleaf.api.media.MediaRepository
 import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,10 +28,16 @@ import java.util.UUID
 class PropertyApiIntegrationTests(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
+    @Autowired private val inspectionRepository: InspectionRepository,
     @Autowired private val repository: PropertyRepository,
+    @Autowired private val mediaRepository: MediaRepository,
+    @Autowired private val idempotencyRepository: ApiIdempotencyRecordRepository,
 ) {
     @BeforeEach
     fun cleanDatabase() {
+        idempotencyRepository.deleteAll()
+        mediaRepository.deleteAll()
+        inspectionRepository.deleteAll()
         repository.deleteAll()
     }
 

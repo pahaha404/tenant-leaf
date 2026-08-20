@@ -4,6 +4,8 @@ import com.tenantleaf.api.generated.model.CreatePropertyRequest
 import com.tenantleaf.api.generated.model.Property
 import com.tenantleaf.api.generated.model.PropertyPage
 import com.tenantleaf.api.generated.model.UpdatePropertyRequest
+import com.tenantleaf.api.inspection.InspectionRepository
+import com.tenantleaf.api.inspection.PropertyHasInspectionsException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
@@ -16,6 +18,7 @@ import java.util.UUID
 @Service
 class PropertyService(
     private val repository: PropertyRepository,
+    private val inspectionRepository: InspectionRepository,
     private val userContext: DemoUserContext,
     private val clock: Clock = Clock.systemUTC(),
 ) {
@@ -89,7 +92,11 @@ class PropertyService(
 
     @Transactional
     fun delete(propertyId: UUID) {
-        repository.delete(ownedProperty(propertyId))
+        val property = ownedProperty(propertyId)
+        if (inspectionRepository.existsByPropertyIdAndOwnerId(propertyId, property.ownerId)) {
+            throw PropertyHasInspectionsException()
+        }
+        repository.delete(property)
     }
 
     private fun ownedProperty(propertyId: UUID): PropertyEntity =
