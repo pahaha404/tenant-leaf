@@ -30,6 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.view.doOnAttach
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.kakao.vectormap.GestureType
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.KakaoMapReadyCallback
@@ -149,10 +153,21 @@ private fun KakaoLocationMap(
     onCenterChanged: (Double, Double) -> Unit,
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var mapView by remember { mutableStateOf<MapView?>(null) }
 
-    DisposableEffect(Unit) {
-        onDispose { mapView?.finish() }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> mapView?.resume()
+                Lifecycle.Event.ON_PAUSE -> mapView?.pause()
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     AndroidView(
@@ -183,6 +198,13 @@ private fun KakaoLocationMap(
                         }
                     },
                 )
+                view.doOnAttach {
+                    view.post {
+                        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            view.resume()
+                        }
+                    }
+                }
             }
         },
         modifier = Modifier.fillMaxWidth().height(440.dp),
