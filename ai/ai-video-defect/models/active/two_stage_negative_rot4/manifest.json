@@ -1,0 +1,18 @@
+{
+  "status": "active_candidate",
+  "architecture": "full_image_binary_plus_multiclass_yolo",
+  "binary_model": "models/active/two_stage_negative_rot4/binary/best.pt",
+  "multiclass_model": "models/active/two_stage_negative_rot4/multiclass/best.pt",
+  "confidence": 0.0325,
+  "nms_iou": 0.4,
+  "merge_iou": 0.3,
+  "validation": {
+    "tp": 2135,
+    "fp": 11888,
+    "fn": 259,
+    "recall": 0.8918128655,
+    "miss_rate": 0.1081871345,
+    "fp_per_image": 10.8665
+  },
+  "promotion_note": "미탐률 우선 기준의 활성 후보. 실제 영상 holdout에서 오탐 검수 후 최종 운영 승격을 확정한다."
+}
