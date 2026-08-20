@@ -23,6 +23,9 @@ storage/
 uploads/
 coverage/
 tmp/
+__pycache__/
+*.py[cod]
+.venv/
 
 # AI training data, experiment outputs, and model weights
 ai/ml/data/raw/

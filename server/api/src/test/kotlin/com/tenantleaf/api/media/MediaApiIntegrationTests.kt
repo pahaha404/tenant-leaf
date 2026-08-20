@@ -34,6 +34,7 @@ class MediaApiIntegrationTests(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val objectMapper: ObjectMapper,
     @Autowired private val mediaRepository: MediaRepository,
+    @Autowired private val analysisJobRepository: MediaAnalysisJobRepository,
     @Autowired private val idempotencyRepository: ApiIdempotencyRecordRepository,
     @Autowired private val inspectionRepository: InspectionRepository,
     @Autowired private val propertyRepository: PropertyRepository,
@@ -41,6 +42,7 @@ class MediaApiIntegrationTests(
     @BeforeEach
     fun cleanDatabase() {
         idempotencyRepository.deleteAll()
+        analysisJobRepository.deleteAll()
         mediaRepository.deleteAll()
         inspectionRepository.deleteAll()
         propertyRepository.deleteAll()
@@ -80,7 +82,37 @@ class MediaApiIntegrationTests(
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.uploadStatus").value("UPLOADED"))
-            .andExpect(jsonPath("$.analysisStatus").value("NOT_REQUESTED"))
+            .andExpect(jsonPath("$.analysisStatus").value("QUEUED"))
+
+        kotlin.test.assertEquals(1, analysisJobRepository.count())
+        kotlin.test.assertEquals(
+            MediaAnalysisJobState.QUEUED,
+            analysisJobRepository.findByMediaId(UUID.fromString(mediaId))?.status,
+        )
+
+        mockMvc.perform(
+            post("/api/v1/media/{mediaId}/upload-complete", mediaId)
+                .header("Idempotency-Key", UUID.randomUUID()),
+        ).andExpect(status().isOk)
+        kotlin.test.assertEquals(1, analysisJobRepository.count())
+
+        val mediaUuid = UUID.fromString(mediaId)
+        kotlin.test.assertNotNull(analysisJobRepository.findByMediaId(mediaUuid)).also {
+            it.status = MediaAnalysisJobState.COMPLETED
+            it.completedAt = OffsetDateTime.now()
+            it.modelVersion = "test-model"
+            analysisJobRepository.save(it)
+        }
+        mediaRepository.findById(mediaUuid).orElseThrow().also {
+            it.analysisStatus = MediaAnalysisState.COMPLETED
+            mediaRepository.save(it)
+        }
+        mockMvc.perform(
+            post("/api/v1/media/{mediaId}/upload-complete", mediaId)
+                .header("Idempotency-Key", UUID.randomUUID()),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.analysisStatus").value("COMPLETED"))
 
         mockMvc.perform(get("/api/v1/inspections/{inspectionId}/media", inspectionId))
             .andExpect(status().isOk)

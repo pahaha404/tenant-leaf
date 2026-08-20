@@ -20,3 +20,7 @@ interface ApiIdempotencyRecordRepository : JpaRepository<ApiIdempotencyRecordEnt
         idempotencyKey: UUID,
     ): ApiIdempotencyRecordEntity?
 }
+
+interface MediaAnalysisJobRepository : JpaRepository<MediaAnalysisJobEntity, UUID> {
+    fun findByMediaId(mediaId: UUID): MediaAnalysisJobEntity?
+}
