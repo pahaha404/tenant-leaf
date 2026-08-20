@@ -201,7 +201,7 @@ private fun FormTextField(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Text(label, color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        Box(modifier = Modifier.fillMaxWidth().height(52.dp)) {
+        Box(modifier = Modifier.fillMaxWidth().height(68.dp)) {
             OutlinedTextField(
                 value = value,
                 onValueChange = onChange,
