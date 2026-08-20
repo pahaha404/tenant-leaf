@@ -73,6 +73,8 @@ fun InspectionPrepScreen(
     onBack: () -> Unit,
     onStartInspection: () -> Unit,
     onSelectProperty: () -> Unit,
+    starting: Boolean = false,
+    errorMessage: String? = null,
 ) {
     AppPageScaffold(title = "점검 준비", onBack = onBack) {
         Card(
@@ -90,7 +92,8 @@ fun InspectionPrepScreen(
         InfoCard(title = "점검할 매물", description = "망원동 리버뷰 · 서울시 마포구 망원동", onClick = onSelectProperty)
         InfoCard(title = "촬영 전 확인", description = "휴대전화 카메라와 마이크 권한을 허용해 주세요.", accent = PaleGreen)
         InfoCard(title = "세입세잎 Glass 연결", description = "연결하지 않아도 휴대전화 카메라로 점검을 진행할 수 있어요.")
-        PrimaryButton("점검 시작하기", onStartInspection)
+        errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
+        PrimaryButton(if (starting) "임장 생성 중..." else "점검 시작하기", onStartInspection, enabled = !starting)
     }
 }
 @Composable
@@ -644,6 +647,8 @@ fun FinishConfirmScreen(
     onBack: () -> Unit,
     durationSeconds: Long,
     onConfirm: () -> Unit,
+    updating: Boolean = false,
+    errorMessage: String? = null,
 ) {
     val zones = UiCatalog.guideZones
     AppPageScaffold(title = "촬영 종료 확인", onBack = onBack) {
@@ -708,24 +713,33 @@ fun FinishConfirmScreen(
             Spacer(Modifier.width(8.dp))
             Text("분석 결과는 확인이 필요한 관찰 결과이며, 최종 상태는 사용자가 결정해요.", color = Color(0xFF8B542D), fontSize = 11.sp, lineHeight = 16.sp)
         }
-        PrimaryButton("촬영 종료하고 분석 시작", onConfirm)
+        errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
+        PrimaryButton(if (updating) "촬영 종료 처리 중..." else "촬영 종료하고 사진 준비", onConfirm, enabled = !updating)
     }
 }
 @Composable
 fun AnalysisProgressScreen(
     onBackToHome: () -> Unit,
+    progress: Float,
+    statusMessage: String,
+    errorMessage: String?,
+    primaryActionLabel: String,
+    onPrimaryAction: () -> Unit,
+    onSelectVideo: () -> Unit,
 ) {
     AppPageScaffold(title = "분석 진행", onBack = onBackToHome) {
         SectionTitle("구역별 기록을 정리하고 있어요", "촬영한 사진과 메모를 점검 구역별로 묶는 중이에요.")
         LinearProgressIndicator(
-            progress = { 0.74f },
+            progress = { progress.coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxWidth(),
             color = Green,
             trackColor = PaleGreen,
         )
-        Text("74% · 주방과 창틀 기록을 확인 중이에요.", color = Secondary, fontSize = 12.sp)
+        Text(statusMessage, color = Secondary, fontSize = 12.sp)
+        errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
         UiCatalog.guideZones.forEachIndexed { index, zone ->
-            val isComplete = index < 3
+            val completedZoneCount = (progress.coerceIn(0f, 1f) * UiCatalog.guideZones.size).toInt()
+            val isComplete = index < completedZoneCount
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -755,7 +769,13 @@ fun AnalysisProgressScreen(
                 }
             }
         }
-        PrimaryButton("홈으로 이동", onBackToHome)
+        PrimaryButton(primaryActionLabel, onPrimaryAction)
+        Box(
+            modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(14.dp))
+                .background(Color.White).border(1.dp, Green, RoundedCornerShape(14.dp))
+                .clickable(onClick = onSelectVideo),
+            contentAlignment = Alignment.Center,
+        ) { Text("영상 직접 선택", color = Green, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
     }
 }
 

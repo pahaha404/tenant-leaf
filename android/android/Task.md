@@ -1,5 +1,11 @@
 # Android 프런트엔드 Task
 
+## 감사 후 수정 기록
+
+- 2026-08-20 — Meta 공식 DAT Android 가이드에 맞춰 등록 오류 스트림, 콜백 URI, 구형 Bluetooth 권한, DAT 앱 업데이트 안내와 종료 원인별 재연결 제한을 반영했다. `:app:testDebugUnitTest` 통과. 실제 Meta AI 등록·안경 세션·업데이트 이동은 실기기 미검증이다.
+- 2026-08-20 — AI 분석 완료로 오인될 수 있던 8초 타이머·완료 알림과 고정 분석 진행 화면을 운영 경로에서 제거했다. JPEG 미제출 시 `MEDIA_REQUIRED` 상태만 표시하도록 변경했고, `:app:testDebugUnitTest` 2/2 및 `:app:assembleDebug` 성공으로 확인했다. 실제 JPEG 업로드·서버 AI 연동·실기기는 미검증이다.
+- 2026-08-20 — DAT 세션이 중단되면 프리뷰를 정리하고 1·3·6초 간격으로 최대 3회 재연결하도록 보강했다. 중복 세션·프리뷰 시작을 차단하고, 점검 화면 이탈·앱 백그라운드에서 프리뷰를 종료한다. `:app:testDebugUnitTest` 4/4, `:app:installDebug` 및 Galaxy SM-G991N 실행을 확인했다. Meta AI/DCT 서비스의 실제 채널 복구와 안경 재연결은 미검증이다.
+
 - [x] Android Studio·JDK 21 설치와 빈 앱 빌드 확인
 - [ ] 앱 모듈과 공통 디자인 토큰 연결
 - [ ] 하단 내비게이션과 기본 화면 이동 구현
@@ -19,4 +25,7 @@
 
 완료 기록은 루트 `공용 Task.md`에도 영향을 확인한 뒤 작성한다.
 
+## 진행 기록
+
 - 2026-08-20 — `feature/map`에서 현재 위치 아이콘을 눌러 주소를 교체하는 흐름을 구현함. 주소 교체·실패 시 기존 입력 보존 단위 테스트, `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 현재 위치 주소 입력을 확인함. GPS 좌표는 저장·로그·API 전송하지 않음.
+- 2026-08-20 — 최신 디자인 Compose 화면과 내비게이션을 유지한 채 OpenAPI 네트워크, 매물·임장 ViewModel, 영상 선택·고정 3초 JPEG 추출·2MiB 변환·미디어 업로드 기능을 선별 통합함. 자동 실행 환경의 네트워크·Gradle 캐시 접근 제한으로 빌드·테스트·Lint가 미검증이므로 관련 항목은 완료 처리하지 않음.

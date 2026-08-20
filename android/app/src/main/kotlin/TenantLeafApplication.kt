@@ -2,7 +2,9 @@ package com.seipseip.app
 
 import android.app.Application
 import com.kakao.vectormap.KakaoMapSdk
+import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 class TenantLeafApplication : Application() {
     override fun onCreate() {
         super.onCreate()
