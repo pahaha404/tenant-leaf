@@ -1,5 +1,9 @@
 package com.seipseip.app.feature.property
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,17 +30,24 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -52,6 +63,10 @@ import com.seipseip.app.feature.common.InfoCard
 import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SectionTitle
 import com.seipseip.app.feature.common.StateBadge
+import com.seipseip.app.feature.property.location.addressAfterLocationLookup
+import com.seipseip.app.feature.property.location.currentLocationAddress
+import androidx.core.content.ContextCompat
+import kotlinx.coroutines.launch
 
 @Composable
 fun PropertyListScreen(
@@ -105,6 +120,28 @@ fun PropertyFormScreen(
     var visitHour by rememberSaveable { mutableStateOf(14) }
     var visitMinute by rememberSaveable { mutableStateOf(0) }
     var visitTimeSelected by rememberSaveable { mutableStateOf(false) }
+    var locationLoading by remember { mutableStateOf(false) }
+    var locationError by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val loadCurrentAddress: () -> Unit = {
+        if (!locationLoading) {
+            locationLoading = true
+            locationError = null
+            scope.launch {
+                runCatching { currentLocationAddress(context) }
+                    .onSuccess { address = addressAfterLocationLookup(address, it) }
+                    .onFailure { locationError = "현재 위치의 주소를 찾지 못했어요. 위치 서비스를 확인해 주세요." }
+                locationLoading = false
+            }
+        }
+    }
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { grants ->
+        if (grants.values.any { it }) loadCurrentAddress()
+        else locationError = "위치 권한이 없어도 주소를 직접 검색할 수 있어요."
+    }
     LaunchedEffect(selectedAddress) {
         if (selectedAddress.isNotBlank()) address = selectedAddress
     }
@@ -119,7 +156,25 @@ fun PropertyFormScreen(
         Text("기본 정보는 리포트 제목과 증거 정리에 사용돼요.", color = Secondary, fontSize = 13.sp)
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             FormTextField("매물 이름", "예: 연남동 햇살 원룸", propertyName, { propertyName = it })
-            FormTextField("주소", "도로명이나 건물명을 검색하세요", address, {}, onOpenAddressPicker)
+            AddressFormField(
+                value = address,
+                loading = locationLoading,
+                error = locationError,
+                onOpenAddressPicker = onOpenAddressPicker,
+                onUseCurrentLocation = {
+                    val granted = listOf(
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                    ).any { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }
+                    if (granted) loadCurrentAddress()
+                    else locationPermissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                        ),
+                    )
+                },
+            )
             FormTextField("보증금", "예: 500", deposit, { deposit = it })
             FormTextField("월세", "예: 45", monthlyRent, { monthlyRent = it })
             Text("주거 형태", color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -188,6 +243,35 @@ fun PropertyFormScreen(
             dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("취소") } },
             text = { TimePicker(state = timePickerState) },
         )
+    }
+}
+
+@Composable
+private fun AddressFormField(
+    value: String,
+    loading: Boolean,
+    error: String?,
+    onOpenAddressPicker: () -> Unit,
+    onUseCurrentLocation: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        Text("주소", color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            modifier = Modifier.fillMaxWidth().height(68.dp).clickable(onClick = onOpenAddressPicker),
+            placeholder = { Text("도로명이나 건물명을 검색하세요", color = Secondary, fontSize = 14.sp) },
+            trailingIcon = {
+                IconButton(onClick = onUseCurrentLocation, enabled = !loading) {
+                    if (loading) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+                    else Icon(Icons.Outlined.MyLocation, contentDescription = "현재 위치로 주소 입력", tint = Green)
+                }
+            },
+            singleLine = true,
+            readOnly = true,
+            shape = RoundedCornerShape(14.dp),
+        )
+        error?.let { Text(it, color = Orange, fontSize = 11.sp) }
     }
 }
 

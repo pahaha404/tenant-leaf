@@ -6,3 +6,6 @@ fun normalizeAddress(input: String): String? =
     }
 
 fun normalizeAddressQuery(input: String): String? = input.trim().takeIf { it.length >= 2 }
+
+fun addressAfterLocationLookup(current: String, resolved: String?): String =
+    resolved?.let(::normalizeAddress) ?: current

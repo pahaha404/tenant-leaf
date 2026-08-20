@@ -81,3 +81,4 @@
 ## 진행 기록
 
 - 2026-08-19 — Android JPEG 미디어 호출 흐름을 구현하고 단위·MockWebServer·UI 테스트를 추가함. 자동 실행 환경의 Gradle 파일 접근 제한으로 Android 빌드가 미검증이며, Meta 영상 가져오기와 실기기→API→MinIO→PostgreSQL 통합 확인 전까지 통합 알파 및 관련 Android 항목은 미완료로 유지함.
+- 2026-08-20 — `feature/map`에서 매물 등록 주소 입력창의 현재 위치 주소 교체를 구현함. 전경 위치 권한만 사용하고 GPS 좌표는 저장·로그·API 전송하지 않으며, Android 단위 테스트·Debug APK 빌드와 Galaxy SM-G991N(Android 15) 실기기 주소 입력을 확인함.
