@@ -59,6 +59,8 @@
 
 ## 완료 기록
 
+- 2026-08-20 — 서버와 DB의 로컬/실배포 설정을 분리했다. Android debug/release API 주소 계약을 유지하고, 서버 `prod` 프로필은 운영 DB·객체 저장소 환경변수를 필수로 요구하도록 구성했다. 서버 `clean test`는 통과했으며 실제 배포 환경 연결은 미검증이다.
+
 - 2026-08-10 — `docs/team/pm/01_2026-08-10_MVP-계획.md` 작성 완료. MVP 범위, 사용자 흐름, UI/UX, 일정, 완료 조건을 기록함.
 - 2026-08-11 — 백엔드 개발 도구 설치 확인 완료. `scripts/check-prerequisites.ps1`로 Temurin JDK·javac 21.0.12, Docker CLI와 Docker Desktop engine 29.7.2 실행을 확인함.
 - 2026-08-11 — PostgreSQL 로컬 개발 환경 구성 완료. Docker Compose에서 PostgreSQL 17을 `healthy` 상태로 실행하고, 빈 볼륨 재생성 후 Flyway 마이그레이션과 `server/api`의 `clean test` 통과를 확인함. 헬스 체크는 DB 연결 시 `UP(200)`, 중지 시 `DOWN(503)`을 반환함.

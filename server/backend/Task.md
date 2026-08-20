@@ -22,6 +22,8 @@
 
 ## 완료 기록
 
+- 2026-08-20 — 로컬 기본 설정과 실배포 `prod` 프로필을 분리했다. 실배포 DB·객체 저장소 설정은 배포 환경변수가 없으면 해석되지 않도록 구성했고, `clean test`로 검증했다. 실제 배포 인프라와 운영 DB 연결은 배포처 확정 전이므로 미검증이다.
+
 - 2026-08-19 — MinIO Compose 구성, `media`·멱등성 레코드 Flyway 테이블, 업로드 등록·완료·재시도·목록·상세 Spring Boot 구현과 저장소 대체 테스트를 추가함. OpenAPI 검사와 Kotlin 주·테스트 소스 컴파일은 통과했으나 현재 실행 환경에서 MinIO SDK 다운로드와 Docker 실행이 불가능하여 실제 MinIO PUT 통합 검증 전까지 작업 체크는 미완료로 유지함.
 
 - 2026-08-19 — OpenAPI 2.0 확정 범위에 맞춰 PostgreSQL 임장 테이블과 Kotlin Entity·Repository·Service·Controller를 구현함. `IN_PROGRESS → ENDED/CANCELLED` 단방향 전이, 소유권 은닉 조회, 임장 있는 매물 삭제 보호와 오류 응답을 별도 `tenant_leaf_test` 스키마의 통합 테스트 및 `clean openApiValidate test`로 확인함. 미확정 미디어·관찰·리포트와 임장 보관 API는 추가하지 않음.
