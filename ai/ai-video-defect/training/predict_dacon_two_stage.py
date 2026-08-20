@@ -56,8 +56,8 @@ def merge(binary: dict[str, list[dict]], multiclass: dict[str, list[dict]], thre
         for item in binary.get(filename, []):
             if not any(box_iou(item["box_xyxy"], other["box_xyxy"]) >= threshold for other in multiclass.get(filename, [])):
                 items.append({
-                    "class_id": None,
-                    "class_name": "unknown_defect",
+                    "class_id": 12,
+                    "class_name": "other",
                     "confidence": item["confidence"],
                     "box_xyxy": item["box_xyxy"],
                     "source": "binary_only",
@@ -99,7 +99,7 @@ def main() -> None:
         multi_items = multiclass.get(filename, [])
         binary_items = binary.get(filename, [])
         merged_items = merged.get(filename, [])
-        unknown_count += sum(item["class_name"] == "unknown_defect" for item in merged_items)
+        unknown_count += sum(item["class_name"] == "other" for item in merged_items)
         class_counts.update(item["class_name"] for item in merged_items)
         rows.append({
             "filename": filename,
@@ -109,7 +109,7 @@ def main() -> None:
             "multiclass_count": len(multi_items),
             "binary_count": len(binary_items),
             "merged_count": len(merged_items),
-            "unknown_defect_count": sum(item["class_name"] == "unknown_defect" for item in merged_items),
+            "other_count": sum(item["class_name"] == "other" for item in merged_items),
         })
     payload = {
         "task": "temporary_unlabeled_two_stage_defect_test",
@@ -119,7 +119,7 @@ def main() -> None:
         "models": {"binary": str(binary_path.relative_to(root)), "multiclass": str(multiclass_path.relative_to(root))},
         "conditions": {"confidence": args.confidence, "nms_iou": args.nms_iou, "merge_iou": args.merge_iou, "multiclass_imgsz": args.multiclass_imgsz, "binary_imgsz": args.binary_imgsz},
         "timing_seconds": {"multiclass": round(multiclass_seconds, 3), "binary": round(binary_seconds, 3), "total": round(multiclass_seconds + binary_seconds, 3), "per_image_ms": round((multiclass_seconds + binary_seconds) / len(rows) * 1000, 3)},
-        "summary": {"merged_detections_by_class": dict(class_counts), "unknown_defect_count": unknown_count, "images_with_any_detection": sum(bool(row["merged_detections"]) for row in rows)},
+        "summary": {"merged_detections_by_class": dict(class_counts), "other_count": unknown_count, "images_with_any_detection": sum(bool(row["merged_detections"]) for row in rows)},
         "predictions": rows,
     }
     output.mkdir(parents=True, exist_ok=True)
@@ -129,13 +129,13 @@ def main() -> None:
         f"- 입력: `{source.relative_to(root)}`\n- 이미지 수: {len(rows)}장\n- 장치: `{device}`\n"
         f"- 다중 클래스 추론: {multiclass_seconds:.3f}초\n- Binary 추론: {binary_seconds:.3f}초\n"
         f"- 전체 처리 시간: {multiclass_seconds + binary_seconds:.3f}초 ({(multiclass_seconds + binary_seconds) / len(rows) * 1000:.3f}ms/장)\n\n"
-        f"## 결과 요약\n\n- 탐지 결과가 있는 이미지: {sum(bool(row['merged_detections']) for row in rows)}장\n- `unknown_defect` 후보: {unknown_count}개\n- 클래스별 병합 탐지 수: `{dict(class_counts)}`\n\n"
+        f"## 결과 요약\n\n- 탐지 결과가 있는 이미지: {sum(bool(row['merged_detections']) for row in rows)}장\n- `other` 후보: {unknown_count}개\n- 클래스별 병합 탐지 수: `{dict(class_counts)}`\n\n"
         "## 해석 범위\n\n"
         "이 입력에는 탐지용 bounding box 정답 라벨이 없으므로 Recall, 미탐률, 오탐률, mAP를 계산하지 않았습니다. "
         "또한 DACON open 이미지는 현재 방 전체 촬영본이 아닌 결함 분류용 이미지일 수 있어, 이번 결과는 모델 실행 여부와 예측 분포를 확인하는 임시 smoke/domain check로만 사용합니다.\n",
         encoding="utf-8",
     )
-    print(json.dumps({"output": str(output), "image_count": len(rows), "device": device, "unknown_defect_count": unknown_count, "total_seconds": round(multiclass_seconds + binary_seconds, 3)}, ensure_ascii=False))
+    print(json.dumps({"output": str(output), "image_count": len(rows), "device": device, "other_count": unknown_count, "total_seconds": round(multiclass_seconds + binary_seconds, 3)}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

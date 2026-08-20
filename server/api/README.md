@@ -72,7 +72,7 @@ cd server/api
 .\gradlew.bat clean test
 ```
 
-테스트는 Spring 애플리케이션 시작과 Flyway가 만든 `api_schema_marker` 테이블을 확인합니다.
+테스트는 Spring 애플리케이션 시작, Flyway 스키마와 매물·임장·미디어 API의 상태 전이 및 소유권 규칙을 확인합니다.
 
 ## 7. OpenAPI 기반 Kotlin 코드 생성
 
@@ -104,8 +104,11 @@ docker compose --env-file .env -f server/infra/docker/compose.yml down
 3. Android가 해당 URL에 `Content-Type: image/jpeg`로 JPEG를 직접 업로드합니다.
 4. Android가 업로드 완료 API를 호출하면 서버가 실제 파일의 형식·크기·가로·세로를 확인합니다.
 5. 확인된 메타데이터는 PostgreSQL에, JPEG 바이트는 MinIO에 남습니다.
+6. 서버가 같은 `mediaId`의 분석 작업을 한 번만 만들고 상태를 `QUEUED`로 변경합니다.
+7. 별도 Python Worker가 작업을 처리해 탐지 결과와 모델 버전을 PostgreSQL에 저장합니다.
 
 원본 영상과 휴대전화 갤러리 URI는 이 API로 전송하지 않습니다.
+Worker 설치와 실행 방법은 `server/ai-worker/README.md`를 따릅니다. 모델 가중치가 배포되지 않은 상태에서는 API 업로드까지 동작하지만 분석 상태가 `QUEUED`에 머뭅니다.
 
 ## 10. 자주 발생하는 오류
 

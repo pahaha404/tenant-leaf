@@ -1,10 +1,5 @@
-# Kotlin AI 워커 코드
+# Kotlin Worker 보류
 
-Redis 분석 작업을 받아 외부 AI API 또는 모델 서버를 호출하는 Kotlin 코드를 둡니다.
+MVP의 JPEG 추론 Worker는 상위 `server/ai-worker/tenant_leaf_worker/`의 Python 구현을 사용합니다. 이 폴더에는 실행 코드를 추가하지 않습니다.
 
-## 예정 패키지
-
-- `consumer`: Redis 작업 수신
-- `pipeline`: 음성·이미지 분석 순서
-- `client`: STT·TTS·비전 AI API 호출
-- `result`: 분석 결과 저장
+API 서버는 계속 Kotlin + Spring Boot로 유지하며, 무거운 YOLO 추론은 API HTTP 요청 안에서 실행하지 않습니다.

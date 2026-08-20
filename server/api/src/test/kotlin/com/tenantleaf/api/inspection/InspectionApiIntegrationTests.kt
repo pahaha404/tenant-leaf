@@ -2,6 +2,7 @@ package com.tenantleaf.api.inspection
 
 import com.tenantleaf.api.property.DemoUserContext
 import com.tenantleaf.api.media.ApiIdempotencyRecordRepository
+import com.tenantleaf.api.media.MediaAnalysisJobRepository
 import com.tenantleaf.api.media.MediaRepository
 import com.tenantleaf.api.property.PropertyEntity
 import com.tenantleaf.api.property.PropertyRepository
@@ -30,11 +31,13 @@ class InspectionApiIntegrationTests(
     @Autowired private val inspectionRepository: InspectionRepository,
     @Autowired private val propertyRepository: PropertyRepository,
     @Autowired private val mediaRepository: MediaRepository,
+    @Autowired private val analysisJobRepository: MediaAnalysisJobRepository,
     @Autowired private val idempotencyRepository: ApiIdempotencyRecordRepository,
 ) {
     @BeforeEach
     fun cleanDatabase() {
         idempotencyRepository.deleteAll()
+        analysisJobRepository.deleteAll()
         mediaRepository.deleteAll()
         inspectionRepository.deleteAll()
         propertyRepository.deleteAll()
