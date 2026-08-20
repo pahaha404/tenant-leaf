@@ -33,7 +33,8 @@
 - [ ] 녹음 모드와 음성 안내 모드의 동시 사용 제약 검증
 - [ ] 방문 전 안심 가이드 콘텐츠 확정
 - [ ] AI 구역·관찰 유형과 비확정 표현 확정
-- [x] 매물·임장·미디어·체크리스트·AI 탐지의 최소 데이터 구조 확정
+- [x] 매물 최소 데이터 구조 확정
+- [ ] 임장·구역·미디어·관찰·근거 중심 최소 데이터 구조의 남은 P0 계약 확정
 - [x] 실시간 스트리밍 분석 제외와 기본 영상 촬영·JPEG 분석 흐름 문서·계약 반영
 - [ ] 전체 사용자 흐름과 정보 구조 확정
 - [ ] 로우파이 화면 및 클릭 가능한 프로토타입 완성
@@ -61,7 +62,7 @@
 - 2026-08-10 — `docs/team/pm/01_2026-08-10_MVP-계획.md` 작성 완료. MVP 범위, 사용자 흐름, UI/UX, 일정, 완료 조건을 기록함.
 - 2026-08-11 — 백엔드 개발 도구 설치 확인 완료. `scripts/check-prerequisites.ps1`로 Temurin JDK·javac 21.0.12, Docker CLI와 Docker Desktop engine 29.7.2 실행을 확인함.
 - 2026-08-11 — PostgreSQL 로컬 개발 환경 구성 완료. Docker Compose에서 PostgreSQL 17을 `healthy` 상태로 실행하고, 빈 볼륨 재생성 후 Flyway 마이그레이션과 `server/api`의 `clean test` 통과를 확인함. 헬스 체크는 DB 연결 시 `UP(200)`, 중지 시 `DOWN(503)`을 반환함.
-- 2026-08-12 — 공통 API 계약 1.0 확정. 데모 로그인, 사용자→매물→임장 구조, 체크리스트 상태 4개, AI 라벨·bbox 형식, 프레임 규격과 보관 정책을 `docs/technical/api-spec.md`에서 확인함.
+- 2026-08-12 — 공통 API 계약 1.0 확정. 데모 로그인, 사용자→매물→임장 구조, 체크리스트 상태 4개, AI 라벨·bbox 형식, 프레임 규격과 보관 정책을 `team/00_shared/공통 api 계약.md`에서 확인함.
 - 2026-08-12 — 확정된 HTTP API의 OpenAPI 3.0.3 명세 작성 완료. Redocly CLI와 OpenAPI Generator 7.24.0으로 `packages/shared-types/openapi/openapi.yaml` 문법과 참조 유효성을 확인함.
 - 2026-08-13 — OpenAPI 기반 Spring Boot Kotlin 코드 생성 환경 구성 완료. OpenAPI Generator 7.24.0으로 요청·응답 타입과 API 인터페이스를 생성하고 `server/api`의 `clean test` 통과를 확인함.
 - 2026-08-13 — 공통 API 계약 1.1에 사용자가 직접 입력하는 매물 조건 7개를 추가함. 보증금·월세·관리비·전용면적·층수·옵션·부동산 연락처의 OpenAPI Kotlin 타입 생성과 `server/api`의 `clean test` 통과를 확인함.
@@ -72,3 +73,11 @@
 - 2026-08-14 — 실시간 스트리밍 분석을 MVP에서 제외하고 안경 기본 고화질 영상→휴대전화 갤러리→촬영 중 생성 또는 촬영 후 추출한 JPEG→비동기 분석 흐름으로 문서와 API 계약 1.2를 갱신함. OpenAPI 문법 검사·Kotlin 코드 생성과 `server/api`의 `clean test` 통과를 확인함.
 
 - 2026-08-18 Android 앱을 `android/app`으로 이전하고 `:app:assembleDebug` 빌드 성공을 확인했다. 실제 에뮬레이터 흐름은 새 경로에서 재확인 필요.
+- 2026-08-18 — Android 기본 구조를 `:app`, `:core`, `:feature:property`로 구성하고 Compose·Navigation·Hilt·OpenAPI 기반 매물 CRUD를 연결함. OpenAPI 검사·생성, clean Debug 빌드, JVM 테스트 24개, Lint와 Galaxy SM-G991N(Android 15) Compose UI 테스트 2개를 통과하고 에뮬레이터에서 서버를 통한 등록·조회·수정·삭제까지 확인함.
+- 2026-08-18 — 공통 API 계약을 체크리스트·Frame·Detection 중심 1.2에서 구역·Media·Observation·근거 중심 검토 초안 2.0으로 전환함. 미확정 Media·Observation·Report HTTP API는 OpenAPI에서 제외하고, 서버 OpenAPI 검사·Kotlin 생성·계약 테스트와 Android clean Debug 빌드·단위 테스트·Lint 통과를 확인함.
+- 2026-08-19 — 확정된 임장 생명주기 API의 PostgreSQL·Spring Boot 구현을 추가함. 임장 생성·목록·상세·종료·취소, 소유권, 단방향 상태 전이와 임장이 있는 매물 삭제 보호를 별도 테스트 스키마에서 검증함. 미디어·관찰·리포트와 임장 보관 API는 미확정 범위로 유지함.
+- 2026-08-19 — JPEG 미디어 업로드 HTTP 계약을 검토 초안 2.1로 확정함. 요청당 1~20장 배치 등록, 15분 서명 URL, 업로드 완료·재시도·목록·상세와 멱등성 충돌을 OpenAPI에 반영하고 Kotlin API 인터페이스 생성·계약 테스트를 통과함. 임장당 전체 상한과 미디어 집합 확정 API는 P0로 유지함.
+
+## 진행 기록
+
+- 2026-08-19 — Android JPEG 미디어 호출 흐름을 구현하고 단위·MockWebServer·UI 테스트를 추가함. 자동 실행 환경의 Gradle 파일 접근 제한으로 Android 빌드가 미검증이며, Meta 영상 가져오기와 실기기→API→MinIO→PostgreSQL 통합 확인 전까지 통합 알파 및 관련 Android 항목은 미완료로 유지함.
