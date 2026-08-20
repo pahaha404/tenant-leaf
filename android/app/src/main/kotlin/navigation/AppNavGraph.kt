@@ -21,6 +21,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -53,6 +54,7 @@ import com.seipseip.app.feature.profile.ProfileScreen
 import com.seipseip.app.feature.property.PropertyDetailScreen
 import com.seipseip.app.feature.property.PropertyInfoScreen
 import com.seipseip.app.feature.property.PropertyFormScreen
+import com.seipseip.app.feature.property.location.AddressPickerScreen
 import com.seipseip.app.feature.property.PropertyListScreen
 import com.seipseip.app.feature.property.PropertySelectScreen
 import com.seipseip.app.feature.report.ReportDetailScreen
@@ -77,6 +79,7 @@ object Route {
     const val ChecklistOverview = "checklist_overview"
     const val PropertyList = "properties"
     const val PropertyForm = "property_form"
+    const val AddressPicker = "address_picker"
     const val PropertyDetail = "property_detail"
     const val PropertyInfo = "property_info"
     const val PropertySelect = "property_select"
@@ -284,9 +287,21 @@ fun AppNavGraph(
             )
         }
         composable(Route.PropertyForm) {
+            val selectedAddress by it.savedStateHandle.getStateFlow("addressSummary", "").collectAsState()
             PropertyFormScreen(
                 onBack = navController::popBackStack,
                 onSaved = { navController.navigate(Route.PropertyList) },
+                onOpenAddressPicker = { navController.navigate(Route.AddressPicker) },
+                selectedAddress = selectedAddress,
+            )
+        }
+        composable(Route.AddressPicker) {
+            AddressPickerScreen(
+                onBack = navController::popBackStack,
+                onConfirmed = { address ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("addressSummary", address)
+                    navController.popBackStack()
+                },
             )
         }
         composable(Route.PropertyDetail) {

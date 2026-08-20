@@ -28,9 +28,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,18 +90,23 @@ fun PropertyListScreen(
 fun PropertyFormScreen(
     onBack: () -> Unit,
     onSaved: () -> Unit,
+    onOpenAddressPicker: () -> Unit,
+    selectedAddress: String,
 ) {
-    var propertyName by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
-    var deposit by remember { mutableStateOf("") }
-    var monthlyRent by remember { mutableStateOf("") }
+    var propertyName by rememberSaveable { mutableStateOf("") }
+    var address by rememberSaveable { mutableStateOf("") }
+    var deposit by rememberSaveable { mutableStateOf("") }
+    var monthlyRent by rememberSaveable { mutableStateOf("") }
     var housingType by remember { mutableStateOf("원룸") }
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
-    var visitDateMillis by remember { mutableStateOf<Long?>(null) }
-    var visitHour by remember { mutableStateOf(14) }
-    var visitMinute by remember { mutableStateOf(0) }
-    var visitTimeSelected by remember { mutableStateOf(false) }
+    var showDatePicker by rememberSaveable { mutableStateOf(false) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false) }
+    var visitDateMillis by rememberSaveable { mutableStateOf<Long?>(null) }
+    var visitHour by rememberSaveable { mutableStateOf(14) }
+    var visitMinute by rememberSaveable { mutableStateOf(0) }
+    var visitTimeSelected by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(selectedAddress) {
+        if (selectedAddress.isNotBlank()) address = selectedAddress
+    }
     val visitSchedule = visitDateMillis?.let { millis ->
         SimpleDateFormat("yyyy. MM. dd (EEE)", Locale.KOREAN).format(Date(millis)) + "  %02d:%02d".format(visitHour, visitMinute)
     } ?: "방문 날짜와 시간 선택"
@@ -111,7 +118,7 @@ fun PropertyFormScreen(
         Text("기본 정보는 리포트 제목과 증거 정리에 사용돼요.", color = Secondary, fontSize = 13.sp)
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             FormTextField("매물 이름", "예: 연남동 햇살 원룸", propertyName, { propertyName = it })
-            FormTextField("주소", "도로명이나 건물명을 검색하세요", address, { address = it })
+            FormTextField("주소", "도로명이나 건물명을 검색하세요", address, {}, onOpenAddressPicker)
             FormTextField("보증금", "예: 500", deposit, { deposit = it })
             FormTextField("월세", "예: 45", monthlyRent, { monthlyRent = it })
             Text("주거 형태", color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -184,15 +191,24 @@ fun PropertyFormScreen(
 }
 
 @Composable
-private fun FormTextField(label: String, placeholder: String, value: String, onChange: (String) -> Unit) {
+private fun FormTextField(
+    label: String,
+    placeholder: String,
+    value: String,
+    onChange: (String) -> Unit,
+    onClick: (() -> Unit)? = null,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Text(label, color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         OutlinedTextField(
             value = value,
             onValueChange = onChange,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
+            modifier = Modifier.fillMaxWidth().height(52.dp).let { modifier ->
+                if (onClick == null) modifier else modifier.clickable { onClick() }
+            },
             placeholder = { Text(placeholder, color = Secondary, fontSize = 14.sp) },
             singleLine = true,
+            readOnly = onClick != null,
             shape = RoundedCornerShape(14.dp),
         )
     }

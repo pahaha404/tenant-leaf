@@ -16,7 +16,23 @@ android {
         versionName = "0.1.0"
     }
 
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+
+    defaultConfig {
+        buildConfigField(
+            "String",
+            "KAKAO_NATIVE_APP_KEY",
+            "\"${providers.gradleProperty("KAKAO_NATIVE_APP_KEY").orElse("").get()}\"",
+        )
+        buildConfigField(
+            "String",
+            "KAKAO_REST_API_KEY",
+            "\"${providers.gradleProperty("KAKAO_REST_API_KEY").orElse("").get()}\"",
+        )
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -39,5 +55,7 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.ui:ui-text-google-fonts")
+    implementation("com.kakao.maps.open:android:2.15.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
+    testImplementation("junit:junit:4.13.2")
 }
