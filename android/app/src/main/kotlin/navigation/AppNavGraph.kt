@@ -55,6 +55,7 @@ import com.seipseip.app.feature.property.PropertyDetailScreen
 import com.seipseip.app.feature.property.PropertyInfoScreen
 import com.seipseip.app.feature.property.PropertyFormScreen
 import com.seipseip.app.feature.property.location.AddressPickerScreen
+import com.seipseip.app.feature.property.location.LocationPickerScreen
 import com.seipseip.app.feature.property.PropertyListScreen
 import com.seipseip.app.feature.property.PropertySelectScreen
 import com.seipseip.app.feature.report.ReportDetailScreen
@@ -89,6 +90,7 @@ object Route {
     const val PropertyList = "properties"
     const val PropertyForm = "property_form"
     const val AddressPicker = "address_picker"
+    const val LocationPicker = "location_picker"
     const val PropertyDetail = "property_detail/{propertyId}"
     const val PropertyInfo = "property_info/{propertyId}"
     const val PropertySelect = "property_select"
@@ -306,11 +308,21 @@ fun AppNavGraph(
                 onBack = navController::popBackStack,
                 onSaved = { propertyId -> navController.navigate(Route.propertyDetail(propertyId)) },
                 onOpenAddressPicker = { navController.navigate(Route.AddressPicker) },
+                onOpenLocationPicker = { navController.navigate(Route.LocationPicker) },
                 selectedAddress = selectedAddress,
             )
         }
         composable(Route.AddressPicker) {
             AddressPickerScreen(
+                onBack = navController::popBackStack,
+                onConfirmed = { address ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("addressSummary", address)
+                    navController.popBackStack()
+                },
+            )
+        }
+        composable(Route.LocationPicker) {
+            LocationPickerScreen(
                 onBack = navController::popBackStack,
                 onConfirmed = { address ->
                     navController.previousBackStackEntry?.savedStateHandle?.set("addressSummary", address)

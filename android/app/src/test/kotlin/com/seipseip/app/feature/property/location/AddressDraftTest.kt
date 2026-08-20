@@ -33,4 +33,10 @@ class AddressDraftTest {
         assertEquals("network", preferredLocationProvider(precise = false, gpsEnabled = true, networkEnabled = true))
         assertEquals("network", preferredLocationProvider(precise = true, gpsEnabled = false, networkEnabled = true))
     }
+
+    @Test
+    fun locationFallbackProviders_usesNetworkAfterGpsWithoutDuplicates() {
+        assertEquals(listOf("gps", "network"), locationFallbackProviders("gps"))
+        assertEquals(listOf("network"), locationFallbackProviders("network"))
+    }
 }

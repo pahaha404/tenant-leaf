@@ -45,6 +45,7 @@ fun PropertyFormApiRoute(
     onBack: () -> Unit,
     onSaved: (String) -> Unit,
     onOpenAddressPicker: () -> Unit,
+    onOpenLocationPicker: () -> Unit,
     selectedAddress: String,
     viewModel: PropertyFormViewModel = hiltViewModel(),
 ) {
@@ -59,6 +60,7 @@ fun PropertyFormApiRoute(
         saving = state.saving,
         errorMessage = state.errorMessage,
         onOpenAddressPicker = onOpenAddressPicker,
+        onOpenLocationPicker = onOpenLocationPicker,
         selectedAddress = selectedAddress,
         onSaved = { input ->
             viewModel.updateFields { fields ->
