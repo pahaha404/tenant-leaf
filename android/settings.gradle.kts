@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "tenant-leaf-android"
-include(":app")
+include(":app", ":core", ":feature:property", ":feature:inspection", ":feature:media")
