@@ -1,2 +1,0 @@
-dataset_version,source_category,usage_basis,access_group,retention_until,deidentification,split_group,label_schema_version,external_storage_reference
-v0.1,consented_or_authorized,record-before-use,ml-team,YYYY-MM-DD,face-document-address-plate-removed,property_or_visit_group,v0.1,external-dataset-id-only
