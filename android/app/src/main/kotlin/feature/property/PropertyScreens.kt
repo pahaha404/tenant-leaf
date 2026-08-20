@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -200,17 +201,20 @@ private fun FormTextField(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Text(label, color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        OutlinedTextField(
-            value = value,
-            onValueChange = onChange,
-            modifier = Modifier.fillMaxWidth().height(52.dp).let { modifier ->
-                if (onClick == null) modifier else modifier.clickable { onClick() }
-            },
-            placeholder = { Text(placeholder, color = Secondary, fontSize = 14.sp) },
-            singleLine = true,
-            readOnly = onClick != null,
-            shape = RoundedCornerShape(14.dp),
-        )
+        Box(modifier = Modifier.fillMaxWidth().height(52.dp)) {
+            OutlinedTextField(
+                value = value,
+                onValueChange = onChange,
+                modifier = Modifier.fillMaxSize(),
+                placeholder = { Text(placeholder, color = Secondary, fontSize = 14.sp) },
+                singleLine = true,
+                readOnly = onClick != null,
+                shape = RoundedCornerShape(14.dp),
+            )
+            onClick?.let { openAddressPicker ->
+                Box(modifier = Modifier.fillMaxSize().clickable { openAddressPicker() })
+            }
+        }
     }
 }
 
