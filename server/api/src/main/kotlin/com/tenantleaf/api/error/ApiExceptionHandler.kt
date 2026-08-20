@@ -5,6 +5,14 @@ import com.tenantleaf.api.generated.model.FieldError
 import com.tenantleaf.api.inspection.InspectionNotFoundException
 import com.tenantleaf.api.inspection.InspectionStateTransitionException
 import com.tenantleaf.api.inspection.PropertyHasInspectionsException
+import com.tenantleaf.api.media.ClientMediaIdConflictException
+import com.tenantleaf.api.media.IdempotencyKeyConflictException
+import com.tenantleaf.api.media.MediaNotFoundException
+import com.tenantleaf.api.media.MediaFileTooLargeException
+import com.tenantleaf.api.media.MediaStateException
+import com.tenantleaf.api.media.MediaValidationException
+import com.tenantleaf.api.media.ObjectStorageUnavailableException
+import com.tenantleaf.api.media.UnsupportedMediaTypeException
 import com.tenantleaf.api.property.PropertyNotFoundException
 import com.tenantleaf.api.property.PropertyValidationException
 import jakarta.validation.ConstraintViolationException
@@ -26,6 +34,10 @@ class ApiExceptionHandler {
     fun handleInspectionNotFound(): ResponseEntity<ErrorResponse> =
         response(HttpStatus.NOT_FOUND, "INSPECTION_NOT_FOUND", "요청한 임장 기록을 찾을 수 없습니다.")
 
+    @ExceptionHandler(MediaNotFoundException::class)
+    fun handleMediaNotFound(): ResponseEntity<ErrorResponse> =
+        response(HttpStatus.NOT_FOUND, "MEDIA_NOT_FOUND", "요청한 미디어를 찾을 수 없습니다.")
+
     @ExceptionHandler(InspectionStateTransitionException::class)
     fun handleInspectionStateTransition(): ResponseEntity<ErrorResponse> =
         response(HttpStatus.CONFLICT, "INVALID_STATE_TRANSITION", "현재 임장 상태에서는 요청을 수행할 수 없습니다.")
@@ -33,6 +45,39 @@ class ApiExceptionHandler {
     @ExceptionHandler(PropertyHasInspectionsException::class)
     fun handlePropertyHasInspections(): ResponseEntity<ErrorResponse> =
         response(HttpStatus.CONFLICT, "INVALID_STATE_TRANSITION", "임장 기록이 있는 매물은 현재 삭제할 수 없습니다.")
+
+    @ExceptionHandler(MediaStateException::class)
+    fun handleMediaState(): ResponseEntity<ErrorResponse> =
+        response(HttpStatus.CONFLICT, "INVALID_STATE_TRANSITION", "현재 미디어 상태에서는 요청을 수행할 수 없습니다.")
+
+    @ExceptionHandler(ClientMediaIdConflictException::class)
+    fun handleClientMediaIdConflict(): ResponseEntity<ErrorResponse> =
+        response(HttpStatus.CONFLICT, "CLIENT_MEDIA_ID_CONFLICT", "같은 사진 ID에 서로 다른 정보가 요청되었습니다.")
+
+    @ExceptionHandler(IdempotencyKeyConflictException::class)
+    fun handleIdempotencyKeyConflict(): ResponseEntity<ErrorResponse> =
+        response(HttpStatus.CONFLICT, "IDEMPOTENCY_KEY_CONFLICT", "같은 멱등성 키에 서로 다른 요청이 전송되었습니다.")
+
+    @ExceptionHandler(MediaValidationException::class)
+    fun handleMediaValidation(exception: MediaValidationException): ResponseEntity<ErrorResponse> =
+        response(
+            HttpStatus.BAD_REQUEST,
+            "VALIDATION_ERROR",
+            "업로드할 JPEG 정보를 확인해 주세요.",
+            listOf(FieldError(exception.field, exception.reason)),
+        )
+
+    @ExceptionHandler(MediaFileTooLargeException::class)
+    fun handleMediaFileTooLarge(): ResponseEntity<ErrorResponse> =
+        response(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_TOO_LARGE", "JPEG 파일은 2MiB 이하여야 합니다.")
+
+    @ExceptionHandler(UnsupportedMediaTypeException::class)
+    fun handleUnsupportedMediaType(): ResponseEntity<ErrorResponse> =
+        response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "UNSUPPORTED_MEDIA_TYPE", "실제 JPEG 파일만 업로드할 수 있습니다.")
+
+    @ExceptionHandler(ObjectStorageUnavailableException::class)
+    fun handleObjectStorageUnavailable(): ResponseEntity<ErrorResponse> =
+        response(HttpStatus.SERVICE_UNAVAILABLE, "OBJECT_STORAGE_UNAVAILABLE", "사진 저장소에 잠시 연결할 수 없습니다.")
 
     @ExceptionHandler(PropertyValidationException::class)
     fun handlePropertyValidation(exception: PropertyValidationException): ResponseEntity<ErrorResponse> =

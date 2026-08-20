@@ -14,6 +14,15 @@ spring:
       ddl-auto: validate
     open-in-view: false
 
+app:
+  object-storage:
+    endpoint: ${OBJECT_STORAGE_ENDPOINT:http://localhost:9000}
+    public-endpoint: ${OBJECT_STORAGE_PUBLIC_ENDPOINT:http://10.0.2.2:9000}
+    access-key: ${OBJECT_STORAGE_ACCESS_KEY:tenant_leaf}
+    secret-key: ${OBJECT_STORAGE_SECRET_KEY:tenant_leaf_minio_local}
+    bucket: ${OBJECT_STORAGE_BUCKET:tenant-leaf-media}
+    presign-minutes: 15
+
 management:
   endpoints:
     web:

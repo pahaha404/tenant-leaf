@@ -31,6 +31,7 @@ fun InspectionListRoute(
 @Composable
 fun InspectionDetailRoute(
     onBack: () -> Unit,
+    onPrepareMedia: (UUID) -> Unit,
     viewModel: InspectionDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -40,5 +41,6 @@ fun InspectionDetailRoute(
         onRetry = viewModel::load,
         onEnd = viewModel::end,
         onCancel = viewModel::cancel,
+        onPrepareMedia = onPrepareMedia,
     )
 }

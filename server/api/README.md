@@ -29,7 +29,9 @@ Copy-Item .env.example .env
 
 기본 로컬 값은 `application.yml`의 안전한 개발용 기본값과 같습니다. 값을 변경했다면 API를 실행하는 PowerShell에도 같은 `DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD` 환경 변수를 설정해야 합니다.
 
-## 3. PostgreSQL 시작
+`OBJECT_STORAGE_ENDPOINT`는 API 서버가 MinIO에 연결할 주소이고, `OBJECT_STORAGE_PUBLIC_ENDPOINT`는 Android가 서명 URL로 접근할 주소입니다. 에뮬레이터는 기본값 `http://10.0.2.2:9000`을 사용합니다. 실제 휴대전화에서는 같은 Wi-Fi에 연결된 개발 PC의 IPv4 주소(예: `http://192.168.0.10:9000`)로 바꾸고 Windows 방화벽에서 필요한 로컬 개발 포트만 허용합니다.
+
+## 3. PostgreSQL과 MinIO 시작
 
 저장소 루트에서 실행합니다.
 
@@ -38,7 +40,7 @@ docker compose --env-file .env -f server/infra/docker/compose.yml up -d
 docker compose --env-file .env -f server/infra/docker/compose.yml ps
 ```
 
-`postgres` 서비스가 `healthy`로 표시될 때까지 기다립니다.
+`postgres`와 `minio` 서비스가 모두 `healthy`로 표시될 때까지 기다립니다. MinIO는 분석용 JPEG 파일을 저장하고 PostgreSQL은 해당 파일의 식별자·구역·상태 같은 메타데이터만 저장합니다.
 
 ## 4. API 실행
 
@@ -59,11 +61,11 @@ API가 실행 중인 상태에서 다른 PowerShell을 열어 확인합니다.
 Invoke-RestMethod http://localhost:8080/actuator/health
 ```
 
-서버와 PostgreSQL이 정상이면 `status`가 `UP`입니다. API가 실행 중일 때 PostgreSQL을 중지하면 `status`가 `DOWN`으로 바뀝니다. 응답에는 비밀번호와 연결 문자열을 표시하지 않습니다.
+서버와 PostgreSQL이 정상이면 `status`가 `UP`입니다. 응답에는 비밀번호와 연결 문자열을 표시하지 않습니다. 미디어 API 호출에는 MinIO도 실행 중이어야 합니다.
 
 ## 6. 테스트
 
-PostgreSQL이 `healthy`인 상태에서 실행합니다.
+별도 테스트 PostgreSQL이 `healthy`인 상태에서 실행합니다. 테스트는 실제 로컬 매물 데이터가 있는 DB를 대상으로 실행하지 않습니다.
 
 ```powershell
 cd server/api
@@ -87,15 +89,25 @@ cd server/api
 
 ## 8. 종료
 
-API를 실행한 PowerShell에서 `Ctrl+C`를 누릅니다. 그다음 저장소 루트에서 PostgreSQL을 중지합니다.
+API를 실행한 PowerShell에서 `Ctrl+C`를 누릅니다. 그다음 저장소 루트에서 PostgreSQL과 MinIO를 중지합니다.
 
 ```powershell
 docker compose --env-file .env -f server/infra/docker/compose.yml down
 ```
 
-이 명령은 PostgreSQL 데이터 볼륨을 보존합니다.
+이 명령은 PostgreSQL과 MinIO 데이터 볼륨을 보존합니다.
 
-## 9. 자주 발생하는 오류
+## 9. JPEG 업로드 흐름
+
+1. 종료된 임장에서 업로드 요청을 등록합니다.
+2. 서버가 15분 동안 유효한 MinIO PUT URL을 돌려줍니다.
+3. Android가 해당 URL에 `Content-Type: image/jpeg`로 JPEG를 직접 업로드합니다.
+4. Android가 업로드 완료 API를 호출하면 서버가 실제 파일의 형식·크기·가로·세로를 확인합니다.
+5. 확인된 메타데이터는 PostgreSQL에, JPEG 바이트는 MinIO에 남습니다.
+
+원본 영상과 휴대전화 갤러리 URI는 이 API로 전송하지 않습니다.
+
+## 10. 자주 발생하는 오류
 
 ### Docker engine에 연결할 수 없음
 

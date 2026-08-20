@@ -1,14 +1,14 @@
 # 세입세잎 공통 API 계약
 
-> 상태: 검토 초안 2.0
+> 상태: 검토 초안 2.1
 >
-> 기준일: 2026-08-18
+> 기준일: 2026-08-19
 >
 > 기준 용어: [`공통용어집.md`](../../server/backendmds/공통용어집.md)
 >
 > 도메인 기준: [`도메인 규칙.md`](../../server/backendmds/도메인%20규칙.md)
 
-Android 앱, Kotlin API 서버와 AI 작업자가 같은 이름과 데이터 의미를 사용하기 위한 MVP 계약이다. 2.0은 현장 체크리스트 중심의 1.2 계약을 **구역·관찰·근거 미디어 중심**으로 교체하는 배포 전 파괴적 개정안이다.
+Android 앱, Kotlin API 서버와 AI 작업자가 같은 이름과 데이터 의미를 사용하기 위한 MVP 계약이다. 2.0은 현장 체크리스트 중심의 1.2 계약을 **구역·관찰·근거 미디어 중심**으로 교체했고, 2.1은 JPEG 미디어 등록·직접 업로드·완료·재시도·조회 HTTP 계약을 확정한 검토 초안이다. AI 판별 정확도를 우선하는 MVP 방침에 따라 분석용 JPEG의 최대 크기는 사진당 2MiB로 확정한다.
 
 이 문서에서 `확정`으로 표시한 의미와 상태값만 구현 기준으로 사용한다. 요청·응답 형식이 아직 합의되지 않은 API는 설명만 남기고 OpenAPI에서 제외한다.
 
@@ -97,7 +97,10 @@ Authorization: Bearer <access-token>
 | `403` | `FORBIDDEN` | 인증된 사용자가 수행할 수 없는 동작 |
 | `404` | `PROPERTY_NOT_FOUND` | 요청한 리소스가 없거나 접근할 수 없음 |
 | `404` | `INSPECTION_NOT_FOUND` | 요청한 임장 기록이 없거나 접근할 수 없음 |
+| `404` | `MEDIA_NOT_FOUND` | 요청한 미디어가 없거나 접근할 수 없음 |
 | `409` | `INVALID_STATE_TRANSITION` | 현재 상태에서는 요청을 수행할 수 없음 |
+| `409` | `IDEMPOTENCY_KEY_CONFLICT` | 같은 멱등성 키를 이전 요청과 다른 내용으로 재사용함 |
+| `409` | `CLIENT_MEDIA_ID_CONFLICT` | 같은 임장의 `clientMediaId`를 다른 사진 메타데이터로 재사용함 |
 | `413` | `FILE_TOO_LARGE` | JPEG 업로드 허용 크기 초과 |
 | `415` | `UNSUPPORTED_MEDIA_TYPE` | JPEG가 아닌 파일 형식 |
 | `500` | `INTERNAL_ERROR` | 서버 내부 오류 |
@@ -106,14 +109,15 @@ Authorization: Bearer <access-token>
 
 ### 2.3 멱등성 원칙
 
-미디어 등록·완료·재시도 API가 확정되면 `Idempotency-Key`를 사용한다.
+미디어 등록·완료·재시도 API는 필수 `Idempotency-Key` 헤더를 사용한다.
 
 - Android는 같은 논리 사진에 재시도해도 바뀌지 않는 `clientMediaId` UUID를 사용한다.
 - `(inspectionId, clientMediaId)`는 중복될 수 없다.
+- 같은 `(inspectionId, clientMediaId)`와 같은 메타데이터를 다시 등록하면 기존 `mediaId`를 재사용하고, 메타데이터가 다르면 `409 CLIENT_MEDIA_ID_CONFLICT`를 반환한다.
 - 같은 키와 같은 요청은 기존 결과를 반환하고 DB 행이나 저장소 객체를 중복 생성하지 않는다.
 - 업로드 실패 시 같은 `mediaId`, `clientMediaId`와 저장소 키를 유지하고 새 서명 URL만 발급한다. 자동 재시도는 최대 3회이며 이후에는 사용자가 직접 재시도한다.
 - Android가 분석 대상 미디어 등록을 끝냈다고 확정한 뒤에는 신규 미디어를 추가하지 않고 이미 등록된 실패 미디어만 재시도한다.
-- 같은 키에 다른 요청 본문을 보내는 경우의 정확한 오류 코드는 아직 확정하지 않았다.
+- 같은 사용자·HTTP 메서드·경로에서 같은 키를 다른 요청 내용에 재사용하면 `409 IDEMPOTENCY_KEY_CONFLICT`를 반환한다.
 
 ## 3. 확정 상태값
 
@@ -311,7 +315,7 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 
 ### 4.5 분석 사진 `Media(PHOTO)`
 
-다음은 확정된 도메인 의미다. 업로드 요청·응답 DTO는 아직 확정하지 않았으므로 이 객체를 그대로 HTTP 요청으로 구현하지 않는다.
+다음은 확정된 도메인 의미다. HTTP 요청·응답은 아래 4.6의 전용 DTO를 사용하고 이 조회 모델을 등록 요청으로 재사용하지 않는다.
 
 | 필드 | 의미 |
 |---|---|
@@ -331,18 +335,46 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 
 객체 저장소 내부 키는 서버 내부 전용이다. Android에는 요청 시 발급한 짧은 만료 시간의 서명 URL만 제공한다.
 
-### 4.6 JPEG 생성·검증·보관 규칙
+### 4.6 JPEG 미디어 업로드 HTTP 계약
+
+업로드는 `등록 → 서명 URL로 객체 저장소에 직접 PUT → 완료 확인 → 조회` 순서다. 서버 API가 JPEG 바이트를 중계하거나 PostgreSQL에 저장하지 않는다.
+
+| 메서드와 경로 | 의미 |
+|---|---|
+| `POST /inspections/{inspectionId}/media/upload-requests` | 1~20장의 미디어를 등록하고 각 미디어의 15분 유효 서명 업로드 URL 발급 |
+| `POST /media/{mediaId}/upload-complete` | 객체 존재·형식·크기를 확인한 뒤 업로드 완료 확정 |
+| `POST /media/{mediaId}/upload-retry` | 같은 미디어 ID와 저장소 키를 유지하며 새 15분 유효 URL 발급 |
+| `GET /inspections/{inspectionId}/media` | 임장의 미디어 페이지 조회 |
+| `GET /media/{mediaId}` | 미디어 상태와 메타데이터 조회 |
+
+- 등록·완료·재시도에는 `Idempotency-Key`가 필수다.
+- 등록 요청 본문은 `items` 배열이며 최소 1장, 최대 20장이다. 20장은 요청 한 번의 묶음 한도이지 임장 전체 한도가 아니다.
+- 배치는 원자적으로 처리한다. 한 항목이라도 형식·권한·상태 검증에 실패하면 새 항목을 하나도 등록하지 않고 요청 전체를 오류로 반환한다.
+- 예를 들어 10분 영상을 고정 3초 간격으로 처리해 약 200장을 선택하면 20장씩 약 10번에 나눠 등록할 수 있다.
+- 각 등록 항목에는 `clientMediaId`, `zone`, `contentType`, `fileSize`, `width`, `height`, `sourceVideoId`, `sourceVideoOffsetMs`, `frameOrigin`, `captureSource`, `capturedAt`을 보낸다.
+- MVP 등록 요청의 `contentType`은 `image/jpeg`, `frameOrigin`은 `POST_RECORDING_EXTRACTION`만 허용한다.
+- `sourceVideoId`는 앱이 만든 불투명 UUID일 뿐이며 원본 영상, 갤러리 URI와 로컬 경로를 서버에서 찾을 수 있는 값이 아니다.
+- 등록 성공 응답은 항목마다 `mediaId`, `clientMediaId`, `uploadUrl`, `expiresAt`, `uploadStatus=PENDING`을 반환한다.
+- Android는 서명 URL에 `Content-Type: image/jpeg`로 JPEG를 직접 `PUT`하고 URL·서명 값을 로그나 영구 저장소에 남기지 않는다.
+- 완료 요청에서 서버는 객체 저장소의 파일 존재 여부, 실제 JPEG 형식과 최대 `2,097,152 bytes`를 확인한 뒤에만 `UPLOADED`로 바꾼다.
+- 완료 확인 전에는 분석을 시작하지 않는다. 같은 완료 요청의 재전송은 기존 미디어를 그대로 반환한다.
+- 자동 재시도는 같은 `mediaId`, `clientMediaId`, 저장소 키를 유지한 채 최대 3회 수행하며 그 이후의 재시도는 사용자 행동으로 시작한다.
+- 목록은 공통 `page`, `size` 규칙을 따르며 다른 사용자의 미디어는 존재 여부를 숨기기 위해 `404`로 응답할 수 있다.
+- 등록·재시도는 `ENDED` 임장에서만 허용한다. `IN_PROGRESS` 또는 `CANCELLED`이면 `409 INVALID_STATE_TRANSITION`을 반환한다.
+- 임장당 전체 미디어 상한과 분석 대상 미디어 집합 확정 API는 별도 P0 합의 전까지 클라이언트와 서버가 임의로 가정하지 않는다.
+
+### 4.7 JPEG 생성·검증·보관 규칙
 
 - 기본 생성 방식은 촬영 완료 후 원본 영상의 고정 3초 구간마다 앞·중간·뒤 후보를 비교해 최대 한 장을 고르는 것이다.
 - 모든 후보가 흐리거나 어두워도 가장 나은 한 장을 남기고 화질 확인 필요 상태를 표시한다.
 - `sourceVideoOffsetMs`는 디코더가 제공한 실제 영상 시점을 사용한다.
-- JPEG 품질은 `90 → 85 → 80` 순으로 낮추고, 그래도 1MiB를 넘을 때만 픽셀 크기를 단계적으로 줄인다.
-- 서버는 JPEG(`.jpg`, `.jpeg`, MIME `image/jpeg`)와 사진당 최대 `1,048,576 bytes`만 허용한다.
+- JPEG 품질은 `90 → 85 → 80` 순으로 낮추고, 그래도 2MiB를 넘을 때만 픽셀 크기를 단계적으로 줄인다.
+- 서버는 JPEG(`.jpg`, `.jpeg`, MIME `image/jpeg`)와 사진당 최대 `2,097,152 bytes`만 허용한다.
 - 업로드 실패·미완료 파일은 최대 24시간, 관찰 없는 자동 사진은 분석 후 최대 7일, 관찰 근거·중요 사진은 임장 종료 후 최대 30일 보관한다.
 - 임장 삭제 요청 미디어는 즉시 사용을 막고 최대 7일 안에 완전히 삭제한다.
 - 이 보관 규칙은 실제 업로드 기능을 열기 전에 저장소 수명 주기와 서버 정리 작업으로 검증해야 한다.
 
-### 4.7 AI 원본 라벨과 바운딩 박스
+### 4.8 AI 원본 라벨과 바운딩 박스
 
 클래스 ID와 영문 라벨은 고정 쌍이다.
 
@@ -468,10 +500,10 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 | 우선순위 | 미확정 항목 |
 |---:|---|
 | P0 | 최종 `ObservationType`과 AI 13개 라벨 전체 변환표. `other → OTHER_CHECK_NEEDED`만 확정 |
-| P0 | 미디어 등록·업로드 완료·재시도·미디어 집합 확정 API의 요청·응답, 묶음 크기, URL 만료와 멱등성 오류 코드 |
+| P0 | 분석 대상 미디어 집합 확정 API와 임장당 전체 미디어 상한 |
 | P0 | 인접 프레임의 같은 흔적 병합, 분석 자동 재시도·백오프와 `failureCode` |
 | P0 | 촬영 중 JPEG 동시 생성과 영상 시점 동기화의 실기기 검증 |
-| P0 | 선명도·밝기·중복 임계값과 1MiB에서 2MiB로 상향할 AI 성능 기준 |
+| P0 | 선명도·밝기·중복 임계값과 2MiB 제한에서의 AI 정확도·저장 용량 검증 기준 |
 | P1 | `UNKNOWN` 사용자 보정 API와 이력 조회 범위 |
 | P1 | 텍스트 메모 API와 이후 음성·STT 동의·보관 범위 |
 | P1 | `DISMISSED` 사유 enum |
@@ -511,3 +543,4 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 | 2026-08-13 | 1.1 | 매물의 금액·면적·층·옵션·연락처와 ㎡·평 변환 규칙 추가 |
 | 2026-08-14 | 1.2 | 실시간 스트리밍을 제외하고 휴대전화 원본 영상과 JPEG 분석 방식으로 전환 |
 | 2026-08-18 | 검토 초안 2.0 | 체크리스트·Frame·Detection 계약을 제거하고 세션·구역·Media·Observation·근거 중심 계약으로 전환. 미확정 Media·Observation·Report HTTP API는 OpenAPI에서 제외 |
+| 2026-08-19 | 검토 초안 2.1 | JPEG 미디어 배치 등록(요청당 20장), 15분 서명 URL, 완료·재시도·조회와 멱등성 충돌 계약 확정 |
