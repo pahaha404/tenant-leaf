@@ -59,6 +59,8 @@
 
 ## 완료 기록
 
+- 2026-08-20 — 서버와 DB의 로컬/실배포 설정을 분리했다. Android debug/release API 주소 계약을 유지하고, 서버 `prod` 프로필은 운영 DB·객체 저장소 환경변수를 필수로 요구하도록 구성했다. 서버 `clean test`는 통과했으며 실제 배포 환경 연결은 미검증이다.
+
 - 2026-08-10 — `docs/team/pm/01_2026-08-10_MVP-계획.md` 작성 완료. MVP 범위, 사용자 흐름, UI/UX, 일정, 완료 조건을 기록함.
 - 2026-08-11 — 백엔드 개발 도구 설치 확인 완료. `scripts/check-prerequisites.ps1`로 Temurin JDK·javac 21.0.12, Docker CLI와 Docker Desktop engine 29.7.2 실행을 확인함.
 - 2026-08-11 — PostgreSQL 로컬 개발 환경 구성 완료. Docker Compose에서 PostgreSQL 17을 `healthy` 상태로 실행하고, 빈 볼륨 재생성 후 Flyway 마이그레이션과 `server/api`의 `clean test` 통과를 확인함. 헬스 체크는 DB 연결 시 `UP(200)`, 중지 시 `DOWN(503)`을 반환함.
@@ -81,4 +83,10 @@
 ## 진행 기록
 
 - 2026-08-19 — Android JPEG 미디어 호출 흐름을 구현하고 단위·MockWebServer·UI 테스트를 추가함. 자동 실행 환경의 Gradle 파일 접근 제한으로 Android 빌드가 미검증이며, Meta 영상 가져오기와 실기기→API→MinIO→PostgreSQL 통합 확인 전까지 통합 알파 및 관련 Android 항목은 미완료로 유지함.
+- 2026-08-20 — Android 현재 위치 주소가 정밀 권한에서 GPS를 우선하도록 보정하고, 동·호수용 상세 주소 입력을 추가함. 단위 테스트와 Debug 빌드를 통과했으며 GPS 좌표는 저장·로그·API 전송하지 않음.
+- 2026-08-20 — `feature/map`에서 매물 등록 주소 입력창의 현재 위치 주소 교체를 구현함. 전경 위치 권한만 사용하고 GPS 좌표는 저장·로그·API 전송하지 않으며, Android 단위 테스트·Debug APK 빌드와 Galaxy SM-G991N(Android 15) 실기기 주소 입력을 확인함.
 - 2026-08-20 — 최신 디자인 UI를 기준으로 OpenAPI 네트워크와 매물·임장·JPEG 미디어 기능을 선별 통합함. 기존 실험용 화면·내비게이션은 복원하지 않았으며, 자동 실행 환경의 Gradle 접근 제한으로 빌드·테스트·Lint 및 실기기 검증 전까지 통합 알파는 미완료로 유지함.
+- 2026-08-20 — `feature/map`에서 매물 등록 주소창을 주소 검색과 현재 위치 지도 핀 선택으로 분리하고 상세 주소 입력을 유지함. GPS 신규 조회에 6초 제한과 최근 위치 fallback을 적용했으며, Android 단위 테스트·Debug APK 빌드와 Galaxy SM-G991N(Android 15)에서 검색 화면 이동, Kakao 지도 표시·드래그·주소 확정 복귀를 확인함. GPS 좌표는 저장·로그·API 전송하지 않음.
+- 2026-08-21 — Kakao 지도 SDK를 2.15.1로 갱신하고 Compose `clip`이 SDK `SurfaceView`를 가리던 문제를 제거함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 실제 지도 타일 표시, 중앙 핀 고정, 지도 드래그와 주소 갱신을 확인함.
+- 2026-08-21 — Kakao 지도를 전용 `LocationPickerActivity`로 분리하고 SDK의 `resume`·`pause` 생명주기를 연결함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 최초 진입, 재진입 3회, 백그라운드 복귀 후 실제 지도 타일 표시를 확인함.
+- 2026-08-21 — 주소 검색 화면 제목을 "점검할 집의 주소를 입력하세요"로 변경하고 고정 높이에 잘리던 검색 입력값을 정상 표시하도록 수정함. Android 단위 테스트·Debug 빌드와 Galaxy SM-G991N(Android 15)에서 입력값 및 검색 결과 표시를 확인함.

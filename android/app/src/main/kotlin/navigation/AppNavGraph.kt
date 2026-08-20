@@ -1,11 +1,15 @@
 package com.seipseip.app.navigation
 
 import android.Manifest
+import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +25,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -53,6 +58,8 @@ import com.seipseip.app.feature.profile.ProfileScreen
 import com.seipseip.app.feature.property.PropertyDetailScreen
 import com.seipseip.app.feature.property.PropertyInfoScreen
 import com.seipseip.app.feature.property.PropertyFormScreen
+import com.seipseip.app.feature.property.location.AddressPickerScreen
+import com.seipseip.app.feature.property.location.LocationPickerActivity
 import com.seipseip.app.feature.property.PropertyListScreen
 import com.seipseip.app.feature.property.PropertySelectScreen
 import com.seipseip.app.feature.report.ReportDetailScreen
@@ -86,6 +93,7 @@ object Route {
     const val ChecklistOverview = "checklist_overview"
     const val PropertyList = "properties"
     const val PropertyForm = "property_form"
+    const val AddressPicker = "address_picker"
     const val PropertyDetail = "property_detail/{propertyId}"
     const val PropertyInfo = "property_info/{propertyId}"
     const val PropertySelect = "property_select"
@@ -297,10 +305,35 @@ fun AppNavGraph(
                 },
             )
         }
-        composable(Route.PropertyForm) {
+        composable(Route.PropertyForm) { entry ->
+            val context = LocalContext.current
+            val selectedAddress by entry.savedStateHandle.getStateFlow("addressSummary", "").collectAsState()
+            val locationPicker = rememberLauncherForActivityResult(
+                ActivityResultContracts.StartActivityForResult(),
+            ) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    result.data?.getStringExtra(LocationPickerActivity.EXTRA_ADDRESS)?.let { address ->
+                        entry.savedStateHandle["addressSummary"] = address
+                    }
+                }
+            }
             PropertyFormApiRoute(
                 onBack = navController::popBackStack,
-                onSaved = { navController.navigate(Route.propertyDetail(it)) },
+                onSaved = { propertyId -> navController.navigate(Route.propertyDetail(propertyId)) },
+                onOpenAddressPicker = { navController.navigate(Route.AddressPicker) },
+                onOpenLocationPicker = {
+                    locationPicker.launch(Intent(context, LocationPickerActivity::class.java))
+                },
+                selectedAddress = selectedAddress,
+            )
+        }
+        composable(Route.AddressPicker) {
+            AddressPickerScreen(
+                onBack = navController::popBackStack,
+                onConfirmed = { address ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("addressSummary", address)
+                    navController.popBackStack()
+                },
             )
         }
         composable(

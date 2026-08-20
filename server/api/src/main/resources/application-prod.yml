@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+
+app:
+  object-storage:
+    endpoint: ${OBJECT_STORAGE_ENDPOINT}
+    public-endpoint: ${OBJECT_STORAGE_PUBLIC_ENDPOINT}
+    access-key: ${OBJECT_STORAGE_ACCESS_KEY}
+    secret-key: ${OBJECT_STORAGE_SECRET_KEY}
+    bucket: ${OBJECT_STORAGE_BUCKET}
