@@ -1,7 +1,9 @@
 package com.seipseip.app.feature.property.location
 
 import android.annotation.SuppressLint
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
@@ -16,8 +18,11 @@ import kotlin.coroutines.resume
 
 internal suspend fun currentLocationAddress(context: Context): String {
     val locationManager = context.getSystemService(LocationManager::class.java)
-    val provider = listOf(LocationManager.NETWORK_PROVIDER, LocationManager.GPS_PROVIDER)
-        .firstOrNull(locationManager::isProviderEnabled)
+    val provider = preferredLocationProvider(
+        precise = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED,
+        gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER),
+        networkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER),
+    )
         ?: error("위치 서비스가 꺼져 있습니다.")
     val location = currentLocation(context, locationManager, provider)
         ?: error("현재 위치를 찾지 못했습니다.")
@@ -31,6 +36,16 @@ internal suspend fun currentLocationAddress(context: Context): String {
             ?.getAddressLine(0)
         normalizeAddress(resolved.orEmpty()) ?: error("현재 위치의 주소를 찾지 못했습니다.")
     }
+}
+
+internal fun preferredLocationProvider(
+    precise: Boolean,
+    gpsEnabled: Boolean,
+    networkEnabled: Boolean,
+): String? = when {
+    precise && gpsEnabled -> LocationManager.GPS_PROVIDER
+    networkEnabled -> LocationManager.NETWORK_PROVIDER
+    else -> null
 }
 
 @SuppressLint("MissingPermission")

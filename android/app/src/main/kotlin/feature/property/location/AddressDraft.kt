@@ -9,3 +9,6 @@ fun normalizeAddressQuery(input: String): String? = input.trim().takeIf { it.len
 
 fun addressAfterLocationLookup(current: String, resolved: String?): String =
     resolved?.let(::normalizeAddress) ?: current
+
+fun addressWithDetail(address: String, detail: String): String =
+    listOfNotNull(normalizeAddress(address), normalizeAddress(detail)).joinToString(" ")

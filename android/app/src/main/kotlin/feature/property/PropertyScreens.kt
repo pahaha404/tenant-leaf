@@ -64,6 +64,7 @@ import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SectionTitle
 import com.seipseip.app.feature.common.StateBadge
 import com.seipseip.app.feature.property.location.addressAfterLocationLookup
+import com.seipseip.app.feature.property.location.addressWithDetail
 import com.seipseip.app.feature.property.location.currentLocationAddress
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
@@ -140,6 +141,7 @@ fun PropertyFormScreen(
 ) {
     var propertyName by rememberSaveable { mutableStateOf("") }
     var address by rememberSaveable { mutableStateOf("") }
+    var addressDetail by rememberSaveable { mutableStateOf("") }
     var deposit by rememberSaveable { mutableStateOf("") }
     var monthlyRent by rememberSaveable { mutableStateOf("") }
     var housingType by remember { mutableStateOf("원룸") }
@@ -153,13 +155,18 @@ fun PropertyFormScreen(
     var locationError by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val loadCurrentAddress: () -> Unit = {
+    val loadCurrentAddress: (Boolean) -> Unit = { precise ->
         if (!locationLoading) {
             locationLoading = true
             locationError = null
             scope.launch {
                 runCatching { currentLocationAddress(context) }
-                    .onSuccess { address = addressAfterLocationLookup(address, it) }
+                    .onSuccess {
+                        val resolved = addressAfterLocationLookup(address, it)
+                        if (resolved != address) addressDetail = ""
+                        address = resolved
+                        if (!precise) locationError = "대략적인 위치입니다. 주소와 상세주소를 확인해 주세요."
+                    }
                     .onFailure { locationError = "현재 위치의 주소를 찾지 못했어요. 위치 서비스를 확인해 주세요." }
                 locationLoading = false
             }
@@ -168,11 +175,14 @@ fun PropertyFormScreen(
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { grants ->
-        if (grants.values.any { it }) loadCurrentAddress()
+        if (grants.values.any { it }) loadCurrentAddress(grants[Manifest.permission.ACCESS_FINE_LOCATION] == true)
         else locationError = "위치 권한이 없어도 주소를 직접 검색할 수 있어요."
     }
     LaunchedEffect(selectedAddress) {
-        if (selectedAddress.isNotBlank()) address = selectedAddress
+        if (selectedAddress.isNotBlank() && selectedAddress != address) {
+            address = selectedAddress
+            addressDetail = ""
+        }
     }
     val visitSchedule = visitDateMillis?.let { millis ->
         SimpleDateFormat("yyyy. MM. dd (EEE)", Locale.KOREAN).format(Date(millis)) + "  %02d:%02d".format(visitHour, visitMinute)
@@ -195,7 +205,11 @@ fun PropertyFormScreen(
                         Manifest.permission.ACCESS_COARSE_LOCATION,
                         Manifest.permission.ACCESS_FINE_LOCATION,
                     ).any { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }
-                    if (granted) loadCurrentAddress()
+                    val precise = ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                    ) == PackageManager.PERMISSION_GRANTED
+                    if (granted) loadCurrentAddress(precise)
                     else locationPermissionLauncher.launch(
                         arrayOf(
                             Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -204,6 +218,7 @@ fun PropertyFormScreen(
                     )
                 },
             )
+            FormTextField("상세 주소", "예: 101동 202호", addressDetail, { addressDetail = it })
             FormTextField("보증금(원)", "예: 5000000", deposit, { deposit = it })
             FormTextField("월세(원)", "예: 450000", monthlyRent, { monthlyRent = it })
             Text("주거 형태", color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -233,7 +248,7 @@ fun PropertyFormScreen(
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
         PrimaryButton(
             if (saving) "저장 중..." else "매물 등록하기",
-            { onSaved(PropertyFormSubmission(propertyName, address, deposit, monthlyRent)) },
+            { onSaved(PropertyFormSubmission(propertyName, addressWithDetail(address, addressDetail), deposit, monthlyRent)) },
             enabled = propertyName.isNotBlank() && !saving,
         )
     }
