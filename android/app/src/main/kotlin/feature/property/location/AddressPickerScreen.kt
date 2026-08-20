@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -47,16 +46,20 @@ fun AddressPickerScreen(onBack: () -> Unit, onConfirmed: (String) -> Unit) {
     }
 
     AppPageScaffold(title = "주소 선택", onBack = onBack) {
-        Text("점검할 방의 주소를 입력하세요", color = DeepGreen, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+        Text("점검할 집의 주소를 입력하세요", color = DeepGreen, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
         Text("두 글자 이상 입력하면 카카오 주소 결과가 표시됩니다.", color = Secondary, fontSize = 13.sp)
         Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
             OutlinedTextField(
                 value = input,
                 onValueChange = { input = it },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
+                modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 label = { Text("주소") },
-                supportingText = { if (input.isNotBlank() && query == null) Text("두 글자 이상 입력하세요.") },
+                supportingText = if (input.isNotBlank() && query == null) {
+                    { Text("두 글자 이상 입력하세요.") }
+                } else {
+                    null
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = DeepGreen,
                     unfocusedTextColor = DeepGreen,

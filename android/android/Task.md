@@ -33,3 +33,4 @@
 - 2026-08-20 — `feature/map`에서 주소 입력창 본문은 카카오 주소 검색 화면, 현재 위치 아이콘은 Kakao 지도·고정 중앙 핀 화면으로 분리하고 상세 주소 입력칸을 바로 아래에 유지함. 새 GPS 조회가 6초 안에 끝나지 않으면 최근 위치로 지도를 여는 fallback을 추가함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 주소 검색 이동, 지도 표시·드래그·역지오코딩·주소 확정 복귀와 상세 주소 분리를 확인함. GPS 좌표는 저장·로그·API 전송하지 않음.
 - 2026-08-21 — Kakao 지도 SDK 2.15.1과 Compose `SurfaceView` 호환 레이아웃을 적용함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 실제 지도 타일 표시, 중앙 핀 고정, 드래그 후 주소 갱신을 확인함.
 - 2026-08-21 — 반복 진입 시 지도 타일이 간헐적으로 사라지는 문제를 막기 위해 지도 화면을 전용 `LocationPickerActivity`로 분리하고 SDK의 `resume`·`pause` 생명주기를 연결함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 최초 진입, 재진입 3회, 백그라운드 복귀 후 실제 지도 타일 표시를 확인함.
+- 2026-08-21 — 주소 검색 화면 제목을 "점검할 집의 주소를 입력하세요"로 변경함. 검색창의 고정 높이와 빈 안내 영역이 입력 글자를 자르던 문제를 제거하고 `:app:testDebugUnitTest`, `:app:assembleDebug`와 Galaxy SM-G991N(Android 15)에서 입력값 및 검색 결과 표시를 확인함.

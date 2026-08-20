@@ -87,3 +87,4 @@
 - 2026-08-20 — `feature/map`에서 매물 등록 주소창을 주소 검색과 현재 위치 지도 핀 선택으로 분리하고 상세 주소 입력을 유지함. GPS 신규 조회에 6초 제한과 최근 위치 fallback을 적용했으며, Android 단위 테스트·Debug APK 빌드와 Galaxy SM-G991N(Android 15)에서 검색 화면 이동, Kakao 지도 표시·드래그·주소 확정 복귀를 확인함. GPS 좌표는 저장·로그·API 전송하지 않음.
 - 2026-08-21 — Kakao 지도 SDK를 2.15.1로 갱신하고 Compose `clip`이 SDK `SurfaceView`를 가리던 문제를 제거함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 실제 지도 타일 표시, 중앙 핀 고정, 지도 드래그와 주소 갱신을 확인함.
 - 2026-08-21 — Kakao 지도를 전용 `LocationPickerActivity`로 분리하고 SDK의 `resume`·`pause` 생명주기를 연결함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 최초 진입, 재진입 3회, 백그라운드 복귀 후 실제 지도 타일 표시를 확인함.
+- 2026-08-21 — 주소 검색 화면 제목을 "점검할 집의 주소를 입력하세요"로 변경하고 고정 높이에 잘리던 검색 입력값을 정상 표시하도록 수정함. Android 단위 테스트·Debug 빌드와 Galaxy SM-G991N(Android 15)에서 입력값 및 검색 결과 표시를 확인함.
