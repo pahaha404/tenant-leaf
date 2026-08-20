@@ -50,10 +50,30 @@ import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SectionTitle
 import com.seipseip.app.feature.common.StateBadge
 
+data class PropertyUiModel(
+    val id: String,
+    val name: String,
+    val address: String = "주소 미입력",
+    val depositAmount: Long? = null,
+    val monthlyRentAmount: Long? = null,
+    val maintenanceFeeAmount: Long? = null,
+)
+
+data class PropertyFormSubmission(
+    val name: String,
+    val address: String,
+    val depositAmount: String,
+    val monthlyRentAmount: String,
+)
+
 @Composable
 fun PropertyListScreen(
+    properties: List<PropertyUiModel>,
+    loading: Boolean,
+    errorMessage: String?,
     onAddProperty: () -> Unit,
-    onOpenProperty: () -> Unit,
+    onOpenProperty: (String) -> Unit,
+    onRetry: () -> Unit,
     onTabSelected: (String) -> Unit,
 ) {
     AppPageScaffold(
@@ -77,8 +97,15 @@ fun PropertyListScreen(
         },
     ) {
         Text("점검할 매물을 관리해요", color = Secondary, fontSize = 13.sp)
-        StateBadge("등록 매물 1개")
-        PropertyCard(onClick = onOpenProperty)
+        StateBadge("등록 매물 ${properties.size}개")
+        when {
+            loading -> Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
+            errorMessage != null -> InfoCard("서버 연결 확인 필요", errorMessage, onClick = onRetry)
+            properties.isEmpty() -> InfoCard("등록된 매물이 없어요", "아래 버튼으로 첫 매물을 등록해 주세요.")
+            else -> properties.forEach { property ->
+                PropertyCard(property = property, onClick = { onOpenProperty(property.id) })
+            }
+        }
 
     }
 }
@@ -87,7 +114,9 @@ fun PropertyListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 fun PropertyFormScreen(
     onBack: () -> Unit,
-    onSaved: () -> Unit,
+    saving: Boolean,
+    errorMessage: String?,
+    onSaved: (PropertyFormSubmission) -> Unit,
 ) {
     var propertyName by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
@@ -112,8 +141,8 @@ fun PropertyFormScreen(
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             FormTextField("매물 이름", "예: 연남동 햇살 원룸", propertyName, { propertyName = it })
             FormTextField("주소", "도로명이나 건물명을 검색하세요", address, { address = it })
-            FormTextField("보증금", "예: 500", deposit, { deposit = it })
-            FormTextField("월세", "예: 45", monthlyRent, { monthlyRent = it })
+            FormTextField("보증금(원)", "예: 5000000", deposit, { deposit = it })
+            FormTextField("월세(원)", "예: 450000", monthlyRent, { monthlyRent = it })
             Text("주거 형태", color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 HousingOption("원룸", housingType, { housingType = it }, Modifier.weight(1f))
@@ -138,10 +167,11 @@ fun PropertyFormScreen(
             Spacer(Modifier.width(9.dp))
             Text("점검 중 놓치기 쉬운 흔적은 AI가 함께 관찰해요.", color = Color(0xFF78472C), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
         }
+        errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
         PrimaryButton(
-            "매물 등록하기",
-            onSaved,
-            enabled = propertyName.isNotBlank() && address.isNotBlank() && deposit.isNotBlank() && monthlyRent.isNotBlank() && visitDateMillis != null && visitTimeSelected,
+            if (saving) "저장 중..." else "매물 등록하기",
+            { onSaved(PropertyFormSubmission(propertyName, address, deposit, monthlyRent)) },
+            enabled = propertyName.isNotBlank() && !saving,
         )
     }
 
@@ -227,6 +257,9 @@ private fun RecordMethodOption(icon: String, title: String, description: String,
 }
 @Composable
 fun PropertyDetailScreen(
+    property: PropertyUiModel?,
+    loading: Boolean,
+    errorMessage: String?,
     onBack: () -> Unit,
     onStartInspection: () -> Unit,
     onOpenReport: () -> Unit,
@@ -248,52 +281,65 @@ fun PropertyDetailScreen(
             )
         },
     ) {
-        Text("망원동 리버뷰", color = DeepGreen, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
-        Text("서울시 마포구 망원동 · 원룸", color = Secondary, fontSize = 13.sp)
-        InfoCard(title = "기본 정보", description = "보증금 1,000만 원 · 월세 65만 원 · 관리비 7만 원", onClick = onOpenBasicInfo)
+        if (loading) Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
+        errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
+        Text(property?.name ?: "매물 정보", color = DeepGreen, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
+        Text(property?.address ?: "주소 미입력", color = Secondary, fontSize = 13.sp)
+        InfoCard(
+            title = "기본 정보",
+            description = "보증금 ${property?.depositAmount?.let(::formatWon) ?: "미입력"} · 월세 ${property?.monthlyRentAmount?.let(::formatWon) ?: "미입력"} · 관리비 ${property?.maintenanceFeeAmount?.let(::formatWon) ?: "미입력"}",
+            onClick = onOpenBasicInfo,
+        )
         InfoCard(
             title = "리포트",
             description = "2026.08.18 · 점검 결과 리포트를 확인해요.",
             onClick = onOpenReport,
         )
+        PrimaryButton("이 매물 임장 시작", onStartInspection)
 
     }
 }
 @Composable
-fun PropertyInfoScreen(onBack: () -> Unit) {
+fun PropertyInfoScreen(property: PropertyUiModel?, onBack: () -> Unit) {
     AppPageScaffold(title = "매물 정보", onBack = onBack) {
-        SectionTitle("망원동 리버뷰", "등록한 매물 정보를 확인해요.")
-        InfoCard("주소", "서울시 마포구 망원동")
-        InfoCard("주거 형태", "원룸")
-        InfoCard("보증금", "1,000만 원")
-        InfoCard("월세", "65만 원")
-        InfoCard("관리비", "7만 원")
+        SectionTitle(property?.name ?: "매물 정보", "등록한 매물 정보를 확인해요.")
+        InfoCard("주소", property?.address ?: "미입력")
+        InfoCard("보증금", property?.depositAmount?.let(::formatWon) ?: "미입력")
+        InfoCard("월세", property?.monthlyRentAmount?.let(::formatWon) ?: "미입력")
+        InfoCard("관리비", property?.maintenanceFeeAmount?.let(::formatWon) ?: "미입력")
     }
 }
 
 @Composable
 fun PropertySelectScreen(
+    properties: List<PropertyUiModel>,
+    selectedId: String?,
+    loading: Boolean,
     onBack: () -> Unit,
-    onSelected: () -> Unit,
+    onPropertySelected: (String) -> Unit,
+    onSelected: (String) -> Unit,
     onAddProperty: () -> Unit,
 ) {
     AppPageScaffold(title = "점검할 매물 선택", onBack = onBack) {
         SectionTitle("어느 매물을 점검할까요?", "점검 기록은 선택한 매물에 저장돼요.")
-        PropertyCard(onClick = { })
+        if (loading) Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
+        properties.forEach { property ->
+            PropertyCard(property, selected = property.id == selectedId) { onPropertySelected(property.id) }
+        }
         InfoCard(
             title = "다른 매물이 없나요?",
             description = "새 매물을 등록하면 방문 준비와 점검을 바로 시작할 수 있어요.",
             onClick = onAddProperty,
         )
-        PrimaryButton("선택한 매물로 계속하기", onSelected)
+        PrimaryButton("선택한 매물로 계속하기", { selectedId?.let(onSelected) }, enabled = selectedId != null)
     }
 }
 
 @Composable
-private fun PropertyCard(onClick: () -> Unit) {
+private fun PropertyCard(property: PropertyUiModel, selected: Boolean = false, onClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = if (selected) PaleGreen else Color.White),
         shape = RoundedCornerShape(16.dp),
     ) {
         Column(
@@ -301,12 +347,14 @@ private fun PropertyCard(onClick: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(7.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("망원동 리버뷰", color = DeepGreen, fontWeight = FontWeight.ExtraBold)
+                Text(property.name, color = DeepGreen, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.weight(1f))
                 StateBadge("점검 예정", Green)
             }
-            Text("서울시 마포구 망원동 · 원룸", color = Secondary, fontSize = 12.sp)
-            Text("방문 일정  오늘 오후 4:00", color = Orange, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(property.address, color = Secondary, fontSize = 12.sp)
+            Text(if (selected) "이 매물 선택됨" else "눌러서 상세 보기", color = Orange, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
+
+private fun formatWon(value: Long): String = "%,d원".format(value)
