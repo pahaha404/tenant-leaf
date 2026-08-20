@@ -12,6 +12,8 @@ val localProperties = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
 }
 val datDeveloperMode = localProperties.getProperty("mwdat_developer_mode") == "true"
+fun projectSecret(name: String): String =
+    providers.gradleProperty(name).orNull ?: localProperties.getProperty(name, "")
 
 android {
     namespace = "com.seipseip.app"
@@ -39,12 +41,12 @@ android {
         buildConfigField(
             "String",
             "KAKAO_NATIVE_APP_KEY",
-            "\"${providers.gradleProperty("KAKAO_NATIVE_APP_KEY").orElse("").get()}\"",
+            "\"${projectSecret("KAKAO_NATIVE_APP_KEY")}\"",
         )
         buildConfigField(
             "String",
             "KAKAO_REST_API_KEY",
-            "\"${providers.gradleProperty("KAKAO_REST_API_KEY").orElse("").get()}\"",
+            "\"${projectSecret("KAKAO_REST_API_KEY")}\"",
         )
     }
 
