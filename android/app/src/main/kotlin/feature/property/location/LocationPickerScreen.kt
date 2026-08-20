@@ -4,13 +4,11 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,7 +24,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -98,7 +95,7 @@ fun LocationPickerScreen(onBack: () -> Unit, onConfirmed: (String) -> Unit) {
     AppPageScaffold(title = "위치 선택", onBack = onBack, scrollable = false) {
         Text("지도를 움직여 핀을 정확한 위치에 맞춰 주세요.", color = DeepGreen, fontSize = 18.sp)
         Box(
-            modifier = Modifier.fillMaxWidth().height(440.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFFE9EEE8)),
+            modifier = Modifier.fillMaxWidth().height(440.dp),
             contentAlignment = Alignment.Center,
         ) {
             selection?.let { initial ->

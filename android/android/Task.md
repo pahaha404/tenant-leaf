@@ -31,3 +31,4 @@
 - 2026-08-20 — `feature/map`에서 현재 위치 아이콘을 눌러 주소를 교체하는 흐름을 구현함. 주소 교체·실패 시 기존 입력 보존 단위 테스트, `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 현재 위치 주소 입력을 확인함. GPS 좌표는 저장·로그·API 전송하지 않음.
 - 2026-08-20 — 최신 디자인 Compose 화면과 내비게이션을 유지한 채 OpenAPI 네트워크, 매물·임장 ViewModel, 영상 선택·고정 3초 JPEG 추출·2MiB 변환·미디어 업로드 기능을 선별 통합함. 자동 실행 환경의 네트워크·Gradle 캐시 접근 제한으로 빌드·테스트·Lint가 미검증이므로 관련 항목은 완료 처리하지 않음.
 - 2026-08-20 — `feature/map`에서 주소 입력창 본문은 카카오 주소 검색 화면, 현재 위치 아이콘은 Kakao 지도·고정 중앙 핀 화면으로 분리하고 상세 주소 입력칸을 바로 아래에 유지함. 새 GPS 조회가 6초 안에 끝나지 않으면 최근 위치로 지도를 여는 fallback을 추가함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 주소 검색 이동, 지도 표시·드래그·역지오코딩·주소 확정 복귀와 상세 주소 분리를 확인함. GPS 좌표는 저장·로그·API 전송하지 않음.
+- 2026-08-21 — Kakao 지도 SDK 2.15.1과 Compose `SurfaceView` 호환 레이아웃을 적용함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 실제 지도 타일 표시, 중앙 핀 고정, 드래그 후 주소 갱신을 확인함.
