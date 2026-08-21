@@ -12,6 +12,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 from uuid import UUID, uuid4
 
+from tenant_leaf_worker.runtime import validate_python_runtime
+
+validate_python_runtime()
+
 import psycopg
 from dotenv import load_dotenv
 from minio import Minio
