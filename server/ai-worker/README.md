@@ -19,11 +19,13 @@ PostgreSQL의 JPEG 분석 작업을 가져와 MinIO 객체를 내려받고, 두 
 
 ```powershell
 cd server/ai-worker
-py -3.11 -m venv .venv
+py -3.14 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+Python 3.14는 표준 CPython x64의 `3.14.0` 또는 `3.14.2 이상`을 사용합니다. `torch==2.13.0`과 `torchvision==0.28.0` 조합을 사용하며, Torchvision 배포 조건 때문에 Python `3.14.1`은 지원하지 않습니다. free-threaded 빌드(`3.14t`)는 별도 검증 전까지 사용하지 않습니다.
 
 작업 한 건만 처리:
 
