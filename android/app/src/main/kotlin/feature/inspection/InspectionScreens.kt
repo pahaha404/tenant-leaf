@@ -170,7 +170,29 @@ fun TutorialScreen(
     }
     var showVideo by remember { mutableStateOf(false) }
 
-    AppPageScaffold(title = "튜토리얼", onBack = onBack) {
+    AppPageScaffold(
+        title = "튜토리얼",
+        onBack = onBack,
+        bottomAction = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFFCFBF8))
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                PrimaryButton("▶  60초 영상 보기", onClick = { showVideo = true })
+                Text(
+                    "건너뛰기",
+                    modifier = Modifier.clickable(onClick = onNext).padding(vertical = 12.dp),
+                    color = Secondary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                )
+            }
+        },
+    ) {
         Text(
             "스마트 글래스로 한 번에!\n튜토리얼 영상 어쩌구",
             modifier = Modifier.fillMaxWidth().padding(top = 42.dp),
@@ -207,16 +229,6 @@ fun TutorialScreen(
             }
         }
         StateBadge("◷  60초 영상", Orange)
-        Spacer(Modifier.height(16.dp))
-        PrimaryButton("▶  60초 영상 보기", onClick = { showVideo = true })
-        Text(
-            "건너뛰기",
-            modifier = Modifier.fillMaxWidth().clickable(onClick = onNext).padding(vertical = 4.dp),
-            color = Secondary,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
     }
 
     if (showVideo) {
@@ -348,7 +360,28 @@ fun TutorialChecklistScreen(
     onOpenGuide: () -> Unit,
     onStart: () -> Unit,
 ) {
-    AppPageScaffold(title = "점검 시작 전", onBack = onBack) {
+    AppPageScaffold(
+        title = "점검 시작 전",
+        onBack = onBack,
+        bottomAction = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFFCFBF8))
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                PrimaryButton("기본 체크리스트 훑어보기", onOpenGuide)
+                Text(
+                    "건너뛰기",
+                    modifier = Modifier.clickable(onClick = onStart).padding(vertical = 12.dp),
+                    color = Secondary,
+                    fontSize = 14.sp,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                )
+            }
+        },
+    ) {
         Text(
             "집 처음 구하는 사람을 위한\n기본 체크리스트",
             color = Green,
@@ -384,15 +417,6 @@ fun TutorialChecklistScreen(
                 ChecklistGuideLine("◌", "관리비와 수리 약속은 꼭 기록해요")
             }
         }
-        Spacer(Modifier.height(10.dp))
-        PrimaryButton("기본 체크리스트 훑어보기", onOpenGuide)
-        Text(
-            "건너뛰기",
-            modifier = Modifier.fillMaxWidth().clickable(onClick = onStart).padding(vertical = 10.dp),
-            color = Secondary,
-            fontSize = 14.sp,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
     }
 }
 

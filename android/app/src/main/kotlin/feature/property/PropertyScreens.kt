@@ -1,8 +1,15 @@
 package com.seipseip.app.feature.property
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,18 +38,22 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.seipseip.app.DeepGreen
@@ -57,6 +68,8 @@ import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SectionTitle
 import com.seipseip.app.feature.common.StateBadge
 import com.seipseip.app.feature.property.location.addressWithDetail
+import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 data class PropertyUiModel(
     val id: String,
@@ -74,13 +87,19 @@ data class PropertyFormSubmission(
     val monthlyRentAmount: String,
 )
 
+internal fun propertyDeleteRevealOffset(cardWidthPx: Int): Float = -cardWidthPx / 4f
+
+private enum class PropertySwipePosition { Closed, Delete }
+
 @Composable
 fun PropertyListScreen(
     properties: List<PropertyUiModel>,
     loading: Boolean,
     errorMessage: String?,
+    deleteErrorMessage: String?,
     onAddProperty: () -> Unit,
     onOpenProperty: (String) -> Unit,
+    onDeleteProperty: (String) -> Unit,
     onRetry: () -> Unit,
     onTabSelected: (String) -> Unit,
 ) {
@@ -111,10 +130,96 @@ fun PropertyListScreen(
             errorMessage != null -> InfoCard("서버 연결 확인 필요", errorMessage, onClick = onRetry)
             properties.isEmpty() -> InfoCard("등록된 매물이 없어요", "아래 버튼으로 첫 매물을 등록해 주세요.")
             else -> properties.forEach { property ->
-                PropertyCard(property = property, onClick = { onOpenProperty(property.id) })
+                SwipeToDeletePropertyCard(
+                    property = property,
+                    onClick = { onOpenProperty(property.id) },
+                    onDelete = { onDeleteProperty(property.id) },
+                )
             }
         }
+        deleteErrorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
 
+    }
+}
+
+@Composable
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+private fun SwipeToDeletePropertyCard(
+    property: PropertyUiModel,
+    onClick: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val swipeState = remember(property.id) { AnchoredDraggableState(PropertySwipePosition.Closed) }
+    val flingBehavior = AnchoredDraggableDefaults.flingBehavior(swipeState)
+    var showDeleteDialog by rememberSaveable(property.id) { mutableStateOf(false) }
+    val closeSwipe = { scope.launch { swipeState.animateTo(PropertySwipePosition.Closed) } }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp)),
+    ) {
+        Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.CenterEnd) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(0.25f)
+                    .background(Color(0xFFC93B2B))
+                    .clickable { showDeleteDialog = true }
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.Delete, contentDescription = null, tint = Color.White)
+                    Spacer(Modifier.width(6.dp))
+                    Text("삭제", color = Color.White, fontWeight = FontWeight.ExtraBold)
+                }
+            }
+        }
+        Box(
+            modifier = Modifier
+                .onSizeChanged { size ->
+                    swipeState.updateAnchors(
+                        DraggableAnchors {
+                            PropertySwipePosition.Closed at 0f
+                            PropertySwipePosition.Delete at propertyDeleteRevealOffset(size.width)
+                        },
+                    )
+                }
+                .offset { IntOffset(swipeState.requireOffset().roundToInt(), 0) }
+                .anchoredDraggable(
+                    state = swipeState,
+                    orientation = Orientation.Horizontal,
+                    flingBehavior = flingBehavior,
+                ),
+        ) {
+            PropertyCard(property = property, onClick = onClick)
+        }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteDialog = false
+                closeSwipe()
+            },
+            title = { Text("매물을 삭제할까요?") },
+            text = { Text("${property.name} 매물 정보가 삭제됩니다.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    closeSwipe()
+                    onDelete()
+                }) { Text("삭제", color = Color(0xFFC93B2B)) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    closeSwipe()
+                }) { Text("취소") }
+            },
+        )
     }
 }
 

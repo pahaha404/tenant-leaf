@@ -89,3 +89,30 @@ dependencies {
 }
 
 kapt { correctErrorTypes = true }
+
+val adbExecutable = androidComponents.sdkComponents.adb
+val hasConnectedDevice = providers.exec {
+    commandLine(adbExecutable.get().asFile, "get-state")
+    isIgnoreExitValue = true
+}.standardOutput.asText.map { it.trim() == "device" }
+
+fun registerReversePortTask(name: String, port: Int) = tasks.register<Exec>(name) {
+    group = "tenant-leaf"
+    description = "Forwards device port $port to the local development machine."
+    onlyIf("an Android device is connected") { hasConnectedDevice.get() }
+    commandLine(adbExecutable.get().asFile, "reverse", "tcp:$port", "tcp:$port")
+}
+
+val reverseDebugApiPort = registerReversePortTask("reverseDebugApiPort", 8080)
+val reverseDebugStoragePort = registerReversePortTask("reverseDebugStoragePort", 9000)
+reverseDebugStoragePort.configure { mustRunAfter(reverseDebugApiPort) }
+
+val preparePhysicalDevice = tasks.register("preparePhysicalDevice") {
+    group = "tenant-leaf"
+    description = "Restores local API and object-storage forwarding for a connected device."
+    dependsOn(reverseDebugApiPort, reverseDebugStoragePort)
+}
+
+tasks.matching { it.name == "preDebugBuild" }.configureEach {
+    dependsOn(preparePhysicalDevice)
+}

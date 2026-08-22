@@ -10,6 +10,7 @@ import com.seipseip.feature.property.domain.model.PropertyDraft
 import com.seipseip.feature.property.domain.model.PropertyPage
 import com.seipseip.feature.property.domain.model.PropertyPatch
 import com.seipseip.feature.property.domain.usecase.CreatePropertyUseCase
+import com.seipseip.feature.property.domain.usecase.DeletePropertyUseCase
 import com.seipseip.feature.property.domain.usecase.GetPropertyUseCase
 import com.seipseip.feature.property.domain.usecase.ListPropertiesUseCase
 import com.seipseip.feature.property.domain.usecase.UpdatePropertyUseCase
@@ -38,7 +39,7 @@ class PropertyViewModelTest {
                 listResult = AppResult.Success(PropertyPage(0, 20, 0, 0, emptyList()))
             }
 
-            val viewModel = PropertyListViewModel(ListPropertiesUseCase(repository))
+            val viewModel = listViewModel(repository)
             advanceUntilIdle()
 
             assertEquals(ContentState.Empty, viewModel.state.value)
@@ -51,10 +52,42 @@ class PropertyViewModelTest {
                 listResult = AppResult.Failure(AppError.Network)
             }
 
-            val viewModel = PropertyListViewModel(ListPropertiesUseCase(repository))
+            val viewModel = listViewModel(repository)
             advanceUntilIdle()
 
             assertTrue(viewModel.state.value is ContentState.NetworkError)
+        }
+
+    @Test
+    fun `deleting a property removes it from the visible list`() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val repository = FakePropertyRepository().apply {
+                listResult = AppResult.Success(PropertyPage(0, 20, 1, 1, listOf(TEST_PROPERTY)))
+            }
+            val viewModel = listViewModel(repository)
+            advanceUntilIdle()
+
+            viewModel.delete(TEST_PROPERTY.id)
+            advanceUntilIdle()
+
+            assertEquals(ContentState.Empty, viewModel.state.value)
+        }
+
+    @Test
+    fun `failed deletion keeps the property and exposes the server message`() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val repository = FakePropertyRepository().apply {
+                listResult = AppResult.Success(PropertyPage(0, 20, 1, 1, listOf(TEST_PROPERTY)))
+                deleteResult = AppResult.Failure(AppError.Network)
+            }
+            val viewModel = listViewModel(repository)
+            advanceUntilIdle()
+
+            viewModel.delete(TEST_PROPERTY.id)
+            advanceUntilIdle()
+
+            assertEquals(listOf(TEST_PROPERTY), (viewModel.state.value as ContentState.Success).value)
+            assertEquals(AppError.Network.userMessage, viewModel.deleteErrorMessage.value)
         }
 
     @Test
@@ -93,9 +126,15 @@ class PropertyViewModelTest {
         updateProperty = UpdatePropertyUseCase(repository),
     )
 
+    private fun listViewModel(repository: PropertyRepository) = PropertyListViewModel(
+        ListPropertiesUseCase(repository),
+        DeletePropertyUseCase(repository),
+    )
+
     private class FakePropertyRepository : PropertyRepository {
         var listResult: AppResult<PropertyPage> = AppResult.Success(PropertyPage(0, 20, 0, 0, emptyList()))
         var createResult: AppResult<Property> = AppResult.Success(TEST_PROPERTY)
+        var deleteResult: AppResult<Unit> = AppResult.Success(Unit)
         var createCalls: Int = 0
         var lastCreatedDraft: PropertyDraft? = null
 
@@ -112,7 +151,7 @@ class PropertyViewModelTest {
         override suspend fun update(id: UUID, patch: PropertyPatch): AppResult<Property> =
             AppResult.Success(TEST_PROPERTY)
 
-        override suspend fun delete(id: UUID): AppResult<Unit> = AppResult.Success(Unit)
+        override suspend fun delete(id: UUID): AppResult<Unit> = deleteResult
     }
 
     private companion object {
@@ -133,4 +172,3 @@ class PropertyViewModelTest {
         )
     }
 }
-

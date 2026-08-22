@@ -20,6 +20,7 @@ import com.seipseip.feature.property.presentation.PropertyDetailViewModel
 import com.seipseip.feature.property.presentation.PropertyFormEvent
 import com.seipseip.feature.property.presentation.PropertyFormViewModel
 import com.seipseip.feature.property.presentation.PropertyListViewModel
+import java.util.UUID
 
 @Composable
 fun PropertyListApiRoute(
@@ -29,12 +30,15 @@ fun PropertyListApiRoute(
     viewModel: PropertyListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val deleteErrorMessage by viewModel.deleteErrorMessage.collectAsStateWithLifecycle()
     PropertyListScreen(
         properties = state.values().map(Property::toUi),
         loading = state is ContentState.Loading || state is ContentState.Idle,
         errorMessage = state.errorMessage(),
+        deleteErrorMessage = deleteErrorMessage,
         onAddProperty = onAddProperty,
         onOpenProperty = onOpenProperty,
+        onDeleteProperty = { id -> runCatching { UUID.fromString(id) }.getOrNull()?.let(viewModel::delete) },
         onRetry = viewModel::refresh,
         onTabSelected = onTabSelected,
     )
