@@ -82,6 +82,7 @@
 
 ## 진행 기록
 
+- 2026-08-22 — Android 앱이 로그인 완료와 튜토리얼 완료 상태를 `SharedPreferences`에 저장해 재실행 시 로그인과 앱 소개 흐름을 건너뛸 수 있게 연결함. `:app:testDebugUnitTest`, `:app:assembleDebug`, Galaxy SM-G991N(Android 15) `:app:installDebug`를 통과했지만, 잠금 화면과 `run-as` 제한으로 저장 상태별 실기기 분기 화면은 아직 확인하지 못함.
 - 2026-08-22 — Android 점검 시작 전 체크리스트 화면의 주요 버튼과 건너뛰기를 하단 액션 영역에 고정해 튜토리얼 화면과 동일한 정렬로 맞춤.
 - 2026-08-22 — Android 튜토리얼 화면의 영상 보기·건너뛰기 동작을 공통 하단 액션 영역으로 옮겨 하단 정렬함. Debug 빌드와 Galaxy SM-G991N(Android 15) 설치를 통과했으나, 약관 동의 전 상태이므로 변경된 튜토리얼 화면의 실기기 위치는 아직 확인하지 않음.
 - 2026-08-21 — Android 실기기 Debug 빌드가 `127.0.0.1`만 사용하도록 고정하고, Android Studio Debug 빌드 전 API·스토리지 `adb reverse`를 자동 복구하도록 구성함. Debug 주소 회귀 테스트를 추가해 에뮬레이터 전용 주소 재유입을 방지함.

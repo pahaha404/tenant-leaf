@@ -129,6 +129,16 @@ object Route {
     fun magazineDetail(articleId: String) = "magazine_detail/$articleId"
 }
 
+private const val SESSION_PREFERENCES = "tenant_leaf_session"
+private const val KEY_LOGGED_IN = "logged_in"
+private const val KEY_TUTORIAL_COMPLETED = "tutorial_completed"
+
+internal fun initialRouteFor(isLoggedIn: Boolean, isTutorialCompleted: Boolean): String = when {
+    isTutorialCompleted && isLoggedIn -> Route.Home
+    isLoggedIn -> Route.Welcome
+    else -> Route.Login
+}
+
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
@@ -137,6 +147,9 @@ fun AppNavGraph(
 ) {
     var reportProcessing by remember { mutableStateOf(false) }
     val appContext = LocalContext.current
+    val sessionPreferences = remember(appContext) {
+        appContext.getSharedPreferences(SESSION_PREFERENCES, Context.MODE_PRIVATE)
+    }
     LaunchedEffect(reportProcessing) {
         if (reportProcessing) {
             delay(8_000)
@@ -184,14 +197,22 @@ fun AppNavGraph(
     ) {
         composable(Route.Loading) {
             LoadingScreen {
-                navController.navigate(Route.Login) {
+                val isLoggedIn = sessionPreferences.getBoolean(KEY_LOGGED_IN, false)
+                val isTutorialCompleted = sessionPreferences.getBoolean(KEY_TUTORIAL_COMPLETED, false)
+                val nextRoute = initialRouteFor(isLoggedIn, isTutorialCompleted)
+                navController.navigate(nextRoute) {
                     popUpTo(Route.Loading) { inclusive = true }
                 }
             }
         }
         composable(Route.Login) {
             Login { destination ->
-                navController.navigate(when (destination) { "signup" -> Route.SignUp; else -> Route.Welcome })
+                if (destination == "signup") {
+                    navController.navigate(Route.SignUp)
+                } else {
+                    sessionPreferences.edit().putBoolean(KEY_LOGGED_IN, true).apply()
+                    navController.navigate(Route.Welcome)
+                }
             }
         }
         composable(Route.SignUp) {
@@ -405,8 +426,14 @@ fun AppNavGraph(
         composable(Route.TutorialChecklist) {
             TutorialChecklistScreen(
                 onBack = navController::popBackStack,
-                onOpenGuide = { navController.navigate(Route.guideZone("entry")) },
-                onStart = { navController.navigate(Route.Home) },
+                onOpenGuide = {
+                    sessionPreferences.edit().putBoolean(KEY_TUTORIAL_COMPLETED, true).apply()
+                    navController.navigate(Route.guideZone("entry"))
+                },
+                onStart = {
+                    sessionPreferences.edit().putBoolean(KEY_TUTORIAL_COMPLETED, true).apply()
+                    navController.navigate(Route.Home)
+                },
             )
         }
         composable(
