@@ -20,7 +20,7 @@ fun String.asApiBaseUrl(name: String): String {
 }
 
 val debugApiBaseUrl = providers.gradleProperty("TENANT_LEAF_DEBUG_API_BASE_URL")
-    .orElse("http://10.0.2.2:8080/api/v1/")
+    .orElse("http://127.0.0.1:8080/api/v1/")
     .map { it.asApiBaseUrl("TENANT_LEAF_DEBUG_API_BASE_URL") }
 val releaseApiBaseUrl = providers.gradleProperty("TENANT_LEAF_RELEASE_API_BASE_URL")
     .orElse("https://api.tenant-leaf.invalid/api/v1/")

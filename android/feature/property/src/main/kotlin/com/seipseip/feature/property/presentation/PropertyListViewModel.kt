@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.seipseip.core.common.AppResult
 import com.seipseip.core.ui.ContentState
 import com.seipseip.feature.property.domain.model.Property
+import com.seipseip.feature.property.domain.usecase.DeletePropertyUseCase
 import com.seipseip.feature.property.domain.usecase.ListPropertiesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,9 +17,12 @@ import javax.inject.Inject
 @HiltViewModel
 class PropertyListViewModel @Inject constructor(
     private val listProperties: ListPropertiesUseCase,
+    private val deleteProperty: DeletePropertyUseCase,
 ) : ViewModel() {
     private val _state = MutableStateFlow<ContentState<List<Property>>>(ContentState.Idle)
     val state: StateFlow<ContentState<List<Property>>> = _state.asStateFlow()
+    private val _deleteErrorMessage = MutableStateFlow<String?>(null)
+    val deleteErrorMessage: StateFlow<String?> = _deleteErrorMessage.asStateFlow()
 
     init {
         refresh()
@@ -38,5 +42,18 @@ class PropertyListViewModel @Inject constructor(
             }
         }
     }
-}
 
+    fun delete(id: java.util.UUID) {
+        viewModelScope.launch {
+            _deleteErrorMessage.value = null
+            when (val result = deleteProperty(id)) {
+                is AppResult.Success -> {
+                    val remaining = (_state.value as? ContentState.Success)?.value.orEmpty()
+                        .filterNot { it.id == id }
+                    _state.value = if (remaining.isEmpty()) ContentState.Empty else ContentState.Success(remaining)
+                }
+                is AppResult.Failure -> _deleteErrorMessage.value = result.error.userMessage
+            }
+        }
+    }
+}
