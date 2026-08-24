@@ -27,6 +27,8 @@
 
 ## 진행 기록
 
+- 2026-08-24 — 실시간 점검 중 체크리스트 가이드 확인 시 녹화 세션 중단 버그 수정. 외부 라우트 이동으로 `LiveInspectionScreen` 컴포저블이 언마운트되며 레코더(`InspectionVideoRecorder`)가 강제 닫히던 문제를 해결하고, 화면 내부 모달 오버레이 다이얼로그(`activeGuideIndex`) 방식으로 변경하여 가이드 확인 후 되돌아오더라도 끊김 없이 녹화 및 프리뷰가 연속 유지되도록 수정함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 실기기 가이드 모달 터치는 실기기 미검증임.
+- 2026-08-24 — 점검 비디오 레코더 표준 9:16 세로 해상도(`720x1280`) 복구 및 Center-Crop 렌더링 유지. 갤러리 재생 시 좌우 왜곡(뚱뚱해지는 현상)을 방지하고 스마트폰 화면에 자연스럽게 꽉 차도록 표준 해상도로 복원함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 실기기 갤러리 재생 비율은 실기기 미검증임.
 - 2026-08-24 — 실시간 점검 카메라 스트리밍 제어 기능 추가. 일시정지/재개 시 프리뷰 정지/재개, 타이머 일시정지 및 TTS 음성 피드백 연동, 동적 스트림 화질 수동 선택 칩 및 드롭다운(`HIGH`/`MEDIUM`/`LOW`), Meta AI 안경 ↔ 스마트폰 카메라(`PhoneCameraPreviewHelper`) 수동 소스 전환 버튼을 상단 바에 구현함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 스마트폰 카메라 실제 하드웨어 센서 및 실기기 안경 전환은 실기기 미검증임.
 - 2026-08-24 — 점검 종료 시 음성 안내(TTS) 구현. 촬영 종료 팝업의 `[네, 종료할게요]` 버튼 클릭 시 "촬영을 종료합니다. 해당 영상을 업로드해주세요." 음성이 출력되도록 연결하고, 화면 내비게이션 시에도 음성이 끊기지 않도록 `VoiceGuideManager` 싱글톤을 도입함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 실기기 TTS 발화 음량 및 하드웨어 스피커 출력은 실기기 미검증임.
 - 2026-08-24 — Meta AI 안경 실시간 카메라 스트리밍 프리뷰 복원 및 최적화. `com.meta.wearable:mwdat-camera:0.9.0` 의존성 추가, HEVC 하드웨어 비디오 디코더(`HevcDecoder`), VPS/SPS/PPS 파라미터 수집기(`HevcParameterSetCollector`), 전역 세션 공유 풀(`rememberGlassConnectionViewModel`), Center-Crop 비율 맞춤 Matrix Transform 및 고화질(VideoQuality.HIGH)/30fps/2.5Mbps 설정을 적용함. `:app:testDebugUnitTest` 144개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 실제 Meta AI 안경 실기기 연동은 실기기 미검증임.
