@@ -1,6 +1,7 @@
 package com.seipseip.app.feature.inspection
 
 import android.app.Activity
+import android.content.Context
 import android.content.res.Configuration
 import android.content.pm.ActivityInfo
 import android.net.Uri
@@ -523,6 +524,8 @@ fun LiveInspectionScreen(
     }
     val durationSeconds = ((nowElapsed - startedAt) / 1_000L).coerceAtLeast(0L)
 
+    val context = LocalContext.current
+
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
@@ -724,12 +727,37 @@ fun LiveInspectionScreen(
                         contentAlignment = Alignment.Center,
                     ) { Text("아니요, 계속 촬영할게요", color = Green, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
                     Box(
-                        modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(Orange).clickable { onFinish(durationSeconds) },
+                        modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(Orange).clickable {
+                            VoiceGuideManager.speak(context, "촬영을 종료합니다. 해당 영상을 업로드해주세요.")
+                            onFinish(durationSeconds)
+                        },
                         contentAlignment = Alignment.Center,
                     ) { Text("네, 종료할게요", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
                 }
             }
         }
+    }
+}
+
+object VoiceGuideManager {
+    private var tts: TextToSpeech? = null
+
+    fun speak(context: Context, text: String) {
+        val appContext = context.applicationContext
+        if (tts == null) {
+            tts = TextToSpeech(appContext) { status ->
+                if (status == TextToSpeech.SUCCESS) {
+                    tts?.language = java.util.Locale.KOREAN
+                    tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "voice_guide_${System.currentTimeMillis()}")
+                }
+            }
+        } else {
+            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "voice_guide_${System.currentTimeMillis()}")
+        }
+    }
+
+    fun stop() {
+        tts?.stop()
     }
 }
 
