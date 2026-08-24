@@ -27,6 +27,7 @@
 
 ## 진행 기록
 
+- 2026-08-24 — 실시간 점검 화면(`InspectionLiveScreen`) "AI 음성 안내" 및 "실시간 인식 구역" 카드 제거. 실시간 촬영 중 사용자가 카메라 프리뷰 및 핵심 점검 체크리스트 가이드에 온전히 집중할 수 있도록 화면의 불필요한 보조 카드들을 정리하여 쾌적한 점검 뷰를 구성함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 촬영 전 경고 화면(`InspectionPermissionWarningScreen`) "허가를 확인했고 촬영을 계속합니다" 확인 버튼 화면 최하단(`bottomAction`) 고정 배치. 통신비밀보호법 및 촬영 동의 법적 고지 카드의 길이와 무관하게 사용자가 화면 최하단에서 안정적으로 동의하고 다음 단계로 진입할 수 있도록 개선함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 점검 준비 화면(`InspectionPrepScreen`) "점검 시작하기" 버튼 화면 최하단(`bottomAction`) 고정 배치. 촬영 주의 경고 카드 및 점검 매물/촬영 전 확인 안내 카드의 스크롤 위치와 무관하게 사용자가 한 손으로 언제든 즉시 점검을 시작할 수 있도록 하단 액션바로 고정 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 점검할 매물 선택 화면(`PropertySelectScreen`) UI 레이아웃 개선. "다른 매물이 없나요?" 안내 카드를 매물이 하나도 없을 때만 조건부로 표시하도록 변경하고, "선택한 매물로 계속하기" 메인 CTA 버튼을 스크롤 영역에서 분리하여 화면 최하단(`bottomAction`)에 고정 배치함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).

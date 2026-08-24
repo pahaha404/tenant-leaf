@@ -852,19 +852,6 @@ fun LiveInspectionScreen(
 
                     Text(formatInspectionDuration(durationSeconds), modifier = Modifier.align(Alignment.BottomEnd).padding(13.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.White).padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(Modifier.size(36.dp).clip(RoundedCornerShape(12.dp)).background(PaleGreen), contentAlignment = Alignment.Center) {
-                        Text("◖", color = Green, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Spacer(Modifier.width(10.dp))
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text("AI 음성 안내", color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
-                        Text(liveContent.voiceGuide, color = Secondary, fontSize = 10.sp, lineHeight = 15.sp)
-                    }
-                }
                 Column(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White).padding(15.dp),
                     verticalArrangement = Arrangement.spacedBy(9.dp),
@@ -885,29 +872,6 @@ fun LiveInspectionScreen(
                             Text(item, color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                             Spacer(Modifier.weight(1f))
                             Text("가이드", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-                Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    Text("실시간 인식 구역", color = DeepGreen, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
-                    val currentZoneIndex = zoneRows.indexOfFirst { it.id == zoneId }
-                    zoneRows.forEachIndexed { index, itemZone ->
-                        val isCurrent = itemZone.id == zoneId
-                        val isCompleted = index < currentZoneIndex
-                        val state = when {
-                            isCurrent -> "촬영 중"
-                            isCompleted -> "확인 완료"
-                            else -> "대기"
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth().height(28.dp).clip(RoundedCornerShape(8.dp)).background(if (isCurrent) PaleGreen else Color.White).padding(horizontal = 9.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(if (isCurrent || isCompleted) "●" else "○", color = if (isCurrent || isCompleted) Green else Secondary, fontSize = 9.sp)
-                            Spacer(Modifier.width(7.dp))
-                            Text(itemZone.title, color = if (isCurrent) DeepGreen else Secondary, fontSize = 10.sp, fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal)
-                            Spacer(Modifier.weight(1f))
-                            Text(state, color = if (isCurrent || isCompleted) Green else Secondary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
