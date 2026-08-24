@@ -424,11 +424,7 @@ fun AppNavGraph(
             val inspectionId = it.arguments?.getString("inspectionId") ?: return@composable
             InspectionPermissionWarningScreen(
                 onBack = navController::popBackStack,
-                onContinue = {
-                    navController.navigate(Route.liveInspection(inspectionId, "entry", android.os.SystemClock.elapsedRealtime())) {
-                        popUpTo(Route.inspectionPermission(inspectionId)) { inclusive = true }
-                    }
-                },
+                onContinue = { navController.navigate(Route.inspectionCountdown(inspectionId, "entry")) },
             )
         }
         composable(Route.Tutorial) {
