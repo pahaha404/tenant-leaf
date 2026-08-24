@@ -38,12 +38,6 @@ class HevcDecoder {
     @Volatile private var active = false
     @Volatile private var receivedKeyFrame = false
     @Volatile private var firstInput = true
-    @Volatile private var recorder: InspectionVideoRecorder? = null
-    private val nalParser = HevcNalParser()
-
-    fun setRecorder(inspectionRecorder: InspectionVideoRecorder?) {
-        recorder = inspectionRecorder
-    }
 
     fun start(width: Int, height: Int, outputSurface: Surface) {
         surface = outputSurface
@@ -58,10 +52,7 @@ class HevcDecoder {
     fun decodeFrame(bytes: ByteArray, timestampUs: Long) {
         if (bytes.isEmpty()) return
 
-        // 1. Forward raw video bytes directly to safe stream recorder
-        recorder?.writeRawVideoBytes(bytes)
-
-        // 2. Decode Annex-B frame to Surface
+        // Decode Annex-B frame to Surface
         var index = findNalUnit(bytes, 0, bytes.size, BooleanArray(3))
         val prefixFlags = BooleanArray(3)
         while (index < bytes.size) {

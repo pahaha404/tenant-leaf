@@ -16,7 +16,9 @@ import android.widget.VideoView
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.collectAsState
+import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.viewinterop.AndroidView
@@ -514,13 +516,14 @@ fun LiveInspectionScreen(
     val connectionState by glassViewModel.uiState.collectAsState()
 
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var isFinishing by remember { mutableStateOf(false) }
     val recorder = remember(context) { com.seipseip.app.feature.inspection.preview.InspectionVideoRecorder(context) }
     var cameraSource by remember { mutableStateOf(CameraSource.GLASS) }
     var activeSurface by remember { mutableStateOf<Surface?>(null) }
     val phoneCameraHelper = remember(context) { PhoneCameraPreviewHelper(context) }
 
     DisposableEffect(glassViewModel, cameraSource) {
-        glassViewModel.setVideoRecorder(recorder)
         if (!recorder.isRecording) {
             recorder.startRecording()
         }
@@ -720,7 +723,19 @@ fun LiveInspectionScreen(
                                         phoneCameraHelper.stopPreview()
                                         return true
                                     }
-                                    override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {}
+                                    private var lastFrameTime = 0L
+
+                                    override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {
+                                        val now = SystemClock.elapsedRealtime()
+                                        if (now - lastFrameTime >= 33L) {
+                                            lastFrameTime = now
+                                            val bmp = this@apply.bitmap
+                                            if (bmp != null) {
+                                                recorder.drawBitmapFrame(bmp)
+                                                bmp.recycle()
+                                            }
+                                        }
+                                    }
                                 }
                                 addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
                                     applyCenterCropTransform(this, previewState.videoWidth, previewState.videoHeight)
@@ -895,13 +910,18 @@ fun LiveInspectionScreen(
                         contentAlignment = Alignment.Center,
                     ) { Text("아니요, 계속 촬영할게요", color = Green, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
                     Box(
-                        modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(Orange).clickable {
-                            VoiceGuideManager.speak(context, "촬영을 종료합니다. 해당 영상을 업로드해주세요.")
-                            recorder.stopRecording()
-                            onFinish(durationSeconds)
+                        modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(if (isFinishing) Secondary else Orange).clickable(enabled = !isFinishing) {
+                            if (!isFinishing) {
+                                isFinishing = true
+                                VoiceGuideManager.speak(context, "촬영을 종료합니다. 해당 영상을 업로드해주세요.")
+                                coroutineScope.launch {
+                                    recorder.stopRecording()
+                                    onFinish(durationSeconds)
+                                }
+                            }
                         },
                         contentAlignment = Alignment.Center,
-                    ) { Text("네, 종료할게요", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
+                    ) { Text(if (isFinishing) "영상 저장 및 정리 중..." else "네, 종료할게요", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
                 }
             }
         }
