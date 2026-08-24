@@ -697,6 +697,20 @@ fun LiveInspectionScreen(
             }
         }
         if (showFinishDialog) {
+            val context = LocalContext.current
+            DisposableEffect(Unit) {
+                var engine: TextToSpeech? = null
+                engine = TextToSpeech(context) { status ->
+                    if (status == TextToSpeech.SUCCESS) {
+                        engine?.language = java.util.Locale.KOREAN
+                        engine?.speak("촬영을 종료합니다. 해당 영상을 업로드해주세요.", TextToSpeech.QUEUE_FLUSH, null, "finish_dialog_notice")
+                    }
+                }
+                onDispose {
+                    engine?.stop()
+                    engine?.shutdown()
+                }
+            }
             Box(
                 modifier = Modifier.fillMaxSize().background(Color(0x8A173426)).padding(horizontal = 28.dp),
                 contentAlignment = Alignment.Center,
