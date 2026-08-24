@@ -27,6 +27,7 @@
 
 ## 진행 기록
 
+- 2026-08-24 — 매물 탭 및 매물 상세 탭 당겨서 새로고침(`Pull-to-Refresh`) 기능 구현(`AppPageScaffold`, `PropertyListScreen`, `PropertyDetailScreen`). Material 3 `PullToRefreshBox` 및 `PullToRefreshDefaults.Indicator`를 공통 스캐폴드에 연동하여 화면을 아래로 당겼을 때 상단 인디케이터와 함께 `PropertyListViewModel.refresh()` 및 `PropertyDetailViewModel.load()`가 호출되어 최신 매물 목록과 상세 정보로 즉시 갱신되도록 완성함. `:app:testDebugUnitTest` 및 `:feature:property:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 매물 상세 화면 휴지통 좌측 연필(`Edit`) 아이콘 추가 및 매물 수정 기능 연동(`PropertyDetailScreen`, `PropertyFormScreen`, `Route.PropertyEdit`). 매물 상세 탭 상단 액션바에 연필 아이콘을 배치하여 탭 시 기존 매물 정보를 불러와 즉시 수정(`PropertyPatch` 기반 업데이트)할 수 있도록 화면 및 내비게이션 경로를 완성함. `:app:testDebugUnitTest` 및 `:feature:property:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 매물 탭 우측 상단 휴지통 아이콘 추가 및 다중 선택 일괄 삭제 기능 구현(`PropertyListScreen`, `PropertyListViewModel.deleteMultiple`). 지도 아이콘 왼쪽에 휴지통(`DeleteOutline`) 아이콘을 배치하여 탭 시 다중 선택 모드로 전환되며, 개별 체크/전체 선택/전체 해제 및 하단 "선택한 N개 매물 삭제하기" 액션 버튼을 통해 일괄 삭제 다이얼로그 확인 후 한 번에 안전하게 삭제할 수 있도록 완성함. `:app:testDebugUnitTest` 및 `:feature:property:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — TTS 음성 엔진 `TenantLeafApplication` 레벨 초조기 사전 예열 및 빨간 버튼 탭 0ms 즉시 발화 적용. 안드로이드 프로세스 기동(`Application.onCreate`) 즉시 TextToSpeech 엔진 백그라운드 바인딩을 수행하고, 빨간 확인 버튼 탭 시 미디어 스트림(`STREAM_MUSIC`)을 통해 터치와 동시에 "3초 뒤 촬영이 시작됩니다" 음성이 딜레이 없이 즉각 출력되도록 개선 완료. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).

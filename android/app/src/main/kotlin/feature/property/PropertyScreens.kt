@@ -149,6 +149,8 @@ fun PropertyListScreen(
     AppPageScaffold(
         title = if (isSelectionMode) "매물 삭제 (${selectedIds.size})" else "매물",
         selectedTab = AppTab.Property,
+        isRefreshing = loading,
+        onRefresh = onRetry,
         topTrailingAction = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (properties.isNotEmpty()) {
@@ -685,6 +687,7 @@ fun PropertyDetailScreen(
     onOpenBasicInfo: () -> Unit = {},
     onEditProperty: (() -> Unit)? = null,
     onDeleteProperty: (() -> Unit)? = null,
+    onRefresh: (() -> Unit)? = null,
     onTabSelected: (String) -> Unit,
 ) {
     var showDeleteDialog by rememberSaveable(property?.id) { mutableStateOf(false) }
@@ -693,6 +696,8 @@ fun PropertyDetailScreen(
         title = "매물 상세",
         onBack = onBack,
         selectedTab = AppTab.Property,
+        isRefreshing = loading,
+        onRefresh = onRefresh,
         topTrailingAction = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (property != null && onEditProperty != null) {

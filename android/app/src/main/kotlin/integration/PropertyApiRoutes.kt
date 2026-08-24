@@ -146,6 +146,7 @@ fun PropertyDetailApiRoute(
         onOpenBasicInfo = { onOpenBasicInfo(property) },
         onEditProperty = onEditProperty?.let { edit -> { property?.id?.let(edit) } },
         onDeleteProperty = viewModel::delete,
+        onRefresh = viewModel::load,
         onTabSelected = onTabSelected,
     )
 }
