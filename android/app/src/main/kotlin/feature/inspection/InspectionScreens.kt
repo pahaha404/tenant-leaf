@@ -587,6 +587,57 @@ fun LiveInspectionScreen(
                 Spacer(Modifier.width(8.dp))
                 Text("실시간 점검", color = DeepGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.weight(1f))
+
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White)
+                        .padding(3.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(if (cameraSource == CameraSource.GLASS) Green else Color.Transparent)
+                            .clickable {
+                                if (cameraSource != CameraSource.GLASS) {
+                                    cameraSource = CameraSource.GLASS
+                                    val surface = activeSurface
+                                    phoneCameraHelper.stopPreview()
+                                    glassViewModel.startPreview()
+                                    if (surface != null) {
+                                        glassViewModel.setPreviewSurface(surface)
+                                    }
+                                    VoiceGuideManager.speak(context, "안경 카메라로 전환합니다.")
+                                }
+                            }
+                            .padding(horizontal = 9.dp, vertical = 5.dp),
+                    ) {
+                        Text("안경", color = if (cameraSource == CameraSource.GLASS) Color.White else Secondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(if (cameraSource == CameraSource.PHONE) Green else Color.Transparent)
+                            .clickable {
+                                if (cameraSource != CameraSource.PHONE) {
+                                    cameraSource = CameraSource.PHONE
+                                    val surface = activeSurface
+                                    glassViewModel.stopPreview()
+                                    glassViewModel.setPreviewSurface(null)
+                                    if (surface != null) {
+                                        phoneCameraHelper.startPreview(surface)
+                                    }
+                                    VoiceGuideManager.speak(context, "스마트폰 카메라로 전환합니다.")
+                                }
+                            }
+                            .padding(horizontal = 9.dp, vertical = 5.dp),
+                    ) {
+                        Text("핸드폰", color = if (cameraSource == CameraSource.PHONE) Color.White else Secondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Spacer(Modifier.width(6.dp))
                 Box {
                     Box(
                         modifier = Modifier
@@ -686,57 +737,6 @@ fun LiveInspectionScreen(
                         Box(Modifier.size(7.dp).clip(RoundedCornerShape(9.dp)).background(if (isPaused) Green else Color(0xFFE53935)))
                         Spacer(Modifier.width(5.dp))
                         Text(if (isPaused) "일시정지" else "녹화 중", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(10.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.Black.copy(alpha = 0.55f))
-                            .padding(3.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(if (cameraSource == CameraSource.GLASS) Green else Color.Transparent)
-                                .clickable {
-                                    if (cameraSource != CameraSource.GLASS) {
-                                        cameraSource = CameraSource.GLASS
-                                        val surface = activeSurface
-                                        phoneCameraHelper.stopPreview()
-                                        glassViewModel.startPreview()
-                                        if (surface != null) {
-                                            glassViewModel.setPreviewSurface(surface)
-                                        }
-                                        VoiceGuideManager.speak(context, "안경 카메라로 전환합니다.")
-                                    }
-                                }
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                        ) {
-                            Text("안경", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        }
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(if (cameraSource == CameraSource.PHONE) Green else Color.Transparent)
-                                .clickable {
-                                    if (cameraSource != CameraSource.PHONE) {
-                                        cameraSource = CameraSource.PHONE
-                                        val surface = activeSurface
-                                        glassViewModel.stopPreview()
-                                        glassViewModel.setPreviewSurface(null)
-                                        if (surface != null) {
-                                            phoneCameraHelper.startPreview(surface)
-                                        }
-                                        VoiceGuideManager.speak(context, "스마트폰 카메라로 전환합니다.")
-                                    }
-                                }
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                        ) {
-                            Text("핸드폰", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        }
                     }
 
                     if (isPaused) {
