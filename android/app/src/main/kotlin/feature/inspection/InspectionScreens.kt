@@ -715,7 +715,7 @@ fun LiveInspectionScreen(
                                 }
                                 .padding(horizontal = 8.dp, vertical = 4.dp),
                         ) {
-                            Text("🕶️ 안경", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text("안경", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                         Box(
                             modifier = Modifier
@@ -735,7 +735,7 @@ fun LiveInspectionScreen(
                                 }
                                 .padding(horizontal = 8.dp, vertical = 4.dp),
                         ) {
-                            Text("📱 핸드폰", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text("핸드폰", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         }
                     }
 
