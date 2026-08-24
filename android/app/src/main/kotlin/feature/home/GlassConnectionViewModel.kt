@@ -141,6 +141,7 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
     fun stopPreview() = Companion.stopPreview()
     fun setPreviewSurface(surface: Surface?) = Companion.setPreviewSurface(surface)
     fun setVideoQuality(quality: VideoQuality) = Companion.setVideoQuality(quality)
+    fun setVideoRecorder(recorder: com.seipseip.app.feature.inspection.preview.InspectionVideoRecorder?) = Companion.setVideoRecorder(recorder)
 
     companion object {
         private const val TAG = "TenantLeafDAT"
@@ -168,6 +169,7 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
         private val parameterSets = HevcParameterSetCollector()
         @Volatile private var previewSurface: Surface? = null
         @Volatile private var decoder: HevcDecoder? = null
+        @Volatile private var videoRecorder: com.seipseip.app.feature.inspection.preview.InspectionVideoRecorder? = null
 
         init {
             sessionScope.launch {
@@ -239,9 +241,17 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
         fun setVideoQuality(quality: VideoQuality) {
             if (_sharedPreviewUiState.value.selectedQuality == quality) return
             _sharedPreviewUiState.update { it.copy(selectedQuality = quality) }
-            if (camera != null || stream != null) {
+            val activeSession = session
+            if (activeSession != null && _sharedUiState.value.isConnected) {
                 stopPreview()
                 startPreview()
+            }
+        }
+
+        fun setVideoRecorder(recorder: com.seipseip.app.feature.inspection.preview.InspectionVideoRecorder?) {
+            videoRecorder = recorder
+            synchronized(decoderLock) {
+                decoder?.setRecorder(recorder)
             }
         }
 
@@ -303,10 +313,12 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
                 val surface = previewSurface
                 if (decoder == null && surface != null) {
                     decoder = HevcDecoder().also {
+                        it.setRecorder(videoRecorder)
                         it.start(frame.width, frame.height, surface)
                         parameterSets.complete()?.let { config -> it.decodeFrame(config, 0) }
                     }
                 }
+                decoder?.setRecorder(videoRecorder)
                 decoder?.decodeFrame(bytes, frame.presentationTimeUs)
             }
             if (!frame.isCodecConfig && (!_sharedPreviewUiState.value.hasFirstFrame || _sharedPreviewUiState.value.videoWidth != frame.width || _sharedPreviewUiState.value.videoHeight != frame.height)) {

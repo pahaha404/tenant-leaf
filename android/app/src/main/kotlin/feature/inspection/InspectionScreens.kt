@@ -514,11 +514,16 @@ fun LiveInspectionScreen(
     val connectionState by glassViewModel.uiState.collectAsState()
 
     val context = LocalContext.current
+    val recorder = remember(context) { com.seipseip.app.feature.inspection.preview.InspectionVideoRecorder(context) }
     var cameraSource by remember { mutableStateOf(CameraSource.GLASS) }
     var activeSurface by remember { mutableStateOf<Surface?>(null) }
     val phoneCameraHelper = remember(context) { PhoneCameraPreviewHelper(context) }
 
     DisposableEffect(glassViewModel, cameraSource) {
+        glassViewModel.setVideoRecorder(recorder)
+        if (!recorder.isRecording) {
+            recorder.startRecording()
+        }
         val surface = activeSurface
         if (cameraSource == CameraSource.GLASS) {
             phoneCameraHelper.stopPreview()
@@ -553,11 +558,13 @@ fun LiveInspectionScreen(
                 lastPauseTimestamp = 0L
             }
             isPaused = false
+            recorder.resumeRecording()
             glassViewModel.startPreview()
             VoiceGuideManager.speak(context, "촬영을 재개합니다.")
         } else {
             lastPauseTimestamp = SystemClock.elapsedRealtime()
             isPaused = true
+            recorder.pauseRecording()
             glassViewModel.stopPreview()
             VoiceGuideManager.speak(context, "촬영을 일시정지합니다.")
         }
@@ -890,6 +897,7 @@ fun LiveInspectionScreen(
                     Box(
                         modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(Orange).clickable {
                             VoiceGuideManager.speak(context, "촬영을 종료합니다. 해당 영상을 업로드해주세요.")
+                            recorder.stopRecording()
                             onFinish(durationSeconds)
                         },
                         contentAlignment = Alignment.Center,

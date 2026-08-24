@@ -29,7 +29,7 @@ class HevcDecoder {
         private val blockedDecoders = setOf("OMX.Exynos.hevc.dec", "c2.mtk.hevc.decoder")
     }
 
-    private val queue = ArrayBlockingQueue<Frame>(100)
+    @Volatile private var queue = ArrayBlockingQueue<Frame>(100)
     @Volatile private var codec: MediaCodec? = null
     @Volatile private var decoderThread: HandlerThread? = null
     @Volatile private var format: MediaFormat? = null
@@ -38,6 +38,11 @@ class HevcDecoder {
     @Volatile private var active = false
     @Volatile private var receivedKeyFrame = false
     @Volatile private var firstInput = true
+    @Volatile private var recorder: InspectionVideoRecorder? = null
+
+    fun setRecorder(inspectionRecorder: InspectionVideoRecorder?) {
+        recorder = inspectionRecorder
+    }
 
     fun start(width: Int, height: Int, outputSurface: Surface) {
         surface = outputSurface
@@ -100,6 +105,21 @@ class HevcDecoder {
             firstInput = false
             activateCodec()
         }
+
+        val rec = recorder
+        val fmt = format
+        if (rec != null && rec.isRecording && !rec.isPaused && fmt != null) {
+            rec.onVideoFormatAvailable(fmt)
+            val length = minOf(frame.bytes.size - frame.offset, frame.bytes.size)
+            if (length > 0) {
+                val bufferInfo = MediaCodec.BufferInfo().apply {
+                    set(frame.offset, length, frame.timestampUs, frame.flags)
+                }
+                val byteBuffer = java.nio.ByteBuffer.wrap(frame.bytes, frame.offset, length)
+                rec.writeEncodedFrame(byteBuffer, bufferInfo)
+            }
+        }
+
         if (!queue.offer(frame)) {
             Log.w(TAG, "Decoder queue full")
             active = false
