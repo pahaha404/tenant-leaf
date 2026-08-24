@@ -207,23 +207,64 @@ Binary detector가 하자 후보를 찾았지만 후단 classifier가 하자 유
 - [ ] binary 하자 존재 confidence와 후단 class confidence를 별도 저장
 - [ ] 분류 실패 후보도 `needs_review` 관찰로 보존
 
-## 현재 구현과의 차이
+## 현재 서비스 구현
 
-현재 `inference/predict_yolo.py`는 `xyxy`, confidence, class ID, class name을 반환한다. 다음 구현 작업에서 아래 항목을 schema에 맞게 보완한다.
+현재 서비스 진입점은 `training/process_image_batch_room_defect.py`다. 내부 하자 추론은 `training/process_images_two_stage.py`를 사용하며 다음 형식의 결과를 생성한다.
 
-- `image.width`, `image.height` 추가
-- `class_id`를 API 표준인 `classId`로 변경
-- `class_name`을 API 표준인 `label`로 변경
-- 배열 내부의 `xyxy`를 `box.left/top/right/bottom` 구조로 변경
+- `image.width`, `image.height`
+- API 표준 `classId`, `label`
+- `box.left/top/right/bottom`
+- 이미지별 `room.raw`, `room.stable`, `roomSegmentId`
+- 하자 observation별 `room`, `roomSegmentId`
 
-`training/process_video_two_stage.py`는 위 변환을 적용한 `frame_results[]`를 생성한다. 기존 `inference/predict_yolo.py`는 단일 모델 실험용이므로 서비스 영상 흐름에서는 사용하지 않는다.
+`inference/predict_yolo.py`와 `training/process_video_two_stage.py`는 단일 모델·과거 영상 실험용이며 현재 서비스 worker 진입점으로 사용하지 않는다. 공간 분류 연동 변경은 `BACKEND_ROOM_CLASSIFICATION_API_CHANGES.md`를 따른다.
 
-## 영상 관찰 결과의 리포트 이미지
+## 이미지 기반 관찰 결과의 리포트 이미지
 
-영상 파이프라인은 여러 프레임에서 같은 하자를 하나의 `observations[]` 항목으로 묶는다. 각 observation에는 리포트 연결을 위한 다음 이미지 경로가 포함된다.
+이미지 묶음 파이프라인은 백엔드가 시간순으로 전달한 각 이미지를 추론한다. 각 탐지 observation에는 리포트 연결을 위한 다음 이미지 경로가 포함된다.
 
-- `evidencePath`: 하자가 탐지된 대표 원본 프레임
+- `evidencePath`: 하자가 탐지된 원본 이미지
 - `cropPath`: bbox에 15% 여백을 적용한 하자 영역 crop
 - `cropImage.width`, `cropImage.height`: 생성된 crop 이미지 크기
 
-AI가 반환하는 값은 서버 내부 파일 경로다. 백엔드는 파일을 저장소에 보관하고 인증된 `evidenceUrl`, `cropUrl`로 변환해 리포트에 연결한다. 리포트 초안·확정본·목록·상세·공유 기능은 백엔드 책임이다.
+AI가 반환하는 값은 서버 내부 파일 경로다. 백엔드는 원본 이미지와 crop 파일을 저장소에 보관하고 인증된 `evidenceUrl`, `cropUrl`로 변환해 리포트에 연결한다. 리포트 초안·확정본·목록·상세·공유 기능은 백엔드 책임이다.
+
+## 이미지 묶음 결과 형식
+
+이미지 묶음 요청의 최상위 결과는 공간 분류 정보, `roomSegments[]`, `images[]`, `observations[]`를 포함한다.
+
+```json
+{
+  "jobId": "job-001",
+  "status": "completed",
+  "processing": {
+    "mode": "backend_sampled_images_room_gemini_yolo",
+    "processedCount": 2
+  },
+  "roomClassification": {
+    "provider": "gemini",
+    "model": "gemini-2.5-flash-lite",
+    "errors": []
+  },
+  "roomSegments": [],
+  "images": [
+    {
+      "imageId": "image-0001",
+      "filename": "room_0001.jpg",
+      "sequenceIndex": 0,
+      "timestampSec": 0.0,
+      "image": {"width": 1920, "height": 1080},
+      "room": {
+        "raw": "living_room",
+        "stable": "living_room",
+        "uncertain": false,
+        "roomSegmentId": "room-seg-0001"
+      },
+      "detections": []
+    }
+  ],
+  "observations": []
+}
+```
+
+`images[]`의 `detections[]`는 기존 단일 이미지 계약과 동일한 `classId`, `label`, `confidence`, `box` 형식을 사용한다. `observations[]`의 `cropPath`는 해당 이미지의 bbox crop을 가리키며, 공간 연결에는 `room`과 `roomSegmentId`를 사용한다.
