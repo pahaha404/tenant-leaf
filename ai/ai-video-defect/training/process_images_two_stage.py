@@ -15,7 +15,14 @@ from ultralytics import YOLO
 from training.predict_dacon_two_stage import box_iou
 
 
-IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
+IMAGE_SUFFIXES = {".jpg", ".jpeg"}
+
+
+def portable_path(path: Path, root: Path) -> str:
+    try:
+        return str(path.relative_to(root))
+    except ValueError:
+        return str(path)
 
 
 def predict_image(model: YOLO, image_path: Path, imgsz: int, confidence: float, nms_iou: float, device: str) -> list[dict]:
@@ -61,11 +68,11 @@ def merge_detections(binary: list[dict], multiclass: list[dict], merge_iou: floa
     for binary_item in binary:
         if not any(box_iou(box_list(binary_item), box_list(multi_item)) >= merge_iou for multi_item in multiclass):
             merged.append({
-                "classId": None,
-                "label": "unknown_defect",
+                "classId": 12,
+                "label": "other",
                 "confidence": binary_item["confidence"],
                 "box": binary_item["box"],
-                "classificationStatus": "unclassified",
+                "classificationStatus": "classified_as_other",
                 "reviewStatus": "needs_review",
                 "defectConfidence": binary_item["confidence"],
                 "classConfidence": None,
@@ -97,14 +104,10 @@ def process_images(args: argparse.Namespace) -> dict:
     output = (root / args.output).resolve()
     binary_path = (root / args.binary).resolve()
     multiclass_path = (root / args.multiclass).resolve()
-    if input_path.is_file() and input_path.suffix.lower() in IMAGE_SUFFIXES:
-        image_paths = [input_path]
-    elif input_path.is_dir():
-        image_paths = sorted(path for path in input_path.iterdir() if path.is_file() and path.suffix.lower() in IMAGE_SUFFIXES)
-    else:
-        raise FileNotFoundError(f"Image file or directory not found: {input_path}")
-    if not image_paths:
-        raise ValueError(f"No supported images found: {input_path}")
+    model_version = args.model_version or multiclass_path.parent.parent.name
+    if not input_path.is_file() or input_path.suffix.lower() not in IMAGE_SUFFIXES:
+        raise FileNotFoundError(f"JPEG image not found: {input_path}")
+    image_paths = [input_path]
 
     device = "0" if torch.cuda.is_available() else "cpu"
     binary_model = YOLO(str(binary_path))
@@ -140,8 +143,8 @@ def process_images(args: argparse.Namespace) -> dict:
                 "imageId": image_id,
                 "filename": image_path.name,
                 "representativeImageId": image_id,
-                "evidencePath": str(evidence_path.relative_to(root)) if evidence_path else None,
-                "cropPath": str(crop_path.relative_to(root)),
+                "evidencePath": portable_path(evidence_path, root) if evidence_path else None,
+                "cropPath": portable_path(crop_path, root),
                 "cropImage": {"width": crop_width, "height": crop_height},
             })
             observations.append(observation)
@@ -153,14 +156,16 @@ def process_images(args: argparse.Namespace) -> dict:
             "detections": merged,
             "binaryDetections": binary,
             "multiclassDetections": multiclass,
-            "evidencePath": str(evidence_path.relative_to(root)) if evidence_path else None,
+            "evidencePath": portable_path(evidence_path, root) if evidence_path else None,
         })
 
     elapsed = time.perf_counter() - started
     payload = {
         "jobId": args.job_id,
+        "mediaId": args.media_id,
+        "modelVersion": model_version,
         "status": "completed",
-        "input": {"path": str(input_path.relative_to(root)), "imageCount": len(image_paths)},
+        "input": {"path": portable_path(input_path, root), "imageCount": len(image_paths)},
         "processing": {
             "mode": "image_batch",
             "processedCount": len(image_results),
@@ -180,8 +185,10 @@ def process_images(args: argparse.Namespace) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run full-image Binary + multiclass YOLO on server-provided images.")
-    parser.add_argument("--input", type=Path, required=True, help="An image file or a directory of images")
+    parser.add_argument("--input", type=Path, required=True, help="One JPEG file associated with --media-id")
     parser.add_argument("--job-id", default="local-image-test")
+    parser.add_argument("--media-id", required=True, help="Server media UUID associated with this analysis job")
+    parser.add_argument("--model-version", help="Deployed model version. Defaults to the active model directory name")
     parser.add_argument("--output", type=Path, default=Path("reports/image_two_stage_test"))
     parser.add_argument("--binary", type=Path, default=Path("models/active/two_stage_negative_rot4/binary/best.pt"))
     parser.add_argument("--multiclass", type=Path, default=Path("models/active/two_stage_negative_rot4/multiclass/best.pt"))

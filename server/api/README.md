@@ -31,6 +31,35 @@ Copy-Item .env.example .env
 
 `OBJECT_STORAGE_ENDPOINT`는 API 서버가 MinIO에 연결할 주소이고, `OBJECT_STORAGE_PUBLIC_ENDPOINT`는 Android가 서명 URL로 접근할 주소입니다. 에뮬레이터는 기본값 `http://10.0.2.2:9000`을 사용합니다. 실제 휴대전화에서는 같은 Wi-Fi에 연결된 개발 PC의 IPv4 주소(예: `http://192.168.0.10:9000`)로 바꾸고 Windows 방화벽에서 필요한 로컬 개발 포트만 허용합니다.
 
+### 로컬과 실배포 환경 분리
+
+| 구분 | Android API 주소 | API 프로필 | PostgreSQL |
+| --- | --- | --- | --- |
+| 로컬 | `http://10.0.2.2:8080/api/v1/` | 기본 프로필 | Docker의 `localhost:5432` |
+| 실배포 | `TENANT_LEAF_RELEASE_API_BASE_URL`로 지정한 HTTPS 주소 | `prod` | `DATABASE_URL`로 지정한 비공개 DB |
+
+실배포에서는 `SPRING_PROFILES_ACTIVE=prod`와 아래 환경변수를 배포 환경의 Secret 설정으로 주입합니다. `application-prod.yml`에는 로컬 기본값이 없으므로 하나라도 빠지면 서버 시작이 실패합니다.
+
+```text
+DATABASE_URL
+POSTGRES_USER
+POSTGRES_PASSWORD
+OBJECT_STORAGE_ENDPOINT
+OBJECT_STORAGE_PUBLIC_ENDPOINT
+OBJECT_STORAGE_ACCESS_KEY
+OBJECT_STORAGE_SECRET_KEY
+OBJECT_STORAGE_BUCKET
+```
+
+Android release 빌드에는 실제 HTTPS API 주소를 명시합니다.
+
+```powershell
+cd android
+.\gradlew.bat :app:assembleRelease "-PTENANT_LEAF_RELEASE_API_BASE_URL=https://api.example.com/api/v1/"
+```
+
+실배포 PostgreSQL 포트는 인터넷에 공개하지 않고 API 서버에서만 접근하게 구성합니다. 실제 비밀번호와 연결 문자열은 Git 또는 APK에 넣지 않습니다.
+
 ## 3. PostgreSQL과 MinIO 시작
 
 저장소 루트에서 실행합니다.
@@ -72,7 +101,7 @@ cd server/api
 .\gradlew.bat clean test
 ```
 
-테스트는 Spring 애플리케이션 시작과 Flyway가 만든 `api_schema_marker` 테이블을 확인합니다.
+테스트는 Spring 애플리케이션 시작, Flyway 스키마와 매물·임장·미디어 API의 상태 전이 및 소유권 규칙을 확인합니다.
 
 ## 7. OpenAPI 기반 Kotlin 코드 생성
 
@@ -104,8 +133,11 @@ docker compose --env-file .env -f server/infra/docker/compose.yml down
 3. Android가 해당 URL에 `Content-Type: image/jpeg`로 JPEG를 직접 업로드합니다.
 4. Android가 업로드 완료 API를 호출하면 서버가 실제 파일의 형식·크기·가로·세로를 확인합니다.
 5. 확인된 메타데이터는 PostgreSQL에, JPEG 바이트는 MinIO에 남습니다.
+6. 서버가 같은 `mediaId`의 분석 작업을 한 번만 만들고 상태를 `QUEUED`로 변경합니다.
+7. 별도 Python Worker가 작업을 처리해 탐지 결과와 모델 버전을 PostgreSQL에 저장합니다.
 
 원본 영상과 휴대전화 갤러리 URI는 이 API로 전송하지 않습니다.
+Worker 설치와 실행 방법은 `server/ai-worker/README.md`를 따릅니다. 모델 가중치가 배포되지 않은 상태에서는 API 업로드까지 동작하지만 분석 상태가 `QUEUED`에 머뭅니다.
 
 ## 10. 자주 발생하는 오류
 

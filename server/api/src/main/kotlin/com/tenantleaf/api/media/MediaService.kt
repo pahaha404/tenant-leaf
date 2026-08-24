@@ -31,6 +31,7 @@ import java.util.UUID
 class MediaService(
     private val mediaRepository: MediaRepository,
     private val idempotencyRepository: ApiIdempotencyRecordRepository,
+    private val analysisJobRepository: MediaAnalysisJobRepository,
     private val inspectionRepository: InspectionRepository,
     private val storage: ObjectStorageGateway,
     private val userContext: DemoUserContext,
@@ -98,7 +99,11 @@ class MediaService(
         val ownerId = userContext.requireUserId()
         val entity = requireMedia(mediaId, ownerId)
         checkAndRecordIdempotency(ownerId, "COMPLETE_MEDIA_UPLOAD", mediaId.toString(), idempotencyKey, hash(mediaId.toString()))
-        if (entity.uploadStatus == MediaUploadState.UPLOADED) return entity.toApi()
+        if (entity.uploadStatus == MediaUploadState.UPLOADED) {
+            enqueueAnalysis(entity)
+            refreshInspectionAnalysisStatus(entity.inspectionId, ownerId)
+            return entity.toApi()
+        }
         requireEndedInspection(entity.inspectionId, ownerId)
         val actual = storage.inspectJpeg(entity.storageKey, MAX_JPEG_BYTES)
         if (actual.contentType != null && actual.contentType != "image/jpeg") {
@@ -113,8 +118,10 @@ class MediaService(
         val now = OffsetDateTime.now()
         entity.actualFileSize = actual.size
         entity.uploadStatus = MediaUploadState.UPLOADED
+        entity.analysisStatus = MediaAnalysisState.QUEUED
         entity.uploadedAt = now
         entity.updatedAt = now
+        enqueueAnalysis(entity, now)
         refreshInspectionAnalysisStatus(entity.inspectionId, ownerId)
         return entity.toApi()
     }
@@ -156,6 +163,28 @@ class MediaService(
 
     private fun requireMedia(mediaId: UUID, ownerId: UUID) =
         mediaRepository.findByIdAndOwnerIdAndDeletedAtIsNull(mediaId, ownerId) ?: throw MediaNotFoundException()
+
+    private fun enqueueAnalysis(entity: MediaEntity, now: OffsetDateTime = OffsetDateTime.now()) {
+        val existing = analysisJobRepository.findByMediaId(entity.id)
+        if (existing == null) {
+            analysisJobRepository.save(
+                MediaAnalysisJobEntity(
+                    id = UUID.randomUUID(),
+                    mediaId = entity.id,
+                    status = MediaAnalysisJobState.QUEUED,
+                    attemptCount = 0,
+                    availableAt = now,
+                    createdAt = now,
+                    updatedAt = now,
+                ),
+            )
+            entity.analysisStatus = MediaAnalysisState.QUEUED
+            entity.updatedAt = now
+        } else if (existing.status == MediaAnalysisJobState.QUEUED) {
+            entity.analysisStatus = MediaAnalysisState.QUEUED
+            entity.updatedAt = now
+        }
+    }
 
     private fun checkAndRecordIdempotency(
         ownerId: UUID,

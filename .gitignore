@@ -1,7 +1,9 @@
 # Android / Gradle
 .gradle/
+.kotlin/
 **/build/
 local.properties
+**/gradle/gradle-daemon-jvm.properties
 *.apk
 *.aab
 
@@ -23,6 +25,9 @@ storage/
 uploads/
 coverage/
 tmp/
+__pycache__/
+*.py[cod]
+.venv/
 
 # AI training data, experiment outputs, and model weights
 ai/ml/data/raw/

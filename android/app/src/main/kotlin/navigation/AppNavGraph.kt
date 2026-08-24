@@ -1,11 +1,15 @@
 package com.seipseip.app.navigation
 
 import android.Manifest
+import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +25,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -53,6 +58,8 @@ import com.seipseip.app.feature.profile.ProfileScreen
 import com.seipseip.app.feature.property.PropertyDetailScreen
 import com.seipseip.app.feature.property.PropertyInfoScreen
 import com.seipseip.app.feature.property.PropertyFormScreen
+import com.seipseip.app.feature.property.location.AddressPickerScreen
+import com.seipseip.app.feature.property.location.LocationPickerActivity
 import com.seipseip.app.feature.property.PropertyListScreen
 import com.seipseip.app.feature.property.PropertySelectScreen
 import com.seipseip.app.feature.report.ReportDetailScreen
@@ -60,6 +67,15 @@ import com.seipseip.app.feature.report.ReportListScreen
 import com.seipseip.app.feature.state.EmptyPropertyScreen
 import com.seipseip.app.feature.state.HomeProcessingScreen
 import com.seipseip.app.feature.state.LoadingScreen
+import com.seipseip.app.integration.InspectionFinishApiRoute
+import com.seipseip.app.integration.InspectionPrepApiRoute
+import com.seipseip.app.integration.LiveInspectionApiRoute
+import com.seipseip.app.integration.MediaUploadApiRoute
+import com.seipseip.app.integration.PropertyDetailApiRoute
+import com.seipseip.app.integration.PropertyFormApiRoute
+import com.seipseip.app.integration.PropertyInfoApiRoute
+import com.seipseip.app.integration.PropertyListApiRoute
+import com.seipseip.app.integration.PropertySelectApiRoute
 
 object Route {
     const val Loading = "loading"
@@ -77,20 +93,21 @@ object Route {
     const val ChecklistOverview = "checklist_overview"
     const val PropertyList = "properties"
     const val PropertyForm = "property_form"
-    const val PropertyDetail = "property_detail"
-    const val PropertyInfo = "property_info"
+    const val AddressPicker = "address_picker"
+    const val PropertyDetail = "property_detail/{propertyId}"
+    const val PropertyInfo = "property_info/{propertyId}"
     const val PropertySelect = "property_select"
     const val PropertyEmpty = "property_empty"
-    const val InspectionPrep = "inspection_prep"
-    const val InspectionPermissionWarning = "inspection_permission_warning"
-    const val InspectionCountdown = "inspection_countdown/{zone}"
+    const val InspectionPrep = "inspection_prep/{propertyId}"
+    const val InspectionPermissionWarning = "inspection_permission_warning/{inspectionId}"
+    const val InspectionCountdown = "inspection_countdown/{inspectionId}/{zone}"
     const val Tutorial = "tutorial"
     const val TutorialChecklist = "tutorial_checklist"
     const val GuideZone = "guide/{zone}"
     const val GuideDetail = "guide_detail/{zone}/{item}"
-    const val LiveInspection = "live/{zone}/{startedAt}"
-    const val FinishConfirm = "finish_confirm/{durationSeconds}"
-    const val Analysis = "analysis"
+    const val LiveInspection = "live/{inspectionId}/{zone}/{startedAt}"
+    const val FinishConfirm = "finish_confirm/{inspectionId}/{durationSeconds}"
+    const val Analysis = "analysis/{inspectionId}"
     const val Observation = "observation/{zone}"
     const val Reports = "reports"
     const val ReportDetail = "report_detail"
@@ -100,11 +117,26 @@ object Route {
 
     fun guideZone(zone: String) = "guide/$zone"
     fun guideDetail(zone: String, item: Int) = "guide_detail/$zone/$item"
-    fun liveInspection(zone: String, startedAt: Long) = "live/$zone/$startedAt"
-    fun finishConfirm(durationSeconds: Long) = "finish_confirm/$durationSeconds"
-    fun inspectionCountdown(zone: String) = "inspection_countdown/$zone"
+    fun propertyDetail(propertyId: String) = "property_detail/$propertyId"
+    fun propertyInfo(propertyId: String) = "property_info/$propertyId"
+    fun inspectionPrep(propertyId: String) = "inspection_prep/$propertyId"
+    fun inspectionPermission(inspectionId: String) = "inspection_permission_warning/$inspectionId"
+    fun liveInspection(inspectionId: String, zone: String, startedAt: Long) = "live/$inspectionId/$zone/$startedAt"
+    fun finishConfirm(inspectionId: String, durationSeconds: Long) = "finish_confirm/$inspectionId/$durationSeconds"
+    fun inspectionCountdown(inspectionId: String, zone: String) = "inspection_countdown/$inspectionId/$zone"
+    fun analysis(inspectionId: String) = "analysis/$inspectionId"
     fun observation(zone: String) = "observation/$zone"
     fun magazineDetail(articleId: String) = "magazine_detail/$articleId"
+}
+
+private const val SESSION_PREFERENCES = "tenant_leaf_session"
+private const val KEY_LOGGED_IN = "logged_in"
+private const val KEY_TUTORIAL_COMPLETED = "tutorial_completed"
+
+internal fun initialRouteFor(isLoggedIn: Boolean, isTutorialCompleted: Boolean): String = when {
+    isTutorialCompleted && isLoggedIn -> Route.Home
+    isLoggedIn -> Route.Welcome
+    else -> Route.Login
 }
 
 @Composable
@@ -115,6 +147,9 @@ fun AppNavGraph(
 ) {
     var reportProcessing by remember { mutableStateOf(false) }
     val appContext = LocalContext.current
+    val sessionPreferences = remember(appContext) {
+        appContext.getSharedPreferences(SESSION_PREFERENCES, Context.MODE_PRIVATE)
+    }
     LaunchedEffect(reportProcessing) {
         if (reportProcessing) {
             delay(8_000)
@@ -162,14 +197,22 @@ fun AppNavGraph(
     ) {
         composable(Route.Loading) {
             LoadingScreen {
-                navController.navigate(Route.Login) {
+                val isLoggedIn = sessionPreferences.getBoolean(KEY_LOGGED_IN, false)
+                val isTutorialCompleted = sessionPreferences.getBoolean(KEY_TUTORIAL_COMPLETED, false)
+                val nextRoute = initialRouteFor(isLoggedIn, isTutorialCompleted)
+                navController.navigate(nextRoute) {
                     popUpTo(Route.Loading) { inclusive = true }
                 }
             }
         }
         composable(Route.Login) {
             Login { destination ->
-                navController.navigate(when (destination) { "signup" -> Route.SignUp; else -> Route.Welcome })
+                if (destination == "signup") {
+                    navController.navigate(Route.SignUp)
+                } else {
+                    sessionPreferences.edit().putBoolean(KEY_LOGGED_IN, true).apply()
+                    navController.navigate(Route.Welcome)
+                }
             }
         }
         composable(Route.SignUp) {
@@ -268,9 +311,9 @@ fun AppNavGraph(
             )
         }
         composable(Route.PropertyList) {
-            PropertyListScreen(
+            PropertyListApiRoute(
                 onAddProperty = { navController.navigate(Route.PropertyForm) },
-                onOpenProperty = { navController.navigate(Route.PropertyDetail) },
+                onOpenProperty = { navController.navigate(Route.propertyDetail(it)) },
                 onTabSelected = { tab ->
                     goToTab(
                         when (tab) {
@@ -283,18 +326,46 @@ fun AppNavGraph(
                 },
             )
         }
-        composable(Route.PropertyForm) {
-            PropertyFormScreen(
+        composable(Route.PropertyForm) { entry ->
+            val context = LocalContext.current
+            val selectedAddress by entry.savedStateHandle.getStateFlow("addressSummary", "").collectAsState()
+            val locationPicker = rememberLauncherForActivityResult(
+                ActivityResultContracts.StartActivityForResult(),
+            ) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    result.data?.getStringExtra(LocationPickerActivity.EXTRA_ADDRESS)?.let { address ->
+                        entry.savedStateHandle["addressSummary"] = address
+                    }
+                }
+            }
+            PropertyFormApiRoute(
                 onBack = navController::popBackStack,
-                onSaved = { navController.navigate(Route.PropertyList) },
+                onSaved = { propertyId -> navController.navigate(Route.propertyDetail(propertyId)) },
+                onOpenAddressPicker = { navController.navigate(Route.AddressPicker) },
+                onOpenLocationPicker = {
+                    locationPicker.launch(Intent(context, LocationPickerActivity::class.java))
+                },
+                selectedAddress = selectedAddress,
             )
         }
-        composable(Route.PropertyDetail) {
-            PropertyDetailScreen(
+        composable(Route.AddressPicker) {
+            AddressPickerScreen(
                 onBack = navController::popBackStack,
-                onStartInspection = { navController.navigate(Route.PropertySelect) },
+                onConfirmed = { address ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set("addressSummary", address)
+                    navController.popBackStack()
+                },
+            )
+        }
+        composable(
+            route = Route.PropertyDetail,
+            arguments = listOf(navArgument("propertyId") { type = NavType.StringType }),
+        ) {
+            PropertyDetailApiRoute(
+                onBack = navController::popBackStack,
+                onStartInspection = { navController.navigate(Route.inspectionPrep(it)) },
                 onOpenReport = { navController.navigate(Route.ReportDetail) },
-                onOpenBasicInfo = { navController.navigate(Route.PropertyInfo) },
+                onOpenBasicInfo = { property -> property?.id?.let { navController.navigate(Route.propertyInfo(it)) } },
                 onTabSelected = { tab ->
                     goToTab(
                         when (tab) {
@@ -313,27 +384,37 @@ fun AppNavGraph(
                 onAddProperty = { navController.navigate(Route.PropertyForm) },
             )
         }
-        composable(Route.PropertyInfo) {
-            PropertyInfoScreen(onBack = navController::popBackStack)
+        composable(
+            route = Route.PropertyInfo,
+            arguments = listOf(navArgument("propertyId") { type = NavType.StringType }),
+        ) {
+            PropertyInfoApiRoute(onBack = navController::popBackStack)
         }
         composable(Route.PropertySelect) {
-            PropertySelectScreen(
+            PropertySelectApiRoute(
                 onBack = navController::popBackStack,
-                onSelected = { navController.navigate(Route.InspectionPrep) },
+                onSelected = { navController.navigate(Route.inspectionPrep(it)) },
                 onAddProperty = { navController.navigate(Route.PropertyForm) },
             )
         }
-        composable(Route.InspectionPrep) {
-            InspectionPrepScreen(
+        composable(
+            route = Route.InspectionPrep,
+            arguments = listOf(navArgument("propertyId") { type = NavType.StringType }),
+        ) {
+            InspectionPrepApiRoute(
                 onBack = navController::popBackStack,
-                onStartInspection = { navController.navigate(Route.InspectionPermissionWarning) },
+                onCreated = { navController.navigate(Route.inspectionPermission(it)) },
                 onSelectProperty = { navController.navigate(Route.PropertySelect) },
             )
         }
-        composable(Route.InspectionPermissionWarning) {
+        composable(
+            route = Route.InspectionPermissionWarning,
+            arguments = listOf(navArgument("inspectionId") { type = NavType.StringType }),
+        ) {
+            val inspectionId = it.arguments?.getString("inspectionId") ?: return@composable
             InspectionPermissionWarningScreen(
                 onBack = navController::popBackStack,
-                onContinue = { navController.navigate(Route.inspectionCountdown("entry")) },
+                onContinue = { navController.navigate(Route.inspectionCountdown(inspectionId, "entry")) },
             )
         }
         composable(Route.Tutorial) {
@@ -345,19 +426,29 @@ fun AppNavGraph(
         composable(Route.TutorialChecklist) {
             TutorialChecklistScreen(
                 onBack = navController::popBackStack,
-                onOpenGuide = { navController.navigate(Route.guideZone("entry")) },
-                onStart = { navController.navigate(Route.Home) },
+                onOpenGuide = {
+                    sessionPreferences.edit().putBoolean(KEY_TUTORIAL_COMPLETED, true).apply()
+                    navController.navigate(Route.guideZone("entry"))
+                },
+                onStart = {
+                    sessionPreferences.edit().putBoolean(KEY_TUTORIAL_COMPLETED, true).apply()
+                    navController.navigate(Route.Home)
+                },
             )
         }
         composable(
             route = Route.InspectionCountdown,
-            arguments = listOf(navArgument("zone") { type = NavType.StringType }),
+            arguments = listOf(
+                navArgument("inspectionId") { type = NavType.StringType },
+                navArgument("zone") { type = NavType.StringType },
+            ),
         ) {
+            val inspectionId = it.arguments?.getString("inspectionId") ?: return@composable
             val zone = it.arguments?.getString("zone") ?: "entry"
             InspectionCountdownScreen(
                 onFinished = {
-                    navController.navigate(Route.liveInspection(zone, android.os.SystemClock.elapsedRealtime())) {
-                        popUpTo(Route.inspectionCountdown(zone)) { inclusive = true }
+                    navController.navigate(Route.liveInspection(inspectionId, zone, android.os.SystemClock.elapsedRealtime())) {
+                        popUpTo(Route.inspectionCountdown(inspectionId, zone)) { inclusive = true }
                     }
                 },
             )
@@ -408,37 +499,46 @@ fun AppNavGraph(
         composable(
             route = Route.LiveInspection,
             arguments = listOf(
+                navArgument("inspectionId") { type = NavType.StringType },
                 navArgument("zone") { type = NavType.StringType },
                 navArgument("startedAt") { type = NavType.LongType },
             ),
         ) {
+            val inspectionId = it.arguments?.getString("inspectionId") ?: return@composable
             val zone = it.arguments?.getString("zone") ?: "entry"
             val startedAt = it.arguments?.getLong("startedAt") ?: android.os.SystemClock.elapsedRealtime()
-            LiveInspectionScreen(
+            LiveInspectionApiRoute(
                 zoneId = zone,
                 startedAt = startedAt,
-                onBack = navController::popBackStack,
+                onCancelled = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } },
                 onOpenGuide = { item -> navController.navigate(Route.guideDetail(zone, item)) },
-                onNextZone = { nextZone -> navController.navigate(Route.liveInspection(nextZone, startedAt)) },
-                onFinish = { durationSeconds -> navController.navigate(Route.finishConfirm(durationSeconds)) },
+                onNextZone = { nextZone -> navController.navigate(Route.liveInspection(inspectionId, nextZone, startedAt)) },
+                onFinish = { durationSeconds -> navController.navigate(Route.finishConfirm(inspectionId, durationSeconds)) },
             )
         }
         composable(
             route = Route.FinishConfirm,
-            arguments = listOf(navArgument("durationSeconds") { type = NavType.LongType }),
+            arguments = listOf(
+                navArgument("inspectionId") { type = NavType.StringType },
+                navArgument("durationSeconds") { type = NavType.LongType },
+            ),
         ) {
+            val inspectionId = it.arguments?.getString("inspectionId") ?: return@composable
             val durationSeconds = it.arguments?.getLong("durationSeconds") ?: 0L
-            FinishConfirmScreen(
+            InspectionFinishApiRoute(
                 onBack = navController::popBackStack,
                 durationSeconds = durationSeconds,
-                onConfirm = {
+                onEnded = {
                     reportProcessing = true
-                    navController.navigate(Route.Analysis)
+                    navController.navigate(Route.analysis(inspectionId))
                 },
             )
         }
-        composable(Route.Analysis) {
-            AnalysisProgressScreen(
+        composable(
+            route = Route.Analysis,
+            arguments = listOf(navArgument("inspectionId") { type = NavType.StringType }),
+        ) {
+            MediaUploadApiRoute(
                 onBackToHome = {
                     navController.navigate(Route.Home) {
                         popUpTo(Route.Home) { inclusive = true }
@@ -477,7 +577,7 @@ fun AppNavGraph(
             ReportDetailScreen(
                 nickname = nickname,
                 onBack = navController::popBackStack,
-                onOpenProperty = { navController.navigate(Route.PropertyDetail) },
+                onOpenProperty = { navController.navigate(Route.PropertyList) },
             )
         }
         composable(Route.Profile) {

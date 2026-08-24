@@ -2,6 +2,7 @@ package com.tenantleaf.api.property
 
 import com.tenantleaf.api.inspection.InspectionRepository
 import com.tenantleaf.api.media.ApiIdempotencyRecordRepository
+import com.tenantleaf.api.media.MediaAnalysisJobRepository
 import com.tenantleaf.api.media.MediaRepository
 import org.hamcrest.Matchers.hasSize
 import org.junit.jupiter.api.BeforeEach
@@ -31,11 +32,13 @@ class PropertyApiIntegrationTests(
     @Autowired private val inspectionRepository: InspectionRepository,
     @Autowired private val repository: PropertyRepository,
     @Autowired private val mediaRepository: MediaRepository,
+    @Autowired private val analysisJobRepository: MediaAnalysisJobRepository,
     @Autowired private val idempotencyRepository: ApiIdempotencyRecordRepository,
 ) {
     @BeforeEach
     fun cleanDatabase() {
         idempotencyRepository.deleteAll()
+        analysisJobRepository.deleteAll()
         mediaRepository.deleteAll()
         inspectionRepository.deleteAll()
         repository.deleteAll()
