@@ -15,6 +15,7 @@ import android.view.TextureView
 import android.widget.MediaController
 import android.widget.VideoView
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -36,6 +37,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import com.seipseip.app.feature.guide.guideImageResource
 import com.meta.wearable.dat.camera.types.VideoQuality
+import com.meta.wearable.dat.core.Wearables
+import com.meta.wearable.dat.core.types.Permission
+import com.meta.wearable.dat.core.types.PermissionStatus
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.ui.window.Dialog
@@ -554,6 +558,25 @@ fun LiveInspectionScreen(
     val connectionState by glassViewModel.uiState.collectAsState()
 
     val context = LocalContext.current
+    var cameraPermissionRequested by remember { mutableStateOf(false) }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = Wearables.RequestPermissionContract(),
+    ) { result ->
+        result.fold(
+            onSuccess = { status ->
+                if (status == PermissionStatus.Granted) glassViewModel.startPreview()
+            },
+            onFailure = { _, _ -> Unit },
+        )
+    }
+    LaunchedEffect(previewState.needsCameraPermission) {
+        if (previewState.needsCameraPermission && !cameraPermissionRequested) {
+            cameraPermissionRequested = true
+            cameraPermissionLauncher.launch(Permission.CAMERA)
+        } else if (!previewState.needsCameraPermission) {
+            cameraPermissionRequested = false
+        }
+    }
     LaunchedEffect(inspectionId) {
         VoiceRecordSession.start(context, inspectionId)
     }
