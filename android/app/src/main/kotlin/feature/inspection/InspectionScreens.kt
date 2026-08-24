@@ -7,6 +7,7 @@ import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.SystemClock
 import android.speech.tts.TextToSpeech
+import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.view.Surface
@@ -16,7 +17,9 @@ import android.widget.VideoView
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.collectAsState
+import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.viewinterop.AndroidView
@@ -24,6 +27,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.seipseip.app.feature.home.GlassConnectionViewModel
 import com.seipseip.app.feature.home.rememberGlassConnectionViewModel
 import com.seipseip.app.feature.inspection.preview.PhoneCameraPreviewHelper
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import com.seipseip.app.feature.guide.guideImageResource
 import com.meta.wearable.dat.camera.types.VideoQuality
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -111,6 +119,7 @@ fun InspectionPrepScreen(
 }
 @Composable
 fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit) {
+    val context = LocalContext.current
     AppPageScaffold(title = "촬영 전 경고", onBack = onBack) {
         Card(
             modifier = Modifier.fillMaxWidth().border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(18.dp)),
@@ -125,7 +134,10 @@ fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit
             }
         }
         Box(
-            modifier = Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFB42318)).clickable(onClick = onContinue),
+            modifier = Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFB42318)).clickable {
+                VoiceGuideManager.warmUp(context)
+                onContinue()
+            },
             contentAlignment = Alignment.Center,
         ) {
             Text("허가를 확인했고 촬영을 계속합니다", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
@@ -137,26 +149,14 @@ fun InspectionCountdownScreen(onFinished: () -> Unit) {
     val context = LocalContext.current
     var count by remember { mutableStateOf(3) }
 
-    DisposableEffect(context) {
-        var engine: TextToSpeech? = null
-        engine = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                engine?.language = Locale.KOREAN
-                engine?.speak("3초 뒤 촬영이 시작됩니다.", TextToSpeech.QUEUE_FLUSH, null, "inspection_countdown")
-            }
-        }
-        onDispose {
-            engine?.stop()
-            engine?.shutdown()
-        }
-    }
     LaunchedEffect(Unit) {
+        VoiceGuideManager.speak(context, "3초 뒤 촬영이 시작됩니다.")
         count = 3
-        delay(1_000)
+        kotlinx.coroutines.delay(1_000)
         count = 2
-        delay(1_000)
+        kotlinx.coroutines.delay(1_000)
         count = 1
-        delay(1_000)
+        kotlinx.coroutines.delay(1_000)
         onFinished()
     }
 
@@ -514,11 +514,25 @@ fun LiveInspectionScreen(
     val connectionState by glassViewModel.uiState.collectAsState()
 
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var isFinishing by remember { mutableStateOf(false) }
+    val recorder = remember(context) { com.seipseip.app.feature.inspection.preview.InspectionVideoRecorder(context) }
     var cameraSource by remember { mutableStateOf(CameraSource.GLASS) }
     var activeSurface by remember { mutableStateOf<Surface?>(null) }
     val phoneCameraHelper = remember(context) { PhoneCameraPreviewHelper(context) }
 
+    DisposableEffect(Unit) {
+        onDispose {
+            if (recorder.isRecording) {
+                recorder.stopRecordingSync()
+            }
+        }
+    }
+
     DisposableEffect(glassViewModel, cameraSource) {
+        if (!recorder.isRecording) {
+            recorder.startRecording()
+        }
         val surface = activeSurface
         if (cameraSource == CameraSource.GLASS) {
             phoneCameraHelper.stopPreview()
@@ -541,6 +555,7 @@ fun LiveInspectionScreen(
     }
 
     var showFinishDialog by remember { mutableStateOf(false) }
+    var activeGuideIndex by remember { mutableStateOf<Int?>(null) }
     var isPaused by remember { mutableStateOf(false) }
     var nowElapsed by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
     var accumulatedPausedTime by remember { mutableStateOf(0L) }
@@ -553,24 +568,34 @@ fun LiveInspectionScreen(
                 lastPauseTimestamp = 0L
             }
             isPaused = false
-            glassViewModel.startPreview()
+            recorder.resumeRecording()
+            if (cameraSource == CameraSource.GLASS) {
+                glassViewModel.startPreview()
+            } else {
+                activeSurface?.let { phoneCameraHelper.startPreview(it) }
+            }
             VoiceGuideManager.speak(context, "촬영을 재개합니다.")
         } else {
             lastPauseTimestamp = SystemClock.elapsedRealtime()
             isPaused = true
-            glassViewModel.stopPreview()
+            recorder.pauseRecording()
+            if (cameraSource == CameraSource.GLASS) {
+                glassViewModel.stopPreview()
+            } else {
+                phoneCameraHelper.stopPreview()
+            }
             VoiceGuideManager.speak(context, "촬영을 일시정지합니다.")
         }
     }
 
-    LaunchedEffect(startedAt, isPaused) {
-        while (!isPaused) {
-            nowElapsed = SystemClock.elapsedRealtime()
-            delay(1_000)
+    var durationSeconds by remember { mutableStateOf(0L) }
+
+    LaunchedEffect(isPaused) {
+        while (true) {
+            durationSeconds = recorder.getRecordedDurationSeconds()
+            kotlinx.coroutines.delay(500)
         }
     }
-    val effectiveNow = if (isPaused && lastPauseTimestamp > 0L) lastPauseTimestamp else nowElapsed
-    val durationSeconds = ((effectiveNow - startedAt - accumulatedPausedTime) / 1_000L).coerceAtLeast(0L)
 
     var showQualityMenu by remember { mutableStateOf(false) }
 
@@ -699,21 +724,42 @@ fun LiveInspectionScreen(
                                         activeSurface = surface
                                         if (cameraSource == CameraSource.GLASS) {
                                             glassViewModel.setPreviewSurface(surface)
-                                            applyCenterCropTransform(this@apply, previewState.videoWidth, previewState.videoHeight)
                                         } else {
                                             phoneCameraHelper.startPreview(surface)
                                         }
+                                        applyCenterCropTransform(this@apply, previewState.videoWidth, previewState.videoHeight)
                                     }
                                     override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
                                         applyCenterCropTransform(this@apply, previewState.videoWidth, previewState.videoHeight)
                                     }
+                                    private var lastFrameTime = 0L
+                                    private var reusableBitmap: Bitmap? = null
+
                                     override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture): Boolean {
                                         activeSurface = null
                                         glassViewModel.setPreviewSurface(null)
                                         phoneCameraHelper.stopPreview()
+                                        reusableBitmap?.recycle()
+                                        reusableBitmap = null
                                         return true
                                     }
-                                    override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {}
+
+                                    override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {
+                                        val now = SystemClock.elapsedRealtime()
+                                        if (now - lastFrameTime >= 30L) {
+                                            lastFrameTime = now
+                                            val viewW = this@apply.width
+                                            val viewH = this@apply.height
+                                            if (viewW > 0 && viewH > 0) {
+                                                val bmp = reusableBitmap?.takeIf { it.width == viewW && it.height == viewH } ?: run {
+                                                    reusableBitmap?.recycle()
+                                                    Bitmap.createBitmap(viewW, viewH, Bitmap.Config.ARGB_8888).also { reusableBitmap = it }
+                                                }
+                                                this@apply.getBitmap(bmp)
+                                                recorder.drawBitmapFrame(bmp)
+                                            }
+                                        }
+                                    }
                                 }
                                 addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
                                     applyCenterCropTransform(this, previewState.videoWidth, previewState.videoHeight)
@@ -799,7 +845,7 @@ fun LiveInspectionScreen(
                     Text(liveContent.checkDescription, color = Secondary, fontSize = 11.sp, lineHeight = 16.sp)
                     liveContent.items.forEachIndexed { index, item ->
                         Row(
-                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (index == 0) PaleGreen else Color(0xFFF8F8F6)).clickable { onOpenGuide(index) }.padding(horizontal = 11.dp, vertical = 10.dp),
+                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (index == 0) PaleGreen else Color(0xFFF8F8F6)).clickable { activeGuideIndex = index }.padding(horizontal = 11.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(if (index == 0) "●" else "○", color = if (index == 0) Green else Secondary, fontSize = 11.sp)
@@ -860,6 +906,94 @@ fun LiveInspectionScreen(
                 ) { Text("점검 종료", color = Orange, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold) }
             }
         }
+        activeGuideIndex?.let { guideIdx ->
+            val zone = UiCatalog.zone(zoneId)
+            val item = zone.items.getOrElse(guideIdx) { zone.items.first() }
+            val steps = item.steps
+            val imageRes = guideImageResource(zoneId, guideIdx)
+            val progress = "${zone.title} ${guideIdx + 1} / ${zone.items.size}"
+
+            Box(
+                modifier = Modifier.fillMaxSize().background(Color(0x8A173426)).padding(horizontal = 20.dp, vertical = 24.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(Color.White)
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            progress,
+                            modifier = Modifier.clip(RoundedCornerShape(99.dp)).background(PaleGreen).padding(horizontal = 9.dp, vertical = 4.dp),
+                            color = Green, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold,
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Box(
+                            modifier = Modifier.size(30.dp).clip(CircleShape).background(Color(0xFFF0F0F0)).clickable { activeGuideIndex = null },
+                            contentAlignment = Alignment.Center,
+                        ) { Text("✕", color = Secondary, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
+                    }
+
+                    Text(item.title, color = DeepGreen, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(item.description, color = Secondary, fontSize = 11.sp, lineHeight = 16.sp)
+
+                    Box(modifier = Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(14.dp)).background(PaleGreen)) {
+                        Image(
+                            painter = painterResource(imageRes),
+                            contentDescription = "${item.title} 사진 예시",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(PaleGreen).padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text("이렇게 살펴보세요", color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
+                        steps.forEachIndexed { idx, step ->
+                            Row(verticalAlignment = Alignment.Top) {
+                                Text("${idx + 1}. ", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(step, color = DeepGreen, fontSize = 10.sp, lineHeight = 14.sp)
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        if (guideIdx < zone.items.lastIndex) {
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(44.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(PaleGreen)
+                                    .clickable { activeGuideIndex = guideIdx + 1 },
+                                contentAlignment = Alignment.Center,
+                            ) { Text("다음 가이드", color = Green, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                        }
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(44.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Green)
+                                .clickable { activeGuideIndex = null },
+                            contentAlignment = Alignment.Center,
+                        ) { Text("확인 완료", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                    }
+                }
+            }
+        }
         if (showFinishDialog) {
             Box(
                 modifier = Modifier.fillMaxSize().background(Color(0x8A173426)).padding(horizontal = 28.dp),
@@ -888,12 +1022,19 @@ fun LiveInspectionScreen(
                         contentAlignment = Alignment.Center,
                     ) { Text("아니요, 계속 촬영할게요", color = Green, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
                     Box(
-                        modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(Orange).clickable {
-                            VoiceGuideManager.speak(context, "촬영을 종료합니다. 해당 영상을 업로드해주세요.")
-                            onFinish(durationSeconds)
+                        modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(if (isFinishing) Secondary else Orange).clickable(enabled = !isFinishing) {
+                            if (!isFinishing) {
+                                isFinishing = true
+                                VoiceGuideManager.speak(context, "촬영을 종료합니다. 해당 영상을 업로드해주세요.")
+                                coroutineScope.launch {
+                                    val finalDuration = recorder.getRecordedDurationSeconds().coerceAtLeast(durationSeconds)
+                                    recorder.stopRecording()
+                                    onFinish(finalDuration)
+                                }
+                            }
                         },
                         contentAlignment = Alignment.Center,
-                    ) { Text("네, 종료할게요", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
+                    ) { Text(if (isFinishing) "영상 저장 및 정리 중..." else "네, 종료할게요", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
                 }
             }
         }
@@ -901,24 +1042,58 @@ fun LiveInspectionScreen(
 }
 
 object VoiceGuideManager {
+    private val lock = Any()
     private var tts: TextToSpeech? = null
+    private var isInitialized = false
+    private var pendingText: String? = null
 
-    fun speak(context: Context, text: String) {
-        val appContext = context.applicationContext
-        if (tts == null) {
+    fun warmUp(context: Context) {
+        synchronized(lock) {
+            if (tts != null) return
+            val appContext = context.applicationContext
             tts = TextToSpeech(appContext) { status ->
-                if (status == TextToSpeech.SUCCESS) {
-                    tts?.language = java.util.Locale.KOREAN
-                    tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "voice_guide_${System.currentTimeMillis()}")
+                synchronized(lock) {
+                    if (status == TextToSpeech.SUCCESS) {
+                        tts?.language = java.util.Locale.KOREAN
+                        isInitialized = true
+                        pendingText?.let { text ->
+                            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "voice_guide_${System.currentTimeMillis()}")
+                            pendingText = null
+                        }
+                    }
                 }
             }
-        } else {
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "voice_guide_${System.currentTimeMillis()}")
+        }
+    }
+
+    fun speak(context: Context, text: String) {
+        synchronized(lock) {
+            val appContext = context.applicationContext
+            if (tts == null) {
+                pendingText = text
+                warmUp(appContext)
+            } else if (isInitialized) {
+                tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "voice_guide_${System.currentTimeMillis()}")
+            } else {
+                pendingText = text
+            }
         }
     }
 
     fun stop() {
-        tts?.stop()
+        synchronized(lock) {
+            tts?.stop()
+        }
+    }
+
+    fun shutdown() {
+        synchronized(lock) {
+            tts?.stop()
+            tts?.shutdown()
+            tts = null
+            isInitialized = false
+            pendingText = null
+        }
     }
 }
 
@@ -927,9 +1102,8 @@ private fun applyCenterCropTransform(textureView: TextureView, videoWidth: Int, 
     val viewHeight = textureView.height.toFloat()
     if (viewWidth <= 0f || viewHeight <= 0f) return
 
-    // 비디오 해상도가 아직 0인 경우 기본 3:4 세로 비율(예: 864x1152)을 가정하여 찌그러짐 방지
-    val effectiveWidth = if (videoWidth > 0) videoWidth.toFloat() else 3f
-    val effectiveHeight = if (videoHeight > 0) videoHeight.toFloat() else 4f
+    val effectiveWidth = if (videoWidth > 0) videoWidth.toFloat() else 720f
+    val effectiveHeight = if (videoHeight > 0) videoHeight.toFloat() else 1280f
 
     val viewRatio = viewWidth / viewHeight
     val videoRatio = effectiveWidth / effectiveHeight
@@ -938,11 +1112,9 @@ private fun applyCenterCropTransform(textureView: TextureView, videoWidth: Int, 
     val scaleY: Float
 
     if (videoRatio > viewRatio) {
-        // 비디오가 뷰보다 가로로 긴 경우: 높이를 맞추고 좌우를 잘라냄
         scaleY = 1f
         scaleX = (effectiveWidth * (viewHeight / effectiveHeight)) / viewWidth
     } else {
-        // 비디오가 뷰보다 세로로 긴 경우(Meta Glass 기본): 가로를 꽉 채우고 상하를 자연스럽게 잘라냄
         scaleX = 1f
         scaleY = (effectiveHeight * (viewWidth / effectiveWidth)) / viewHeight
     }
