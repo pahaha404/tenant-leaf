@@ -33,14 +33,20 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,10 +58,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.doOnAttach
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.kakao.vectormap.GestureType
+import com.kakao.vectormap.KakaoMap
+import com.kakao.vectormap.KakaoMapReadyCallback
+import com.kakao.vectormap.LatLng
+import com.kakao.vectormap.MapLifeCycleCallback
+import com.kakao.vectormap.MapView
+import com.seipseip.app.feature.property.location.KakaoAddressSearch
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
@@ -101,14 +120,26 @@ fun PropertyListScreen(
     onOpenProperty: (String) -> Unit,
     onDeleteProperty: (String) -> Unit,
     onRetry: () -> Unit,
+    onOpenMapOverview: (() -> Unit)? = null,
     onTabSelected: (String) -> Unit,
 ) {
     AppPageScaffold(
         title = "매물",
         selectedTab = AppTab.Property,
+        topTrailingAction = if (onOpenMapOverview != null) {
+            {
+                IconButton(onClick = onOpenMapOverview) {
+                    Icon(
+                        imageVector = Icons.Outlined.Map,
+                        contentDescription = "매물 지도 보기",
+                        tint = DeepGreen,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            }
+        } else null,
         bottomAction = {
-            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                InfoCard(title = "방문 전 확인", description = "방문 일정과 주소를 미리 확인하면 점검 준비가 쉬워요.", accent = PaleGreen)
+            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
                 PrimaryButton("새 매물 등록", onAddProperty)
             }
         },
@@ -123,8 +154,6 @@ fun PropertyListScreen(
             )
         },
     ) {
-        Text("점검할 매물을 관리해요", color = Secondary, fontSize = 13.sp)
-        StateBadge("등록 매물 ${properties.size}개")
         when {
             loading -> Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
             errorMessage != null -> InfoCard("서버 연결 확인 필요", errorMessage, onClick = onRetry)
@@ -158,7 +187,7 @@ private fun SwipeToDeletePropertyCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp)),
+            .clip(RoundedCornerShape(14.dp)),
     ) {
         Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.CenterEnd) {
             Box(
@@ -431,13 +460,28 @@ fun PropertyDetailScreen(
     onBack: () -> Unit,
     onStartInspection: () -> Unit,
     onOpenReport: () -> Unit,
-    onOpenBasicInfo: () -> Unit,
+    onOpenBasicInfo: () -> Unit = {},
+    onDeleteProperty: (() -> Unit)? = null,
     onTabSelected: (String) -> Unit,
 ) {
+    var showDeleteDialog by rememberSaveable(property?.id) { mutableStateOf(false) }
+
     AppPageScaffold(
         title = "매물 상세",
         onBack = onBack,
         selectedTab = AppTab.Property,
+        topTrailingAction = {
+            if (property != null && onDeleteProperty != null) {
+                IconButton(onClick = { showDeleteDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = "매물 삭제",
+                        tint = Color(0xFFC93B2B),
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+            }
+        },
         onTabSelected = { tab ->
             onTabSelected(
                 when (tab) {
@@ -449,22 +493,266 @@ fun PropertyDetailScreen(
             )
         },
     ) {
+        if (showDeleteDialog && property != null && onDeleteProperty != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("매물을 삭제할까요?") },
+                text = { Text("${property.name} 매물 정보가 삭제됩니다.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showDeleteDialog = false
+                        onDeleteProperty()
+                    }) { Text("삭제", color = Color(0xFFC93B2B)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) { Text("취소") }
+                },
+            )
+        }
+
         if (loading) Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
-        Text(property?.name ?: "매물 정보", color = DeepGreen, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
-        Text(property?.address ?: "주소 미입력", color = Secondary, fontSize = 13.sp)
+
+        // 1. Hero Title & Address
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = property?.name ?: "매물 정보",
+                color = DeepGreen,
+                fontSize = 19.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.MyLocation,
+                    contentDescription = null,
+                    tint = Green,
+                    modifier = Modifier.size(14.dp),
+                )
+                Text(
+                    text = property?.address ?: "주소 미입력",
+                    color = Secondary,
+                    fontSize = 12.sp,
+                )
+            }
+        }
+
+        // 2. Financial KPI Metric Stat Grid (보증금 · 월세 · 관리비 3단 타일)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FinancialMetricTile(
+                modifier = Modifier.weight(1f),
+                label = "보증금",
+                value = property?.depositAmount?.let(::formatWon) ?: "미입력",
+                isHighlight = true,
+            )
+            FinancialMetricTile(
+                modifier = Modifier.weight(1f),
+                label = "월세",
+                value = property?.monthlyRentAmount?.let(::formatWon) ?: "미입력",
+            )
+            FinancialMetricTile(
+                modifier = Modifier.weight(1f),
+                label = "관리비",
+                value = property?.maintenanceFeeAmount?.let(::formatWon) ?: "미입력",
+            )
+        }
+
+        // 3. Report Action Card
         InfoCard(
-            title = "기본 정보",
-            description = "보증금 ${property?.depositAmount?.let(::formatWon) ?: "미입력"} · 월세 ${property?.monthlyRentAmount?.let(::formatWon) ?: "미입력"} · 관리비 ${property?.maintenanceFeeAmount?.let(::formatWon) ?: "미입력"}",
-            onClick = onOpenBasicInfo,
-        )
-        InfoCard(
-            title = "리포트",
-            description = "2026.08.18 · 점검 결과 리포트를 확인해요.",
+            title = "점검 결과 리포트",
+            description = "촬영한 현장 기록과 AI 분석 결과를 확인해요.",
+            accent = PaleGreen,
             onClick = onOpenReport,
         )
-        PrimaryButton("이 매물 임장 시작", onStartInspection)
 
+        // 4. Kakao Map with Pinpoint at Address (해당 주소 핀포인트 카카오 지도)
+        PropertyKakaoMapCard(
+            propertyName = property?.name ?: "매물 위치",
+            address = property?.address ?: "주소 미입력",
+        )
+
+        // 5. Start Inspection CTA Button
+        PrimaryButton("이 매물 임장 시작", onStartInspection)
+    }
+}
+
+@Composable
+private fun PropertyKakaoMapCard(
+    propertyName: String,
+    address: String,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    var coordinates by remember(address) { mutableStateOf<Pair<Double, Double>?>(null) }
+    var loading by remember(address) { mutableStateOf(true) }
+
+    LaunchedEffect(address) {
+        loading = true
+        coordinates = KakaoAddressSearch.resolveAddressLocation(context, address)
+        loading = false
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF3F4F6)),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Color(0xFFEBE8E1)),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(170.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            val coords = coordinates
+            if (coords != null) {
+                PropertyKakaoMapView(
+                    latitude = coords.first,
+                    longitude = coords.second,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                // Pinpoint Marker with Property Name Callout
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(y = (-18).dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = DeepGreen,
+                        shadowElevation = 3.dp,
+                    ) {
+                        Text(
+                            text = propertyName,
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Filled.LocationOn,
+                        contentDescription = "매물 위치 핀",
+                        tint = Color(0xFFE11D48),
+                        modifier = Modifier.size(32.dp),
+                    )
+                }
+            } else if (loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Green,
+                    strokeWidth = 2.5.dp,
+                )
+            } else {
+                Text(
+                    text = if (address.isBlank() || address == "주소 미입력") "등록된 주소가 없습니다." else "지도를 불러올 수 없습니다.",
+                    color = Secondary,
+                    fontSize = 12.sp,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PropertyKakaoMapView(
+    latitude: Double,
+    longitude: Double,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var mapView by remember { mutableStateOf<MapView?>(null) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> mapView?.resume()
+                Lifecycle.Event.ON_PAUSE -> mapView?.pause()
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    AndroidView(
+        factory = {
+            MapView(context).also { view ->
+                mapView = view
+                view.start(
+                    object : MapLifeCycleCallback() {
+                        override fun onMapDestroy() = Unit
+                        override fun onMapError(error: Exception) = Unit
+                    },
+                    object : KakaoMapReadyCallback() {
+                        override fun getPosition(): LatLng = LatLng.from(latitude, longitude)
+                        override fun getZoomLevel(): Int = 18
+                        override fun onMapReady(kakaoMap: KakaoMap) {
+                            GestureType.entries.forEach { gesture ->
+                                kakaoMap.setGestureEnable(gesture, false)
+                            }
+                        }
+                    },
+                )
+                view.doOnAttach {
+                    view.post {
+                        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            view.resume()
+                        }
+                    }
+                }
+            }
+        },
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun FinancialMetricTile(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    isHighlight: Boolean = false,
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = if (isHighlight) PaleGreen.copy(alpha = 0.55f) else Color.White,
+        ),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, if (isHighlight) Green.copy(alpha = 0.3f) else Color(0xFFEBE8E1)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 11.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = label,
+                color = Secondary,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = value,
+                color = if (isHighlight) DeepGreen else Color(0xFF234B38),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 1,
+            )
+        }
     }
 }
 @Composable
@@ -506,21 +794,28 @@ fun PropertySelectScreen(
 @Composable
 private fun PropertyCard(property: PropertyUiModel, selected: Boolean = false, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = if (selected) PaleGreen else Color.White),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(14.dp),
     ) {
         Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(7.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(property.name, color = DeepGreen, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.weight(1f))
-                StateBadge("점검 예정", Green)
-            }
-            Text(property.address, color = Secondary, fontSize = 12.sp)
-            Text(if (selected) "이 매물 선택됨" else "눌러서 상세 보기", color = Orange, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = property.name,
+                color = DeepGreen,
+                fontSize = 14.5.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
+            Text(
+                text = property.address,
+                color = Secondary,
+                fontSize = 11.5.sp,
+                maxLines = 1,
+            )
         }
     }
 }

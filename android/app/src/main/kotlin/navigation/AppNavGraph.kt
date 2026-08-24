@@ -75,6 +75,7 @@ import com.seipseip.app.integration.PropertyDetailApiRoute
 import com.seipseip.app.integration.PropertyFormApiRoute
 import com.seipseip.app.integration.PropertyInfoApiRoute
 import com.seipseip.app.integration.PropertyListApiRoute
+import com.seipseip.app.integration.PropertyMapApiRoute
 import com.seipseip.app.integration.PropertySelectApiRoute
 
 object Route {
@@ -92,6 +93,7 @@ object Route {
     const val HomeProcessing = "home_processing"
     const val ChecklistOverview = "checklist_overview"
     const val PropertyList = "properties"
+    const val PropertyMap = "property_map"
     const val PropertyForm = "property_form"
     const val AddressPicker = "address_picker"
     const val PropertyDetail = "property_detail/{propertyId}"
@@ -314,6 +316,7 @@ fun AppNavGraph(
             PropertyListApiRoute(
                 onAddProperty = { navController.navigate(Route.PropertyForm) },
                 onOpenProperty = { navController.navigate(Route.propertyDetail(it)) },
+                onOpenMapOverview = { navController.navigate(Route.PropertyMap) },
                 onTabSelected = { tab ->
                     goToTab(
                         when (tab) {
@@ -324,6 +327,13 @@ fun AppNavGraph(
                         },
                     )
                 },
+            )
+        }
+        composable(Route.PropertyMap) {
+            PropertyMapApiRoute(
+                onBack = navController::popBackStack,
+                onOpenProperty = { navController.navigate(Route.propertyDetail(it)) },
+                onAddProperty = { navController.navigate(Route.PropertyForm) },
             )
         }
         composable(Route.PropertyForm) { entry ->

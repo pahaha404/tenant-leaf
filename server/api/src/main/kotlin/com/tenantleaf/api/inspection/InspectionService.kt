@@ -82,7 +82,7 @@ class InspectionService(
     }
 
     private fun requireOwnedProperty(propertyId: UUID, ownerId: UUID) {
-        propertyRepository.findByIdAndOwnerId(propertyId, ownerId) ?: throw PropertyNotFoundException()
+        propertyRepository.findByIdAndOwnerIdAndDeletedAtIsNull(propertyId, ownerId) ?: throw PropertyNotFoundException()
     }
 
     private fun ownedInspection(inspectionId: UUID): InspectionEntity =

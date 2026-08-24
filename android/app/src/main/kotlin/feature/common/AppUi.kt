@@ -62,6 +62,7 @@ fun AppPageScaffold(
     selectedTab: AppTab? = null,
     onTabSelected: ((AppTab) -> Unit)? = null,
     bottomAction: (@Composable () -> Unit)? = null,
+    topTrailingAction: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     Scaffold(
@@ -84,27 +85,41 @@ fun AppPageScaffold(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             if (onBack != null) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.ArrowBack,
-                        contentDescription = "뒤로",
-                        modifier = Modifier.clickable(onClick = onBack),
-                        tint = Green,
-                    )
-                    Text(
-                        text = title,
-                        modifier = Modifier.padding(start = 12.dp),
-                        color = DeepGreen,
-                        fontWeight = FontWeight.Bold,
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.ArrowBack,
+                            contentDescription = "뒤로",
+                            modifier = Modifier.clickable(onClick = onBack),
+                            tint = Green,
+                        )
+                        Text(
+                            text = title,
+                            modifier = Modifier.padding(start = 12.dp),
+                            color = DeepGreen,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    topTrailingAction?.invoke()
                 }
             } else {
-                Text(
-                    text = title,
-                    color = DeepGreen,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = title,
+                        color = DeepGreen,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                    topTrailingAction?.invoke()
+                }
             }
             content()
         }

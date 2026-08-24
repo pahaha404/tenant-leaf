@@ -22,10 +22,13 @@ import com.seipseip.feature.property.presentation.PropertyFormViewModel
 import com.seipseip.feature.property.presentation.PropertyListViewModel
 import java.util.UUID
 
+import com.seipseip.app.feature.property.PropertyMapOverviewScreen
+
 @Composable
 fun PropertyListApiRoute(
     onAddProperty: () -> Unit,
     onOpenProperty: (String) -> Unit,
+    onOpenMapOverview: () -> Unit = {},
     onTabSelected: (String) -> Unit,
     viewModel: PropertyListViewModel = hiltViewModel(),
 ) {
@@ -40,7 +43,27 @@ fun PropertyListApiRoute(
         onOpenProperty = onOpenProperty,
         onDeleteProperty = { id -> runCatching { UUID.fromString(id) }.getOrNull()?.let(viewModel::delete) },
         onRetry = viewModel::refresh,
+        onOpenMapOverview = onOpenMapOverview,
         onTabSelected = onTabSelected,
+    )
+}
+
+@Composable
+fun PropertyMapApiRoute(
+    onBack: () -> Unit,
+    onOpenProperty: (String) -> Unit,
+    onAddProperty: () -> Unit,
+    viewModel: PropertyListViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    PropertyMapOverviewScreen(
+        properties = state.values().map(Property::toUi),
+        loading = state is ContentState.Loading || state is ContentState.Idle,
+        errorMessage = state.errorMessage(),
+        onBack = onBack,
+        onOpenProperty = onOpenProperty,
+        onAddProperty = onAddProperty,
+        onRetry = viewModel::refresh,
     )
 }
 
@@ -91,6 +114,11 @@ fun PropertyDetailApiRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val property = (state.content as? ContentState.Success<Property>)?.value?.toUi()
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            if (event is com.seipseip.feature.property.presentation.PropertyDetailEvent.Deleted) onBack()
+        }
+    }
     PropertyDetailScreen(
         property = property,
         loading = state.content is ContentState.Loading || state.content is ContentState.Idle,
@@ -99,6 +127,7 @@ fun PropertyDetailApiRoute(
         onStartInspection = { property?.id?.let(onStartInspection) },
         onOpenReport = onOpenReport,
         onOpenBasicInfo = { onOpenBasicInfo(property) },
+        onDeleteProperty = viewModel::delete,
         onTabSelected = onTabSelected,
     )
 }
