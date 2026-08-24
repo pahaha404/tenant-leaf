@@ -431,18 +431,18 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 - 설정은 `modelVersion`, `classId`, `observationMinConfidence`, `configuredAt`으로 관리하며 숫자 임계값을 OpenAPI에 고정하지 않는다.
 - 관찰 문구는 `균열`이 아니라 `균열로 추정되는 흔적 확인 필요`처럼 비확정 표현을 사용한다.
 
-`bbox`는 이미지 왼쪽 위를 원점으로 하는 정규화 좌표다.
+`bbox`는 EXIF 방향을 정규화한 원본 전체 JPEG의 왼쪽 위를 원점으로 하는 픽셀 `xyxy(left, top, right, bottom)` 좌표다. 서버는 AI가 본 이미지의 `width`, `height`와 원시 좌표를 함께 보존하고, Android에는 동일한 방향·비율의 JPEG와 좌표를 반환한다. 화면 크기용 정규화 또는 `xywh` 변환값은 파생값으로만 사용할 수 있으며 원본 좌표를 덮어쓰지 않는다.
 
 ```json
 {
-  "x": 0.125,
-  "y": 0.2,
-  "width": 0.3,
-  "height": 0.25
+  "left": 120.5,
+  "top": 80.2,
+  "right": 640.8,
+  "bottom": 410.4
 }
 ```
 
-네 값은 `0.0` 이상 `1.0` 이하이고 `x + width <= 1.0`, `y + height <= 1.0`이어야 한다.
+네 값은 모두 `0` 이상이며 `right > left`, `bottom > top`, `right <= image.width`, `bottom <= image.height`여야 한다.
 
 ### 4.9 관찰 `Observation`과 근거 사진
 
@@ -565,7 +565,7 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 
 - 작업 입력은 서버에 `UPLOADED`로 확정된 JPEG의 `mediaId`와 내부 객체 키를 사용한다.
 - AI Worker는 휴대전화 원본 영상, 갤러리 URI 또는 로컬 경로를 요청하지 않는다.
-- 결과에는 `mediaId`, 원본 `classId`, 정규화 `label`, `confidence`, `bbox`, `aiZone`, `zoneConfidence`, `zoneUncertain`, `zoneModelVersion`, 하자 모델 버전을 보존한다.
+- 결과에는 `mediaId`, 원본 `classId`, 정규화 `label`, `confidence`, EXIF 정방향 원본 JPEG 기준 픽셀 `xyxy` bbox, 이미지 `width`·`height`, `aiZone`, `zoneConfidence`, `zoneUncertain`, `zoneModelVersion`, 하자 모델 버전을 보존한다.
 - 서버는 라벨 쌍, 신뢰도, bbox와 ID를 검증한다.
 - 원시 탐지는 저장하고 모델 버전별 라벨 임계값 이상인 결과만 `Observation`으로 변환한다.
 - 구역 API 실패·불확실·미지원 결과는 `UNKNOWN`으로 정규화한다.

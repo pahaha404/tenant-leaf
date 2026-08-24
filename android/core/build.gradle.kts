@@ -59,8 +59,8 @@ openApiGenerate {
     apiPackage.set("com.seipseip.core.network.generated.api")
     modelPackage.set("com.seipseip.core.network.generated.model")
     globalProperties.set(mapOf(
-        "apis" to "Properties,Inspections,Media",
-        "models" to "CreatePropertyRequest,UpdatePropertyRequest,Property,PropertyPage,PageMetadata,Inspection,InspectionPage,InspectionStatus,InspectionAnalysisStatus,UpdateInspectionStatusRequest,CreateMediaUploadBatchRequest,CreateMediaUploadRequest,CreateMediaUploadBatchResponse,MediaUploadInstruction,Media,MediaPage,FinalizeInspectionMediaRequest,FinalizeInspectionMediaResponse,Zone,MediaType,CaptureSource,FrameOrigin,MediaUploadStatus,MediaAnalysisStatus,ErrorResponse,FieldError",
+        "apis" to "Properties,Inspections,Media,Observations,Reports",
+        "models" to "CreatePropertyRequest,UpdatePropertyRequest,Property,PropertyPage,PageMetadata,Inspection,InspectionPage,InspectionStatus,InspectionAnalysisStatus,UpdateInspectionStatusRequest,CreateMediaUploadBatchRequest,CreateMediaUploadRequest,CreateMediaUploadBatchResponse,MediaUploadInstruction,Media,MediaPage,FinalizeInspectionMediaRequest,FinalizeInspectionMediaResponse,Zone,MediaType,CaptureSource,FrameOrigin,MediaUploadStatus,MediaAnalysisStatus,Observation,ObservationPage,ObservationEvidence,EvidenceDetection,ImageDimensions,Bbox,BboxCoordinateSystem,ObservationType,ObservationStatus,AiLabel,UpdateObservationStatusRequest,ReportSummary,ReportDetail,ReportPage,ReportStatus,ReportFailureCode,ErrorResponse,FieldError",
         "supportingFiles" to "CollectionFormats.kt", "apiDocs" to "false", "apiTests" to "false",
         "modelDocs" to "false", "modelTests" to "false",
     ))

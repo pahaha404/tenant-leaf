@@ -202,7 +202,7 @@ python -m training.process_image_batch_room_defect `
 - 탐지 결과 배열 이름은 `detections`다.
 - 각 결과의 박스는 `box.left`, `box.top`, `box.right`, `box.bottom` 구조다.
 - 결과가 없으면 `detections: []`을 반환한다.
-- `unknown_defect`는 `classId: null`, `label: "unknown_defect"`로 반환할 수 있다.
+- 구체적인 유형을 분류하지 못한 하자 후보는 `classId: 12`, `label: "other"`로 반환한다.
 - 사용자 표시에는 `displayLabel` 한글 이름과 `displayColor` 클래스별 색상을 사용한다.
 
 ```json

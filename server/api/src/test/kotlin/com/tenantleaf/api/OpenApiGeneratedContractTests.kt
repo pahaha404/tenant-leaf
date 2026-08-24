@@ -3,6 +3,10 @@ package com.tenantleaf.api
 import com.tenantleaf.api.generated.api.PropertiesApi
 import com.tenantleaf.api.generated.api.InspectionsApi
 import com.tenantleaf.api.generated.api.MediaApi
+import com.tenantleaf.api.generated.api.ObservationsApi
+import com.tenantleaf.api.generated.api.ReportsApi
+import com.tenantleaf.api.generated.model.Bbox
+import com.tenantleaf.api.generated.model.BboxCoordinateSystem
 import com.tenantleaf.api.generated.model.AiLabel
 import com.tenantleaf.api.generated.model.CaptureSource
 import com.tenantleaf.api.generated.model.CreatePropertyRequest
@@ -32,6 +36,17 @@ class OpenApiGeneratedContractTests {
 		assertEquals("/api/v1", PropertiesApi.BASE_PATH)
 		assertEquals("/api/v1", InspectionsApi.BASE_PATH)
 		assertEquals("/api/v1", MediaApi.BASE_PATH)
+		assertEquals("/api/v1", ObservationsApi.BASE_PATH)
+		assertEquals("/api/v1", ReportsApi.BASE_PATH)
+	}
+
+	@Test
+	fun `근거 영역은 원본 JPEG 픽셀 xyxy 계약을 생성한다`() {
+		val box = Bbox(left = 10.0, top = 20.0, right = 110.0, bottom = 220.0)
+
+		assertEquals(10.0, box.left)
+		assertEquals(220.0, box.bottom)
+		assertEquals(listOf("PIXEL_XYXY"), BboxCoordinateSystem.entries.map { it.value })
 	}
 
 	@Test
@@ -127,6 +142,10 @@ class OpenApiGeneratedContractTests {
 		assertTrue(specification.contains("/inspections/{inspectionId}/observations"))
 		assertTrue(specification.contains("/observations/{observationId}"))
 		assertTrue(specification.contains("/properties/{propertyId}/reports"))
+		assertTrue(specification.contains("/inspections/{inspectionId}/report"))
+		assertTrue(specification.contains("coordinateSystem:"))
+		assertTrue(specification.contains("PIXEL_XYXY"))
+		assertTrue(specification.contains("scoreIsProvisional"))
 		assertTrue(specification.contains("maxItems: 20"))
 		assertTrue(specification.contains("maximum: 2097152"))
 		assertFalse(specification.contains("maximum: 1048576"))
