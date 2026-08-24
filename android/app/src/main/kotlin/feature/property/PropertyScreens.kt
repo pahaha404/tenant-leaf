@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Card
@@ -25,6 +26,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
@@ -41,6 +43,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
@@ -138,9 +141,19 @@ fun PropertyListScreen(
                 }
             }
         } else null,
-        bottomAction = {
-            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
-                PrimaryButton("새 매물 등록", onAddProperty)
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddProperty,
+                containerColor = Orange,
+                contentColor = Color.White,
+                shape = CircleShape,
+                modifier = Modifier.size(56.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Add,
+                    contentDescription = "새 매물 등록",
+                    modifier = Modifier.size(28.dp),
+                )
             }
         },
         onTabSelected = { tab ->
@@ -157,7 +170,7 @@ fun PropertyListScreen(
         when {
             loading -> Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
             errorMessage != null -> InfoCard("서버 연결 확인 필요", errorMessage, onClick = onRetry)
-            properties.isEmpty() -> InfoCard("등록된 매물이 없어요", "아래 버튼으로 첫 매물을 등록해 주세요.")
+            properties.isEmpty() -> InfoCard("등록된 매물이 없어요", "우측 하단 + 버튼으로 첫 매물을 등록해 주세요.", onClick = onAddProperty)
             else -> properties.forEach { property ->
                 SwipeToDeletePropertyCard(
                     property = property,

@@ -63,9 +63,11 @@ fun AppPageScaffold(
     onTabSelected: ((AppTab) -> Unit)? = null,
     bottomAction: (@Composable () -> Unit)? = null,
     topTrailingAction: (@Composable () -> Unit)? = null,
+    floatingActionButton: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     Scaffold(
+        floatingActionButton = { floatingActionButton?.invoke() },
         bottomBar = {
             Column {
                 bottomAction?.invoke()
