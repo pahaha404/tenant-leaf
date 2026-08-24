@@ -8,7 +8,7 @@
 >
 > 도메인 기준: [`도메인 규칙.md`](../../server/backendmds/도메인%20규칙.md)
 
-Android 앱, Kotlin API 서버와 AI 작업자가 같은 이름과 데이터 의미를 사용하기 위한 MVP 계약이다. 2.0은 현장 체크리스트 중심의 1.2 계약을 **구역·관찰·근거 미디어 중심**으로 교체했고, 2.1은 JPEG 업로드 계약을, 2.2는 미디어 집합 확정·AI 구역 분류·관찰 생성·자동 리포트 조회 계약을 확정한 검토 초안이다. 분석용 JPEG의 최대 크기는 사진당 2MiB다.
+Android 앱, Kotlin API 서버와 AI 작업자가 같은 이름과 데이터 의미를 사용하기 위한 MVP 계약이다. 2.0은 현장 체크리스트 중심의 1.2 계약을 **구역·관찰·근거 미디어 중심**으로 교체했고, 2.1은 JPEG 업로드 계약을, 2.2는 미디어 집합 확정·AI 구역 분류·관찰 생성·자동 리포트 조회 계약을, 2.3은 리포트 분석 진행률의 전체 JPEG 수 계약을 확정한 검토 초안이다. 분석용 JPEG의 최대 크기는 사진당 2MiB다.
 
 이 문서에서 `확정`으로 표시한 의미와 상태값만 구현 기준으로 사용한다. 요청·응답 형식이 아직 합의되지 않은 API는 설명만 남기고 OpenAPI에서 제외한다.
 
@@ -431,18 +431,18 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 - 설정은 `modelVersion`, `classId`, `observationMinConfidence`, `configuredAt`으로 관리하며 숫자 임계값을 OpenAPI에 고정하지 않는다.
 - 관찰 문구는 `균열`이 아니라 `균열로 추정되는 흔적 확인 필요`처럼 비확정 표현을 사용한다.
 
-`bbox`는 이미지 왼쪽 위를 원점으로 하는 정규화 좌표다.
+`bbox`는 EXIF 방향을 정규화한 원본 전체 JPEG의 왼쪽 위를 원점으로 하는 픽셀 `xyxy(left, top, right, bottom)` 좌표다. 서버는 AI가 본 이미지의 `width`, `height`와 원시 좌표를 함께 보존하고, Android에는 동일한 방향·비율의 JPEG와 좌표를 반환한다. 화면 크기용 정규화 또는 `xywh` 변환값은 파생값으로만 사용할 수 있으며 원본 좌표를 덮어쓰지 않는다.
 
 ```json
 {
-  "x": 0.125,
-  "y": 0.2,
-  "width": 0.3,
-  "height": 0.25
+  "left": 120.5,
+  "top": 80.2,
+  "right": 640.8,
+  "bottom": 410.4
 }
 ```
 
-네 값은 `0.0` 이상 `1.0` 이하이고 `x + width <= 1.0`, `y + height <= 1.0`이어야 한다.
+네 값은 모두 `0` 이상이며 `right > left`, `bottom > top`, `right <= image.width`, `bottom <= image.height`여야 한다.
 
 ### 4.9 관찰 `Observation`과 근거 사진
 
@@ -468,6 +468,7 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 - MVP 본문은 자유 생성 LLM이 아니라 버전이 있는 규칙·문장 템플릿으로 만들고 모든 관찰 문장은 근거 `mediaId`로 추적한다.
 - 성공 분석에서 관찰이 0건이면 `현재 촬영 근거에서 확인 필요 관찰이 생성되지 않았습니다.`라고 표시한다.
 - Android는 임장 리포트와 매물별 리포트 목록을 API에서 조회하며 자체적으로 최종 판정을 만들지 않는다.
+- 리포트 응답의 `totalMediaCount`는 미디어 집합 확정 시 기록한 전체 분석 대상 JPEG 수다. 진행률은 `(successfulMediaCount + failedMediaCount) / totalMediaCount`로 표시하며 대기·분석 중 사진도 분모에서 제외하지 않는다.
 
 ### 4.11 사용자 메모·안심 가이드·알림
 
@@ -565,7 +566,7 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 
 - 작업 입력은 서버에 `UPLOADED`로 확정된 JPEG의 `mediaId`와 내부 객체 키를 사용한다.
 - AI Worker는 휴대전화 원본 영상, 갤러리 URI 또는 로컬 경로를 요청하지 않는다.
-- 결과에는 `mediaId`, 원본 `classId`, 정규화 `label`, `confidence`, `bbox`, `aiZone`, `zoneConfidence`, `zoneUncertain`, `zoneModelVersion`, 하자 모델 버전을 보존한다.
+- 결과에는 `mediaId`, 원본 `classId`, 정규화 `label`, `confidence`, EXIF 정방향 원본 JPEG 기준 픽셀 `xyxy` bbox, 이미지 `width`·`height`, `aiZone`, `zoneConfidence`, `zoneUncertain`, `zoneModelVersion`, 하자 모델 버전을 보존한다.
 - 서버는 라벨 쌍, 신뢰도, bbox와 ID를 검증한다.
 - 원시 탐지는 저장하고 모델 버전별 라벨 임계값 이상인 결과만 `Observation`으로 변환한다.
 - 구역 API 실패·불확실·미지원 결과는 `UNKNOWN`으로 정규화한다.
@@ -625,3 +626,4 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 | 2026-08-18 | 검토 초안 2.0 | 체크리스트·Frame·Detection 계약을 제거하고 세션·구역·Media·Observation·근거 중심 계약으로 전환. 미확정 Media·Observation·Report HTTP API는 OpenAPI에서 제외 |
 | 2026-08-19 | 검토 초안 2.1 | JPEG 미디어 배치 등록(요청당 20장), 15분 서명 URL, 완료·재시도·조회와 멱등성 충돌 계약 확정 |
 | 2026-08-24 | 검토 초안 2.2 | 미디어 집합 finalize, AI 구역 원본·사용자 보정, 13개 관찰 유형, 신뢰도 분리·조건부 병합, 관찰 조회·상태 변경과 규칙 기반 자동 리포트 조회 계약 확정 |
+| 2026-08-24 | 검토 초안 2.3 | 리포트 응답에 확정 분석 대상 전체 수 `totalMediaCount`를 추가하고 처리 완료·실패 수를 이용한 진행률 계산 규칙 확정 |

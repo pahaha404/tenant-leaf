@@ -76,21 +76,32 @@ import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SecondaryButton
 import com.seipseip.app.feature.common.StateBadge
 import kotlin.math.max
+import kotlin.math.min
 import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-enum class ReportDetailStatus { GENERATING, COMPLETED, EMPTY, PARTIAL, ERROR }
+enum class ReportDetailStatus { WAITING_FOR_ANALYSIS, GENERATING, COMPLETED, EMPTY, PARTIAL, ERROR }
 
-data class EvidenceBoxUiModel(val left: Float, val top: Float, val right: Float, val bottom: Float)
+data class EvidenceBoxUiModel(
+    val observationId: String,
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float,
+    val displayLabel: String,
+    val displayColor: String,
+    val confidencePercent: Int,
+)
 
 data class ReportEvidenceUiModel(
     val id: String,
     val imageUrl: String? = null,
     @DrawableRes val placeholderRes: Int = R.drawable.guide_bath_mold,
+    val useSamplePlaceholder: Boolean = true,
     val imageWidth: Int = 1080,
     val imageHeight: Int = 1440,
-    val box: EvidenceBoxUiModel? = null,
+    val boxes: List<EvidenceBoxUiModel> = emptyList(),
     val pageLabel: String = "1 / 1",
 )
 
@@ -113,11 +124,14 @@ data class ReportDetailUiModel(
     val completedPhotoCount: Int = 0,
     val totalPhotoCount: Int = 0,
     val failedPhotoCount: Int = 0,
+    val serverReferenceScore: Int? = null,
+    val scoreIsProvisional: Boolean = false,
     val zones: List<ReportZoneUiModel> = emptyList(),
     val errorMessage: String? = null,
 ) {
     val observations: List<ReportObservationUiModel> get() = zones.flatMap(ReportZoneUiModel::observations)
-    val referenceScore: Int get() = reportReferenceScore(observations.size)
+    val processedPhotoCount: Int get() = completedPhotoCount + failedPhotoCount
+    val referenceScore: Int get() = serverReferenceScore ?: reportReferenceScore(observations.size)
 }
 
 fun reportReferenceScore(observationCount: Int): Int = max(0, 100 - observationCount.coerceAtLeast(0) * 5)
@@ -125,7 +139,18 @@ fun reportReferenceScore(observationCount: Int): Int = max(0, 100 - observationC
 object ReportSamples {
     private val evidence = ReportEvidenceUiModel(
         id = "evidence-bath-01",
-        box = EvidenceBoxUiModel(left = 0.18f, top = 0.22f, right = 0.78f, bottom = 0.52f),
+        boxes = listOf(
+            EvidenceBoxUiModel(
+                observationId = "observation-mold",
+                left = 194f,
+                top = 317f,
+                right = 842f,
+                bottom = 749f,
+                displayLabel = "곰팡이 추정 흔적",
+                displayColor = "#FF8A34",
+                confidencePercent = 76,
+            ),
+        ),
         pageLabel = "1 / 3",
     )
     private val observations = listOf(
@@ -247,7 +272,10 @@ fun ReportDetailScreen(
         return
     }
 
-    val showsPropertyAction = uiModel.status != ReportDetailStatus.GENERATING
+    val showsPropertyAction = uiModel.status !in setOf(
+        ReportDetailStatus.WAITING_FOR_ANALYSIS,
+        ReportDetailStatus.GENERATING,
+    )
     AppPageScaffold(
         title = "리포트",
         onBack = onBack,
@@ -270,6 +298,7 @@ fun ReportDetailScreen(
     ) {
         ReportHeader(uiModel)
         when (uiModel.status) {
+            ReportDetailStatus.WAITING_FOR_ANALYSIS -> ProcessingReport(uiModel, waitingForAnalysis = true)
             ReportDetailStatus.GENERATING -> GeneratingReport(uiModel)
             ReportDetailStatus.COMPLETED -> CompletedReport(nickname, uiModel) { selectedEvidence = it }
             ReportDetailStatus.EMPTY -> EmptyReport(uiModel)
@@ -288,6 +317,7 @@ private fun ReportHeader(uiModel: ReportDetailUiModel) {
         }
         StateBadge(
             label = when (uiModel.status) {
+                ReportDetailStatus.WAITING_FOR_ANALYSIS -> "분석 중"
                 ReportDetailStatus.GENERATING -> "생성 중"
                 ReportDetailStatus.COMPLETED -> "작성 완료"
                 ReportDetailStatus.EMPTY -> "분석 완료"
@@ -305,21 +335,49 @@ private fun ReportHeader(uiModel: ReportDetailUiModel) {
 
 @Composable
 private fun GeneratingReport(uiModel: ReportDetailUiModel) {
-    val progress = if (uiModel.totalPhotoCount == 0) 0f else uiModel.completedPhotoCount.toFloat() / uiModel.totalPhotoCount
+    ProcessingReport(uiModel, waitingForAnalysis = false)
+}
+
+@Composable
+private fun ProcessingReport(uiModel: ReportDetailUiModel, waitingForAnalysis: Boolean) {
+    val progress = if (uiModel.totalPhotoCount == 0) 0f else uiModel.processedPhotoCount.toFloat() / uiModel.totalPhotoCount
     Column(Modifier.fillMaxWidth().padding(top = 34.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Box(Modifier.size(76.dp).background(PaleGreen, CircleShape), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = Green, strokeWidth = 4.dp, modifier = Modifier.size(48.dp))
             Icon(Icons.Outlined.HourglassTop, null, tint = DeepGreen, modifier = Modifier.size(22.dp))
         }
-        Text("리포트를 만들고 있어요", color = DeepGreen, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
-        Text("사진 분석 결과를 구역별 확인 필요 관찰로 정리하고 있어요.\n완료되면 리포트에서 근거 사진을 확인할 수 있어요.", color = Secondary, fontSize = 12.sp, lineHeight = 18.sp, textAlign = TextAlign.Center)
+        Text(
+            if (waitingForAnalysis) "사진을 분석하고 있어요" else "리포트를 만들고 있어요",
+            color = DeepGreen,
+            fontSize = 21.sp,
+            fontWeight = FontWeight.ExtraBold,
+        )
+        Text(
+            if (waitingForAnalysis) {
+                "업로드한 사진을 AI가 순서대로 확인하고 있어요.\n모든 사진 분석이 끝나면 리포트를 자동으로 만들어요."
+            } else {
+                "사진 분석 결과를 구역별 확인 필요 관찰로 정리하고 있어요.\n완료되면 리포트에서 근거 사진을 확인할 수 있어요."
+            },
+            color = Secondary,
+            fontSize = 12.sp,
+            lineHeight = 18.sp,
+            textAlign = TextAlign.Center,
+        )
         LinearProgressIndicator(progress = { progress.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape), color = Green, trackColor = PaleGreen)
         Row(Modifier.fillMaxWidth()) {
             Text("사진 분석", color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.weight(1f))
-            Text("${uiModel.completedPhotoCount} / ${uiModel.totalPhotoCount}장", color = Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text("${uiModel.processedPhotoCount} / ${uiModel.totalPhotoCount}장", color = Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
-        InfoNotice("앱을 닫아도 서버에서 분석은 계속돼요. 완료 알림을 받은 뒤 다시 확인해 주세요.", PaleGreen, Green)
+        InfoNotice(
+            if (waitingForAnalysis) {
+                "AI 분석 서버가 실행 중이어야 처리가 계속돼요. 분석이 멈춰 있으면 서버 상태를 확인해 주세요."
+            } else {
+                "앱을 닫아도 서버에서 리포트 생성은 계속돼요. 잠시 후 다시 확인해 주세요."
+            },
+            PaleGreen,
+            Green,
+        )
     }
 }
 
@@ -378,7 +436,13 @@ private fun ReportSummaryCard(uiModel: ReportDetailUiModel, title: String) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text("리포트 요약", color = Green, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
             Text(title, color = DeepGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-            Text("참고 점수는 확인 필요 관찰 1건당 5점씩 차감해 계산해요.", color = Secondary, fontSize = 9.sp, lineHeight = 13.sp)
+            Text(
+                if (uiModel.scoreIsProvisional) "일부 사진 분석 실패로 현재 점수는 잠정값이에요."
+                else "참고 점수는 확인 필요 관찰 1건당 5점씩 차감해 계산해요.",
+                color = Secondary,
+                fontSize = 9.sp,
+                lineHeight = 13.sp,
+            )
         }
         Column(horizontalAlignment = Alignment.End) {
             Text("${uiModel.referenceScore}", color = Green, fontSize = 30.sp, fontWeight = FontWeight.Black)
@@ -434,10 +498,7 @@ private fun ObservationCard(observation: ReportObservationUiModel, onClick: () -
 @Composable
 private fun EvidenceThumbnail(observation: ReportObservationUiModel, modifier: Modifier = Modifier) {
     Box(modifier.clip(RoundedCornerShape(12.dp)).background(PaleGreen)) {
-        EvidenceImage(observation, Modifier.fillMaxSize(), ContentScale.Crop)
-        Box(Modifier.align(Alignment.BottomStart).background(Orange).padding(horizontal = 6.dp, vertical = 3.dp)) {
-            Text("${observation.confidencePercent}%", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold)
-        }
+        EvidenceWithBboxes(observation, Modifier.fillMaxSize(), selectedOnly = true, showLabels = false)
     }
 }
 
@@ -452,21 +513,12 @@ fun ReportEvidenceViewer(observation: ReportObservationUiModel, onClose: () -> U
                 Spacer(Modifier.weight(1f))
                 Text(observation.evidence.pageLabel, color = Color.White.copy(alpha = 0.72f), fontSize = 12.sp)
             }
-            BoxWithConstraints(Modifier.fillMaxWidth().weight(1f).background(Color.Black, RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
-                val imageAspect = observation.evidence.imageWidth.toFloat() / observation.evidence.imageHeight.toFloat()
-                val viewportWidth = if (maxWidth <= maxHeight * imageAspect) maxWidth else maxHeight * imageAspect
-                val viewportHeight = if (maxHeight <= maxWidth / imageAspect) maxHeight else maxWidth / imageAspect
-                Box(Modifier.size(viewportWidth, viewportHeight)) {
-                    EvidenceImage(observation, Modifier.fillMaxSize(), ContentScale.FillBounds)
-                    observation.evidence.box?.let { box ->
-                        Box(
-                            Modifier.offset(x = viewportWidth * box.left, y = viewportHeight * box.top)
-                                .size(width = viewportWidth * (box.right - box.left), height = viewportHeight * (box.bottom - box.top))
-                                .border(3.dp, Orange),
-                        )
-                    }
-                }
-            }
+            EvidenceWithBboxes(
+                observation = observation,
+                modifier = Modifier.fillMaxWidth().weight(1f).background(Color.Black, RoundedCornerShape(16.dp)),
+                selectedOnly = false,
+                showLabels = true,
+            )
             Column(Modifier.fillMaxWidth().background(Color(0xFF1C2A22), RoundedCornerShape(16.dp)).padding(15.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.Image, null, tint = Orange, modifier = Modifier.size(20.dp))
@@ -482,6 +534,58 @@ fun ReportEvidenceViewer(observation: ReportObservationUiModel, onClose: () -> U
         }
     }
 }
+
+@Composable
+private fun EvidenceWithBboxes(
+    observation: ReportObservationUiModel,
+    modifier: Modifier,
+    selectedOnly: Boolean,
+    showLabels: Boolean,
+) {
+    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+        val evidence = observation.evidence
+        val imageWidth = evidence.imageWidth.coerceAtLeast(1).toFloat()
+        val imageHeight = evidence.imageHeight.coerceAtLeast(1).toFloat()
+        val scale = min(maxWidth.value / imageWidth, maxHeight.value / imageHeight)
+        val viewportWidth = (imageWidth * scale).dp
+        val viewportHeight = (imageHeight * scale).dp
+        val selected = evidence.boxes.filter { it.observationId == observation.id }
+        val boxes = if (selectedOnly) selected else evidence.boxes.filterNot { it.observationId == observation.id } + selected
+
+        Box(Modifier.size(viewportWidth, viewportHeight)) {
+            EvidenceImage(observation, Modifier.fillMaxSize(), ContentScale.FillBounds)
+            boxes.forEach { box ->
+                val isSelected = box.observationId == observation.id
+                val color = box.displayColor.toColorOr(if (isSelected) Orange else Green)
+                val left = box.left.coerceIn(0f, imageWidth)
+                val top = box.top.coerceIn(0f, imageHeight)
+                val right = box.right.coerceIn(left, imageWidth)
+                val bottom = box.bottom.coerceIn(top, imageHeight)
+                Box(
+                    Modifier.offset(x = (left * scale).dp, y = (top * scale).dp)
+                        .size(width = ((right - left) * scale).dp, height = ((bottom - top) * scale).dp)
+                        .border(if (isSelected) 3.dp else 2.dp, color),
+                )
+                if (showLabels) {
+                    Text(
+                        text = "${box.displayLabel} · ${box.confidencePercent}%",
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.offset(
+                            x = (left * scale).dp,
+                            y = ((top * scale) - 20f).coerceAtLeast(0f).dp,
+                        ).background(color, RoundedCornerShape(3.dp)).padding(horizontal = 5.dp, vertical = 2.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun String.toColorOr(fallback: Color): Color = runCatching {
+    Color(android.graphics.Color.parseColor(this))
+}.getOrDefault(fallback)
 
 @Composable
 private fun EvidenceImage(
@@ -509,13 +613,20 @@ private fun EvidenceImage(
             modifier = modifier,
             contentScale = contentScale,
         )
-    } else {
+    } else if (observation.evidence.useSamplePlaceholder) {
         Image(
             painter = painterResource(observation.evidence.placeholderRes),
             contentDescription = "${observation.label} 근거 사진",
             modifier = modifier,
             contentScale = contentScale,
         )
+    } else {
+        Box(modifier.background(Color(0xFF202A24)), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Outlined.Image, null, tint = Color.White.copy(alpha = 0.72f))
+                Text("근거 사진을 불러올 수 없어요", color = Color.White.copy(alpha = 0.72f), fontSize = 10.sp)
+            }
+        }
     }
 }
 

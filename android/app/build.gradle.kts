@@ -19,6 +19,15 @@ android {
     namespace = "com.seipseip.app"
     compileSdk = 35
 
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     defaultConfig {
         applicationId = "com.seipseip.app"
         minSdk = 29

@@ -1259,9 +1259,51 @@ components:
         - TROWEL_MARK_CHECK_NEEDED
         - OTHER_CHECK_NEEDED
 
+    ImageDimensions:
+      type: object
+      required: [width, height]
+      properties:
+        width:
+          type: integer
+          minimum: 1
+        height:
+          type: integer
+          minimum: 1
+
+    BboxCoordinateSystem:
+      type: string
+      enum: [PIXEL_XYXY]
+
+    EvidenceDetection:
+      type: object
+      required: [observationId, classId, label, displayLabel, displayColor, confidence, box]
+      properties:
+        observationId:
+          type: string
+          format: uuid
+        classId:
+          type: integer
+          minimum: 0
+          maximum: 12
+        label:
+          $ref: "#/components/schemas/AiLabel"
+        displayLabel:
+          type: string
+          minLength: 1
+        displayColor:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        confidence:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+        box:
+          $ref: "#/components/schemas/Bbox"
+
     ObservationEvidence:
       type: object
-      required: [mediaId, primary, available, sourceVideoOffsetMs]
+      required: [mediaId, primary, available, sourceVideoOffsetMs, image, coordinateSystem, detections]
       properties:
         mediaId:
           type: string
@@ -1276,10 +1318,16 @@ components:
           type: integer
           format: int64
           minimum: 0
-        bbox:
-          allOf:
-            - $ref: "#/components/schemas/Bbox"
-          nullable: true
+        image:
+          $ref: "#/components/schemas/ImageDimensions"
+        coordinateSystem:
+          $ref: "#/components/schemas/BboxCoordinateSystem"
+        detections:
+          type: array
+          minItems: 1
+          description: 같은 근거 JPEG에서 사용자 표시 임계값을 통과한 관찰 bbox입니다. 현재 관찰의 observationId와 일치하는 항목을 기본 강조합니다.
+          items:
+            $ref: "#/components/schemas/EvidenceDetection"
         viewUrl:
           type: string
           format: uri
@@ -1420,9 +1468,13 @@ components:
         - propertyId
         - inspectionId
         - status
+        - totalMediaCount
         - successfulMediaCount
         - failedMediaCount
         - observationCount
+        - propertyDisplayName
+        - inspectionEndedAt
+        - scoreIsProvisional
         - templateVersion
         - createdAt
         - updatedAt
@@ -1438,6 +1490,10 @@ components:
           format: uuid
         status:
           $ref: "#/components/schemas/ReportStatus"
+        totalMediaCount:
+          type: integer
+          minimum: 0
+          description: 미디어 집합 확정 시 서버가 기록한 전체 분석 대상 JPEG 수입니다.
         successfulMediaCount:
           type: integer
           minimum: 0
@@ -1448,6 +1504,24 @@ components:
           type: integer
           minimum: 0
           description: DISMISSED 관찰을 제외한 기본 리포트 관찰 수입니다.
+        propertyDisplayName:
+          type: string
+          minLength: 1
+        inspectionEndedAt:
+          type: string
+          format: date-time
+        referenceScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: 확인 필요 관찰 1건당 5점을 차감한 참고값이며 안전·계약 점수가 아닙니다.
+        scorePolicyVersion:
+          type: string
+          nullable: true
+        scoreIsProvisional:
+          type: boolean
+          description: 일부 사진 분석 실패로 점수가 잠정값이면 true입니다.
         failureCode:
           allOf:
             - $ref: "#/components/schemas/ReportFailureCode"
@@ -1552,29 +1626,25 @@ components:
 
     Bbox:
       type: object
-      required: [x, y, width, height]
-      description: 이미지 왼쪽 위를 원점으로 하는 0.0~1.0 정규화 좌표입니다.
+      required: [left, top, right, bottom]
+      description: EXIF 방향 정규화가 끝난 원본 전체 JPEG의 왼쪽 위를 원점으로 하는 픽셀 xyxy 좌표입니다.
       properties:
-        x:
+        left:
           type: number
           format: double
           minimum: 0
-          maximum: 1
-        y:
+        top:
           type: number
           format: double
           minimum: 0
-          maximum: 1
-        width:
+        right:
           type: number
           format: double
           minimum: 0
-          maximum: 1
-        height:
+        bottom:
           type: number
           format: double
           minimum: 0
-          maximum: 1
 
     PageMetadata:
       type: object
