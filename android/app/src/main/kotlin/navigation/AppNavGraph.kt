@@ -508,6 +508,7 @@ fun AppNavGraph(
             val zone = it.arguments?.getString("zone") ?: "entry"
             val startedAt = it.arguments?.getLong("startedAt") ?: android.os.SystemClock.elapsedRealtime()
             LiveInspectionApiRoute(
+                inspectionId = inspectionId,
                 zoneId = zone,
                 startedAt = startedAt,
                 onCancelled = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } },

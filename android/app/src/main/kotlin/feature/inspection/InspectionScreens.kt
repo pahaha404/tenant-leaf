@@ -24,6 +24,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.seipseip.app.feature.home.GlassConnectionViewModel
 import com.seipseip.app.feature.home.rememberGlassConnectionViewModel
 import com.seipseip.app.feature.inspection.preview.PhoneCameraPreviewHelper
+import com.seipseip.app.feature.inspection.voice.VoiceRecordSection
+import com.seipseip.app.feature.inspection.voice.VoiceRecordReviewCard
+import com.seipseip.app.feature.inspection.voice.VoiceRecordSession
 import com.meta.wearable.dat.camera.types.VideoQuality
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -498,6 +501,7 @@ enum class CameraSource {
 
 @Composable
 fun LiveInspectionScreen(
+    inspectionId: String,
     zoneId: String,
     startedAt: Long,
     onBack: () -> Unit,
@@ -514,10 +518,13 @@ fun LiveInspectionScreen(
     val connectionState by glassViewModel.uiState.collectAsState()
 
     val context = LocalContext.current
+    LaunchedEffect(inspectionId) {
+        // 녹음은 점검 전체를 따라가며, 구역 이동에서는 다시 시작하지 않는다.
+        VoiceRecordSession.start(context, inspectionId)
+    }
     var cameraSource by remember { mutableStateOf(CameraSource.GLASS) }
     var activeSurface by remember { mutableStateOf<Surface?>(null) }
     val phoneCameraHelper = remember(context) { PhoneCameraPreviewHelper(context) }
-
     DisposableEffect(glassViewModel, cameraSource) {
         val surface = activeSurface
         if (cameraSource == CameraSource.GLASS) {
@@ -774,6 +781,7 @@ fun LiveInspectionScreen(
 
                     Text(formatInspectionDuration(durationSeconds), modifier = Modifier.align(Alignment.BottomEnd).padding(13.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
+                VoiceRecordSection(inspectionId = inspectionId)
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color.White).padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -889,6 +897,7 @@ fun LiveInspectionScreen(
                     ) { Text("아니요, 계속 촬영할게요", color = Green, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
                     Box(
                         modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(Orange).clickable {
+                            VoiceRecordSession.finish(context)
                             VoiceGuideManager.speak(context, "촬영을 종료합니다. 해당 영상을 업로드해주세요.")
                             onFinish(durationSeconds)
                         },
@@ -996,6 +1005,8 @@ fun FinishConfirmScreen(
                 }
             }
         }
+
+        VoiceRecordReviewCard()
 
         Text("촬영 구역 상세", color = DeepGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
         Column(

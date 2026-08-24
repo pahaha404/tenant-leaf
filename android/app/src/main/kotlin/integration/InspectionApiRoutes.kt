@@ -39,6 +39,7 @@ fun InspectionPrepApiRoute(
 
 @Composable
 fun LiveInspectionApiRoute(
+    inspectionId: String,
     zoneId: String,
     startedAt: Long,
     onCancelled: () -> Unit,
@@ -55,9 +56,13 @@ fun LiveInspectionApiRoute(
         }
     }
     LiveInspectionScreen(
+        inspectionId = inspectionId,
         zoneId = zoneId,
         startedAt = startedAt,
-        onBack = viewModel::cancel,
+        onBack = {
+            com.seipseip.app.feature.inspection.voice.VoiceRecordSession.discard()
+            viewModel.cancel()
+        },
         onOpenGuide = onOpenGuide,
         onNextZone = onNextZone,
         onFinish = onFinish,
