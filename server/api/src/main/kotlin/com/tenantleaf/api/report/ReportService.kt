@@ -55,6 +55,8 @@ class ReportService(
         return report.toDetail(
             propertyName = property.name,
             inspectionEndedAt = inspection.endedAt ?: inspection.startedAt,
+            totalMediaCount = inspection.expectedMediaCount
+                ?: (report.successfulMediaCount + report.failedMediaCount),
             observations = mapObservations(observations),
         )
     }
@@ -75,7 +77,13 @@ class ReportService(
             totalElements = result.totalElements,
             totalPages = result.totalPages,
             items = result.content.map { report ->
-                report.toSummary(property.name, inspections[report.inspectionId]?.endedAt ?: report.createdAt)
+                val inspection = inspections[report.inspectionId]
+                report.toSummary(
+                    propertyName = property.name,
+                    inspectionEndedAt = inspection?.endedAt ?: report.createdAt,
+                    totalMediaCount = inspection?.expectedMediaCount
+                        ?: (report.successfulMediaCount + report.failedMediaCount),
+                )
             },
         )
     }
@@ -187,12 +195,14 @@ class ReportService(
     private fun ReportEntity.toDetail(
         propertyName: String,
         inspectionEndedAt: OffsetDateTime,
+        totalMediaCount: Int,
         observations: List<Observation>,
     ) = ReportDetail(
         id = id,
         propertyId = propertyId,
         inspectionId = inspectionId,
         status = ReportStatus.valueOf(status.name),
+        totalMediaCount = totalMediaCount,
         successfulMediaCount = successfulMediaCount,
         failedMediaCount = failedMediaCount,
         observationCount = observations.size,
@@ -210,11 +220,16 @@ class ReportService(
         observations = observations,
     )
 
-    private fun ReportEntity.toSummary(propertyName: String, inspectionEndedAt: OffsetDateTime) = ReportSummary(
+    private fun ReportEntity.toSummary(
+        propertyName: String,
+        inspectionEndedAt: OffsetDateTime,
+        totalMediaCount: Int,
+    ) = ReportSummary(
         id = id,
         propertyId = propertyId,
         inspectionId = inspectionId,
         status = ReportStatus.valueOf(status.name),
+        totalMediaCount = totalMediaCount,
         successfulMediaCount = successfulMediaCount,
         failedMediaCount = failedMediaCount,
         observationCount = observationCount,

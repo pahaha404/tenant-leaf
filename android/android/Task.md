@@ -26,6 +26,7 @@
 ## 진행 기록
 
 - 2026-08-24 — Android 팀 공용 디버그 서명 키(`debug.keystore`) 설정 적용(`signingConfigs.debug`). 개발자별 PC의 `debug.keystore` 불일치로 인한 카카오 맵 SDK 인증 실패(타일 미렌더링)를 방지하기 위해 프로젝트 공용 `debug.keystore`를 추가하고 `build.gradle.kts`에 `signingConfigs.debug`를 지정함. `:app:assembleDebug`, `:app:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
+- 2026-08-24 — 리포트 진행률 분모를 서버 `totalMediaCount`에 연결하고 처리 수를 성공+최종 실패 사진 수로 계산하도록 수정함. `WAITING_FOR_ANALYSIS`는 `사진을 분석하고 있어요`, 실제 `GENERATING`은 `리포트를 만들고 있어요`로 분리했으며, 원격 Gradle 플러그인 접근 제한으로 앱 빌드·실기기 확인은 미검증 상태임.
 - 2026-08-24 — JPEG 업로드 완료 뒤 실제 임장 리포트 API를 2초 간격으로 조회하고 서버 상태를 `Generating`, `Completed`, `Empty`, `Partial`, `Error` UI에 연결함. 근거 사진은 원본 픽셀 `xyxy`를 `ContentScale.Fit` 표시 영역에 맞춰 변환하며 같은 사진의 여러 bbox를 함께 그리고 선택 관찰을 마지막에 굵게 표시하도록 변경함.
 - 2026-08-24 — `design/UI/UI.pen`의 리포트 상세 상태를 Compose로 옮겨 `Completed`, `Evidence Viewer`, `Empty`, `Partial`, `Error`, `Generating` 화면을 상태 모델로 구성함. 기존 점검 종료 후 `reportProcessing` 상태에는 생성 중 화면을 연결하고, 관찰 카드에서 서명 URL 근거 사진과 bbox를 전체화면으로 확인할 수 있게 구현함. 참고 점수는 관찰 1건당 5점 차감·최저 0점으로 계산하며 단위 테스트를 추가함.
 - 2026-08-24 — 내 정보 화면(`ProfileScreen`, `AppNavGraph`) 로그아웃 기능 및 확인 다이얼로그 추가. 프로필 탭 내 계정 관리 영역에 로그아웃 버튼을 배치하고 확인 다이얼로그 팝업 후 승인 시 `TokenStorage.clearToken()` 및 `LoginPreferences` 초기화, 백스택 클리어 후 로그인 화면(`Route.Login`)으로 안전하게 이동하도록 구현 완료. `:app:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
