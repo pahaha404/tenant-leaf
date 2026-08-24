@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.seipseip.app.feature.home.GlassConnectionViewModel
+import com.seipseip.app.feature.home.rememberGlassConnectionViewModel
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
@@ -493,7 +494,7 @@ fun LiveInspectionScreen(
     onOpenGuide: (Int) -> Unit,
     onNextZone: (String) -> Unit,
     onFinish: (Long) -> Unit,
-    glassViewModel: GlassConnectionViewModel = viewModel(),
+    glassViewModel: GlassConnectionViewModel = rememberGlassConnectionViewModel(),
 ) {
     val zone = UiCatalog.zone(zoneId)
     val nextZone = UiCatalog.nextZone(zoneId)

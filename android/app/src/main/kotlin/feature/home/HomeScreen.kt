@@ -87,7 +87,7 @@ fun HomeScreen(
     processing: Boolean = false,
 ) {
     val activity = LocalContext.current as? ComponentActivity
-    val glassViewModel: GlassConnectionViewModel = viewModel()
+    val glassViewModel: GlassConnectionViewModel = rememberGlassConnectionViewModel()
     val glassState by glassViewModel.uiState.collectAsState()
     TenantLeafHomeLayout(
         selectedTab = AppTab.Home,
