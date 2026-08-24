@@ -772,7 +772,23 @@ fun FinishConfirmScreen(
     updating: Boolean = false,
     errorMessage: String? = null,
 ) {
+    val context = LocalContext.current
     val zones = UiCatalog.guideZones
+
+    DisposableEffect(context) {
+        var engine: TextToSpeech? = null
+        engine = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                engine?.language = java.util.Locale.KOREAN
+                engine?.speak("촬영을 종료합니다. 해당 영상을 업로드해주세요.", TextToSpeech.QUEUE_FLUSH, null, "finish_notice")
+            }
+        }
+        onDispose {
+            engine?.stop()
+            engine?.shutdown()
+        }
+    }
+
     AppPageScaffold(title = "촬영 종료 확인", onBack = onBack) {
         SectionTitle("점검 촬영을 마칠까요?", "촬영 기록을 정리한 뒤 구역별 분석을 시작해요.")
 
