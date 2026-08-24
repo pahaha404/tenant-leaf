@@ -87,9 +87,12 @@ class InspectionVideoRecorder(private val context: Context) {
     private var lastWrittenPtsUs = -1L
 
     @Synchronized
-    fun onVideoFormatAvailable(format: MediaFormat) {
+    fun onVideoFormatAvailable(format: MediaFormat, csd0: ByteBuffer? = null) {
         val muxer = mediaMuxer ?: return
         if (!formatAdded) {
+            if (csd0 != null) {
+                format.setByteBuffer("csd-0", csd0)
+            }
             videoTrackIndex = muxer.addTrack(format)
             muxer.start()
             isMuxerStarted = true
@@ -101,18 +104,12 @@ class InspectionVideoRecorder(private val context: Context) {
     }
 
     @Synchronized
-    fun writeEncodedFrame(byteBuffer: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {
+    fun writeLengthPrefixedSample(lengthPrefixedBuffer: ByteBuffer, presentationTimeUs: Long, isKeyFrame: Boolean) {
         if (!isRecording || isPaused || !isMuxerStarted) return
         val muxer = mediaMuxer ?: return
         if (videoTrackIndex < 0) return
 
-        // 1. Skip CODEC_CONFIG frames from sample data
-        if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-            return
-        }
-
-        // 2. Prevent MPEG4Writer SIGABRT crash: first frame MUST be a KEY_FRAME
-        val isKeyFrame = (bufferInfo.flags and MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0
+        // Prevent MPEG4Writer SIGABRT crash: first frame MUST be a KEY_FRAME
         if (!hasReceivedFirstKeyFrame) {
             if (!isKeyFrame) return
             hasReceivedFirstKeyFrame = true
@@ -120,16 +117,21 @@ class InspectionVideoRecorder(private val context: Context) {
         }
 
         try {
-            val adjustedPts = (bufferInfo.presentationTimeUs - (totalPausedDurationNs / 1000L)).coerceAtLeast(0L)
+            val adjustedPts = (presentationTimeUs - (totalPausedDurationNs / 1000L)).coerceAtLeast(0L)
             val finalPts = if (adjustedPts <= lastWrittenPtsUs) lastWrittenPtsUs + 1_000L else adjustedPts
             lastWrittenPtsUs = finalPts
 
             val sampleInfo = MediaCodec.BufferInfo().apply {
-                set(bufferInfo.offset, bufferInfo.size, finalPts, bufferInfo.flags)
+                set(
+                    lengthPrefixedBuffer.position(),
+                    lengthPrefixedBuffer.remaining(),
+                    finalPts,
+                    if (isKeyFrame) MediaCodec.BUFFER_FLAG_KEY_FRAME else 0,
+                )
             }
-            muxer.writeSampleData(videoTrackIndex, byteBuffer, sampleInfo)
+            muxer.writeSampleData(videoTrackIndex, lengthPrefixedBuffer, sampleInfo)
         } catch (e: Exception) {
-            Log.e(TAG, "Error writing sample data: ${e.message}")
+            Log.e(TAG, "Error writing length-prefixed sample data: ${e.message}")
         }
     }
 

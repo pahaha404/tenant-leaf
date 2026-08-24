@@ -39,6 +39,7 @@ class HevcDecoder {
     @Volatile private var receivedKeyFrame = false
     @Volatile private var firstInput = true
     @Volatile private var recorder: InspectionVideoRecorder? = null
+    private val nalParser = HevcNalParser()
 
     fun setRecorder(inspectionRecorder: InspectionVideoRecorder?) {
         recorder = inspectionRecorder
@@ -56,6 +57,23 @@ class HevcDecoder {
 
     fun decodeFrame(bytes: ByteArray, timestampUs: Long) {
         if (bytes.isEmpty()) return
+
+        // 1. Process and forward HVCC length-prefixed samples to InspectionVideoRecorder
+        val rec = recorder
+        val fmt = format
+        if (rec != null && rec.isRecording && !rec.isPaused && fmt != null) {
+            val parsedNals = nalParser.parseAnnexBNalUnits(bytes)
+            val csd0 = nalParser.buildCsd0()
+            rec.onVideoFormatAvailable(fmt, csd0)
+            for (nal in parsedNals) {
+                if (!nal.isConfig) {
+                    val sampleBuffer = nalParser.toLengthPrefixedSample(nal.data)
+                    rec.writeLengthPrefixedSample(sampleBuffer, timestampUs, nal.isKeyFrame)
+                }
+            }
+        }
+
+        // 2. Decode Annex-B frame to Surface
         var index = findNalUnit(bytes, 0, bytes.size, BooleanArray(3))
         val prefixFlags = BooleanArray(3)
         while (index < bytes.size) {
@@ -104,20 +122,6 @@ class HevcDecoder {
         if (firstInput) {
             firstInput = false
             activateCodec()
-        }
-
-        val rec = recorder
-        val fmt = format
-        if (rec != null && rec.isRecording && !rec.isPaused && fmt != null) {
-            rec.onVideoFormatAvailable(fmt)
-            val length = minOf(frame.bytes.size - frame.offset, frame.bytes.size)
-            if (length > 0) {
-                val bufferInfo = MediaCodec.BufferInfo().apply {
-                    set(frame.offset, length, frame.timestampUs, frame.flags)
-                }
-                val byteBuffer = java.nio.ByteBuffer.wrap(frame.bytes, frame.offset, length)
-                rec.writeEncodedFrame(byteBuffer, bufferInfo)
-            }
         }
 
         if (!queue.offer(frame)) {
