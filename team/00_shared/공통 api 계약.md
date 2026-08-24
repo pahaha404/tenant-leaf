@@ -1,14 +1,14 @@
 # 세입세잎 공통 API 계약
 
-> 상태: 검토 초안 2.1
+> 상태: 검토 초안 2.2
 >
-> 기준일: 2026-08-19
+> 기준일: 2026-08-24
 >
 > 기준 용어: [`공통용어집.md`](../../server/backendmds/공통용어집.md)
 >
 > 도메인 기준: [`도메인 규칙.md`](../../server/backendmds/도메인%20규칙.md)
 
-Android 앱, Kotlin API 서버와 AI 작업자가 같은 이름과 데이터 의미를 사용하기 위한 MVP 계약이다. 2.0은 현장 체크리스트 중심의 1.2 계약을 **구역·관찰·근거 미디어 중심**으로 교체했고, 2.1은 JPEG 미디어 등록·직접 업로드·완료·재시도·조회 HTTP 계약을 확정한 검토 초안이다. AI 판별 정확도를 우선하는 MVP 방침에 따라 분석용 JPEG의 최대 크기는 사진당 2MiB로 확정한다.
+Android 앱, Kotlin API 서버와 AI 작업자가 같은 이름과 데이터 의미를 사용하기 위한 MVP 계약이다. 2.0은 현장 체크리스트 중심의 1.2 계약을 **구역·관찰·근거 미디어 중심**으로 교체했고, 2.1은 JPEG 업로드 계약을, 2.2는 미디어 집합 확정·AI 구역 분류·관찰 생성·자동 리포트 조회 계약을 확정한 검토 초안이다. 분석용 JPEG의 최대 크기는 사진당 2MiB다.
 
 이 문서에서 `확정`으로 표시한 의미와 상태값만 구현 기준으로 사용한다. 요청·응답 형식이 아직 합의되지 않은 API는 설명만 남기고 OpenAPI에서 제외한다.
 
@@ -21,7 +21,7 @@ AI 글래스 기본 고화질 영상 촬영
 → 선명한 JPEG만 API를 거쳐 객체 저장소에 업로드
 → AI Worker가 비동기로 구역 분류와 하자 의심 관찰 후보 생성
 → 사용자가 구역별 관찰과 근거 사진 확인
-→ 분석 종료 후 리포트 생성
+→ 미디어 집합 확정과 모든 분석 종료 후 규칙 기반 리포트 자동 생성
 ```
 
 - AI 글래스는 API 서버나 AI 제공자를 직접 호출하지 않는다.
@@ -98,9 +98,13 @@ Authorization: Bearer <access-token>
 | `404` | `PROPERTY_NOT_FOUND` | 요청한 리소스가 없거나 접근할 수 없음 |
 | `404` | `INSPECTION_NOT_FOUND` | 요청한 임장 기록이 없거나 접근할 수 없음 |
 | `404` | `MEDIA_NOT_FOUND` | 요청한 미디어가 없거나 접근할 수 없음 |
+| `404` | `OBSERVATION_NOT_FOUND` | 요청한 관찰이 없거나 접근할 수 없음 |
+| `404` | `REPORT_NOT_FOUND` | 아직 리포트 리소스가 없거나 접근할 수 없음 |
 | `409` | `INVALID_STATE_TRANSITION` | 현재 상태에서는 요청을 수행할 수 없음 |
 | `409` | `IDEMPOTENCY_KEY_CONFLICT` | 같은 멱등성 키를 이전 요청과 다른 내용으로 재사용함 |
 | `409` | `CLIENT_MEDIA_ID_CONFLICT` | 같은 임장의 `clientMediaId`를 다른 사진 메타데이터로 재사용함 |
+| `409` | `MEDIA_SET_COUNT_MISMATCH` | 등록 미디어 수와 `expectedMediaCount`가 다름 |
+| `409` | `MEDIA_SET_FINALIZED` | 이미 확정한 임장에 신규 미디어를 등록하려고 함 |
 | `413` | `FILE_TOO_LARGE` | JPEG 업로드 허용 크기 초과 |
 | `415` | `UNSUPPORTED_MEDIA_TYPE` | JPEG가 아닌 파일 형식 |
 | `500` | `INTERNAL_ERROR` | 서버 내부 오류 |
@@ -109,7 +113,7 @@ Authorization: Bearer <access-token>
 
 ### 2.3 멱등성 원칙
 
-미디어 등록·완료·재시도 API는 필수 `Idempotency-Key` 헤더를 사용한다.
+미디어 등록·완료·재시도·집합 확정 API는 필수 `Idempotency-Key` 헤더를 사용한다.
 
 - Android는 같은 논리 사진에 재시도해도 바뀌지 않는 `clientMediaId` UUID를 사용한다.
 - `(inspectionId, clientMediaId)`는 중복될 수 없다.
@@ -162,7 +166,7 @@ Android가 이 값을 확정해 보내지 않는다. 서버가 삭제되지 않�
 7. 집합 확정 + 일부 분석 성공 + 나머지 최종 실패 → `PARTIAL_COMPLETED`
 8. 집합 확정 + 성공 없음 + 전체 업로드·분석 최종 실패 → `FAILED`
 
-`COMPLETED`와 `FAILED`는 미디어 집합 확정 전에는 반환하지 않는다. 집합 확정 사실은 서버가 저장하지만 정확한 필드와 확정 API는 P0 합의 전까지 OpenAPI에 추가하지 않는다. 분석 결과가 관찰 0건이어도 분석 성공으로 집계한다.
+`COMPLETED`와 `FAILED`는 `mediaFinalizedAt` 기록 전에는 반환하지 않는다. 분석 결과가 관찰 0건이어도 분석 성공으로 집계한다.
 
 ### 3.3 미디어 상태
 
@@ -200,7 +204,9 @@ Android가 이 값을 확정해 보내지 않는다. 서버가 삭제되지 않�
 
 - `UNKNOWN` 미디어를 임의의 정규 구역으로 넣지 않는다.
 - `UNKNOWN`은 다섯 개 정규 구역 완료 수에 포함하지 않는다.
-- AI 원본 구역과 `zoneConfidence`는 사용자가 보정하더라도 덮어쓰지 않는다.
+- AI 구역 분류 API가 확실한 결과를 반환하면 해당 구역을 저장하고, 불확실·실패·미지원 응답은 `UNKNOWN`으로 저장한다.
+- `aiZone`, `zoneConfidence`, `zoneUncertain`, `zoneModelVersion`은 사용자가 보정하더라도 덮어쓰지 않는다.
+- `userCorrectedZone`이 있으면 화면과 리포트에서 AI 원본보다 우선하고 `correctedAt`을 함께 보존한다.
 
 ### 3.5 구역별 분석 상태 `ZoneAnalysisStatus`
 
@@ -297,6 +303,8 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
   "endedAt": null,
   "cancelledAt": null,
   "archivedAt": null,
+  "mediaFinalizedAt": null,
+  "expectedMediaCount": null,
   "createdAt": "2026-08-18T08:00:00Z"
 }
 ```
@@ -304,6 +312,7 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 - `analysisStatus`와 집계 수치는 서버가 원본 미디어 상태에서 계산한다.
 - `endedAt`은 `ENDED`, `cancelledAt`은 `CANCELLED`로 전환할 때 기록한다.
 - `archivedAt`은 상태 전이와 별개이며 설정·해제 API는 아직 확정하지 않았다.
+- `mediaFinalizedAt`은 미디어 집합 확정 성공 시각이며 `expectedMediaCount`는 확정한 분석 대상 수다.
 
 ### 4.4 휴대전화 원본 영상 `LocalRecordedVideo`
 
@@ -330,7 +339,8 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 | `capturedAt` | 실제 촬영 시각 또는 영상 시점으로 계산한 시각 |
 | `uploadStatus` | 서버가 관리하는 업로드 상태 |
 | `analysisStatus` | 서버가 관리하는 분석 상태 |
-| `zone`, `zoneConfidence` | AI의 원본 구역 분류와 신뢰도 |
+| `aiZone`, `zoneConfidence`, `zoneUncertain`, `zoneModelVersion` | AI의 원본 구역 분류·신뢰도·불확실 여부·모델 버전 |
+| `userCorrectedZone`, `correctedAt` | 사용자가 보정한 구역과 보정 시각. 화면·리포트에서 AI 원본보다 우선 |
 | `width`, `height`, `contentLength` | 검증한 실제 JPEG 정보 |
 
 객체 저장소 내부 키는 서버 내부 전용이다. Android에는 요청 시 발급한 짧은 만료 시간의 서명 URL만 제공한다.
@@ -342,6 +352,7 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 | 메서드와 경로 | 의미 |
 |---|---|
 | `POST /inspections/{inspectionId}/media/upload-requests` | 1~20장의 미디어를 등록하고 각 미디어의 15분 유효 서명 업로드 URL 발급 |
+| `POST /inspections/{inspectionId}/media/finalize` | 등록 수를 확인하고 분석 대상 미디어 집합 확정 |
 | `POST /media/{mediaId}/upload-complete` | 객체 존재·형식·크기를 확인한 뒤 업로드 완료 확정 |
 | `POST /media/{mediaId}/upload-retry` | 같은 미디어 ID와 저장소 키를 유지하며 새 15분 유효 URL 발급 |
 | `GET /inspections/{inspectionId}/media` | 임장의 미디어 페이지 조회 |
@@ -351,7 +362,7 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 - 등록 요청 본문은 `items` 배열이며 최소 1장, 최대 20장이다. 20장은 요청 한 번의 묶음 한도이지 임장 전체 한도가 아니다.
 - 배치는 원자적으로 처리한다. 한 항목이라도 형식·권한·상태 검증에 실패하면 새 항목을 하나도 등록하지 않고 요청 전체를 오류로 반환한다.
 - 예를 들어 10분 영상을 고정 3초 간격으로 처리해 약 200장을 선택하면 20장씩 약 10번에 나눠 등록할 수 있다.
-- 각 등록 항목에는 `clientMediaId`, `zone`, `contentType`, `fileSize`, `width`, `height`, `sourceVideoId`, `sourceVideoOffsetMs`, `frameOrigin`, `captureSource`, `capturedAt`을 보낸다.
+- 각 등록 항목에는 `clientMediaId`, `contentType`, `fileSize`, `width`, `height`, `sourceVideoId`, `sourceVideoOffsetMs`, `frameOrigin`, `captureSource`, `capturedAt`을 보낸다. 구역은 Android 등록값이 아니라 AI 분석 결과다.
 - MVP 등록 요청의 `contentType`은 `image/jpeg`, `frameOrigin`은 `POST_RECORDING_EXTRACTION`만 허용한다.
 - `sourceVideoId`는 앱이 만든 불투명 UUID일 뿐이며 원본 영상, 갤러리 URI와 로컬 경로를 서버에서 찾을 수 있는 값이 아니다.
 - 등록 성공 응답은 항목마다 `mediaId`, `clientMediaId`, `uploadUrl`, `expiresAt`, `uploadStatus=PENDING`을 반환한다.
@@ -361,7 +372,10 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 - 자동 재시도는 같은 `mediaId`, `clientMediaId`, 저장소 키를 유지한 채 최대 3회 수행하며 그 이후의 재시도는 사용자 행동으로 시작한다.
 - 목록은 공통 `page`, `size` 규칙을 따르며 다른 사용자의 미디어는 존재 여부를 숨기기 위해 `404`로 응답할 수 있다.
 - 등록·재시도는 `ENDED` 임장에서만 허용한다. `IN_PROGRESS` 또는 `CANCELLED`이면 `409 INVALID_STATE_TRANSITION`을 반환한다.
-- 임장당 전체 미디어 상한과 분석 대상 미디어 집합 확정 API는 별도 P0 합의 전까지 클라이언트와 서버가 임의로 가정하지 않는다.
+- Android는 모든 등록 요청을 마친 뒤 `expectedMediaCount`를 담아 집합 확정 API를 호출한다. 이 API에는 `Idempotency-Key`가 필수다.
+- 서버는 임장이 `ENDED`이고 삭제되지 않은 등록 미디어 수가 `expectedMediaCount`와 일치할 때 `mediaFinalizedAt`을 기록한다.
+- 같은 키와 같은 요청은 최초 결과를 반환한다. 등록 수 불일치는 `409 MEDIA_SET_COUNT_MISMATCH`, 확정 이후 신규 등록은 `409 MEDIA_SET_FINALIZED`다.
+- 확정 뒤에도 이미 등록된 실패 미디어의 업로드 재시도는 허용한다. 임장당 전체 미디어 상한은 별도 P0 결정 대상이다.
 
 ### 4.7 JPEG 생성·검증·보관 규칙
 
@@ -394,7 +408,28 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 | `11` | `trowelmark` | 흙손 자국 |
 | `12` | `other` | 기타 |
 
-`other`는 하자 후보 기준에는 부합하지만 기존 12개 유형으로 구체적으로 분류하지 못했을 때만 사용한다. 배경, 관찰 없음, 낮은 신뢰도 또는 분석 실패를 대신하지 않는다. `other`만 `OTHER_CHECK_NEEDED` 관찰 유형으로 변환하는 규칙이 확정됐으며 나머지 전체 변환표는 미확정이다.
+`other`는 하자 후보 기준에는 부합하지만 기존 12개 유형으로 구체적으로 분류하지 못했을 때만 사용한다. 배경, 관찰 없음, 낮은 신뢰도 또는 분석 실패를 대신하지 않는다. Worker는 문자열 별칭을 정규화하고 서버는 문자열이 아니라 `classId`로 아래 유형을 변환한다.
+
+| `classId` | `ObservationType` |
+|---:|---|
+| `0` | `CRACK_CHECK_NEEDED` |
+| `1` | `MOLD_CHECK_NEEDED` |
+| `2` | `PEELING_CHECK_NEEDED` |
+| `3` | `WATER_DAMAGE_CHECK_NEEDED` |
+| `4` | `TILE_DAMAGE_CHECK_NEEDED` |
+| `5` | `HOLE_CHECK_NEEDED` |
+| `6` | `TILE_CRACK_CHECK_NEEDED` |
+| `7` | `PAINT_DRIPS_CHECK_NEEDED` |
+| `8` | `PINHOLE_CHECK_NEEDED` |
+| `9` | `SURFACE_DEFECT_CHECK_NEEDED` |
+| `10` | `STAIN_CHECK_NEEDED` |
+| `11` | `TROWEL_MARK_CHECK_NEEDED` |
+| `12` | `OTHER_CHECK_NEEDED` |
+
+- 원시 후보 수집 임계값 `0.0325`와 사용자 관찰 생성 임계값을 분리한다.
+- 원시 후보는 DB에 보존하고, 관찰은 모델 버전별·라벨별 `observationMinConfidence` 이상일 때만 생성한다.
+- 설정은 `modelVersion`, `classId`, `observationMinConfidence`, `configuredAt`으로 관리하며 숫자 임계값을 OpenAPI에 고정하지 않는다.
+- 관찰 문구는 `균열`이 아니라 `균열로 추정되는 흔적 확인 필요`처럼 비확정 표현을 사용한다.
 
 `bbox`는 이미지 왼쪽 위를 원점으로 하는 정규화 좌표다.
 
@@ -409,27 +444,32 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 
 네 값은 `0.0` 이상 `1.0` 이하이고 `x + width <= 1.0`, `y + height <= 1.0`이어야 한다.
 
-### 4.8 관찰 `Observation`과 근거 사진
+### 4.9 관찰 `Observation`과 근거 사진
 
 - 관찰은 근거 JPEG가 있는 하자 의심 흔적이며 실제 하자 판정이 아니다.
 - 관찰 하나에는 같은 임장의 `UPLOADED` JPEG를 최소 1장, 최대 3장 연결한다.
 - 대표 근거 사진은 정확히 한 장 지정한다.
 - 한 사진을 여러 관찰의 근거로 사용하는 것은 허용한다.
 - 근거 사진이 삭제돼도 관찰과 연결 기록은 유지하고 `근거 사진 사용 불가`로 표시한다.
-- 최종 `ObservationType`과 AI 라벨 전체 변환표가 미확정이므로 Observation 요청·응답 스키마는 이번 OpenAPI에서 제외한다.
+- 같은 임장·유효 구역·`ObservationType`, 6초 이내 `sourceVideoOffsetMs`, crop 이미지 유사도 기준을 모두 만족할 때만 반복 흔적을 하나로 병합한다.
+- 병합 관찰은 근거를 최대 3장만 연결하고 신뢰도가 가장 높은 사진을 대표로 지정한다.
+- crop 유사도 비교가 구현되지 않았거나 실패하면 자동 병합하지 않는다. 시간과 라벨만으로 합치지 않는다.
+- 사용자는 관찰을 `VIEWED` 또는 `DISMISSED`로 바꾸고, `DISMISSED`를 `VIEWED`로 복원할 수 있다.
 
-### 4.9 리포트 `Report`
+### 4.10 리포트 `Report`
 
-리포트는 임장이 `ENDED`이고 분석 대상 미디어 집합이 확정됐으며 모든 분석이 성공 또는 최종 실패 상태가 된 뒤에만 생성할 수 있다.
+리포트는 임장이 `ENDED`이고 `mediaFinalizedAt`이 존재하며 모든 분석이 성공 또는 최종 실패 상태가 되면 서버가 자동 생성한다.
 
 - 성공 미디어가 하나 이상이고 실패가 없으면 `COMPLETED`다.
 - 성공 미디어가 하나 이상이고 일부가 실패하면 `PARTIAL_COMPLETED`다.
 - 성공 미디어가 하나도 없으면 `FAILED`이며 `NO_ANALYZABLE_MEDIA` 사유를 제공한다.
 - `DISMISSED` 관찰은 기본 리포트에서 제외한다.
 - 사용자 메모는 `내 메모`, AI 관찰 설명은 `확인 필요 관찰`로 구분한다.
-- 상세 응답과 생성·갱신 정책이 미확정이므로 Report API는 이번 OpenAPI에서 제외한다.
+- MVP 본문은 자유 생성 LLM이 아니라 버전이 있는 규칙·문장 템플릿으로 만들고 모든 관찰 문장은 근거 `mediaId`로 추적한다.
+- 성공 분석에서 관찰이 0건이면 `현재 촬영 근거에서 확인 필요 관찰이 생성되지 않았습니다.`라고 표시한다.
+- Android는 임장 리포트와 매물별 리포트 목록을 API에서 조회하며 자체적으로 최종 판정을 만들지 않는다.
 
-### 4.10 사용자 메모·안심 가이드·알림
+### 4.11 사용자 메모·안심 가이드·알림
 
 - MVP 사용자 메모는 텍스트만 지원하고 임장 전체 또는 선택한 구역에 연결한다.
 - 메모는 화면과 리포트에서 `내 메모`로 표시해 AI 설명과 구분한다.
@@ -440,7 +480,7 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 
 ## 5. 이번 OpenAPI에 포함하는 Android API
 
-이번 OpenAPI에는 요청·응답 구조가 확정된 인증, 매물과 임장 생명주기만 포함한다.
+이번 OpenAPI에는 요청·응답 구조가 확정된 인증, 매물, 임장, 미디어, 관찰과 리포트 조회 계약을 포함한다.
 
 ### 5.1 데모 로그인
 
@@ -481,14 +521,55 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 
 임장 삭제와 보관 설정·해제는 의미가 아직 완전히 합의되지 않아 이번 OpenAPI에서 제외한다.
 
+### 5.4 미디어
+
+| 메서드 | 경로 | 설명 |
+|---|---|---|
+| `POST` | `/api/v1/inspections/{inspectionId}/media/upload-requests` | JPEG 1~20장 등록 및 업로드 URL 발급 |
+| `POST` | `/api/v1/inspections/{inspectionId}/media/finalize` | `expectedMediaCount` 확인 후 미디어 집합 확정 |
+| `GET` | `/api/v1/inspections/{inspectionId}/media` | 임장의 미디어 목록 조회 |
+| `GET` | `/api/v1/media/{mediaId}` | 미디어 상세·처리 상태 조회 |
+| `POST` | `/api/v1/media/{mediaId}/upload-complete` | 객체 검증 후 업로드 완료 확정 |
+| `POST` | `/api/v1/media/{mediaId}/upload-retry` | 같은 미디어의 업로드 URL 재발급 |
+
+미디어 집합 확정 요청:
+
+```json
+{
+  "expectedMediaCount": 21
+}
+```
+
+### 5.5 관찰
+
+| 메서드 | 경로 | 설명 |
+|---|---|---|
+| `GET` | `/api/v1/inspections/{inspectionId}/observations` | 임장의 관찰 페이지 조회 |
+| `GET` | `/api/v1/observations/{observationId}` | 관찰과 근거 사진 상세 조회 |
+| `PATCH` | `/api/v1/observations/{observationId}/status` | 관찰을 `VIEWED`·`DISMISSED`로 변경하거나 복원 |
+
+관찰 상태 변경은 AI 원본 탐지·유형·구역·신뢰도를 수정하지 않는다.
+
+### 5.6 리포트
+
+| 메서드 | 경로 | 설명 |
+|---|---|---|
+| `GET` | `/api/v1/properties/{propertyId}/reports` | 매물의 리포트 페이지 조회 |
+| `GET` | `/api/v1/inspections/{inspectionId}/report` | 임장의 자동 생성 리포트 상태·상세 조회 |
+
+리포트 생성용 `POST`는 두지 않는다. 자동 생성 조건 전에는 리포트 리소스가 없을 수 있으며, 생성이 시작된 뒤에는 같은 상세 조회에서 현재 상태를 반환한다.
+
 ## 6. API 서버와 AI Worker 사이의 의미 계약
 
 정확한 큐 메시지 스키마는 분석 재시도·실패 코드와 관찰 병합 규칙을 결정한 뒤 확정한다. 현재 반드시 지킬 의미는 다음과 같다.
 
 - 작업 입력은 서버에 `UPLOADED`로 확정된 JPEG의 `mediaId`와 내부 객체 키를 사용한다.
 - AI Worker는 휴대전화 원본 영상, 갤러리 URI 또는 로컬 경로를 요청하지 않는다.
-- 결과에는 `mediaId`, 원본 `classId`, `label`, `confidence`, `bbox`, `zone`, `zoneConfidence`, `modelVersion`을 보존한다.
+- 결과에는 `mediaId`, 원본 `classId`, 정규화 `label`, `confidence`, `bbox`, `aiZone`, `zoneConfidence`, `zoneUncertain`, `zoneModelVersion`, 하자 모델 버전을 보존한다.
 - 서버는 라벨 쌍, 신뢰도, bbox와 ID를 검증한다.
+- 원시 탐지는 저장하고 모델 버전별 라벨 임계값 이상인 결과만 `Observation`으로 변환한다.
+- 구역 API 실패·불확실·미지원 결과는 `UNKNOWN`으로 정규화한다.
+- 인접 결과는 crop 유사도까지 확인할 수 있을 때만 조건부 병합한다.
 - 같은 결과가 재전송돼도 관찰을 중복 생성하지 않는다.
 - 성공 결과는 다른 미디어의 실패 때문에 폐기하지 않는다.
 - MVP AI Worker에는 음성·STT 작업을 포함하지 않는다.
@@ -499,15 +580,14 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 
 | 우선순위 | 미확정 항목 |
 |---:|---|
-| P0 | 최종 `ObservationType`과 AI 13개 라벨 전체 변환표. `other → OTHER_CHECK_NEEDED`만 확정 |
-| P0 | 분석 대상 미디어 집합 확정 API와 임장당 전체 미디어 상한 |
-| P0 | 인접 프레임의 같은 흔적 병합, 분석 자동 재시도·백오프와 `failureCode` |
+| P0 | 임장당 전체 미디어 상한 |
+| P0 | 라벨별 관찰 생성 임계값·crop 유사도 임계값, 분석 자동 재시도·백오프와 `failureCode` |
 | P0 | 촬영 중 JPEG 동시 생성과 영상 시점 동기화의 실기기 검증 |
 | P0 | 선명도·밝기·중복 임계값과 2MiB 제한에서의 AI 정확도·저장 용량 검증 기준 |
 | P1 | `UNKNOWN` 사용자 보정 API와 이력 조회 범위 |
 | P1 | 텍스트 메모 API와 이후 음성·STT 동의·보관 범위 |
 | P1 | `DISMISSED` 사유 enum |
-| P1 | 리포트 상세·자동 생성·갱신·편집·공유 API |
+| P1 | 실패 미디어 재시도 후 리포트 갱신, 사용자 편집·공유 API |
 | P1 | 푸시 토큰과 알림 API |
 | P2 | 서버형 안심 가이드와 열람 이력 API |
 
@@ -544,3 +624,4 @@ MVP의 사용자는 실제 소셜 계정과 연결되지 않은 데모 사용자
 | 2026-08-14 | 1.2 | 실시간 스트리밍을 제외하고 휴대전화 원본 영상과 JPEG 분석 방식으로 전환 |
 | 2026-08-18 | 검토 초안 2.0 | 체크리스트·Frame·Detection 계약을 제거하고 세션·구역·Media·Observation·근거 중심 계약으로 전환. 미확정 Media·Observation·Report HTTP API는 OpenAPI에서 제외 |
 | 2026-08-19 | 검토 초안 2.1 | JPEG 미디어 배치 등록(요청당 20장), 15분 서명 URL, 완료·재시도·조회와 멱등성 충돌 계약 확정 |
+| 2026-08-24 | 검토 초안 2.2 | 미디어 집합 finalize, AI 구역 원본·사용자 보정, 13개 관찰 유형, 신뢰도 분리·조건부 병합, 관찰 조회·상태 변경과 규칙 기반 자동 리포트 조회 계약 확정 |

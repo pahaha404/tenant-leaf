@@ -114,6 +114,35 @@ class MediaApiIntegrationTests(
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.analysisStatus").value("COMPLETED"))
 
+        val finalizeKey = UUID.randomUUID()
+        val finalizeBody = """{"expectedMediaCount":1}"""
+        mockMvc.perform(
+            post("/api/v1/inspections/{inspectionId}/media/finalize", inspectionId)
+                .header("Idempotency-Key", finalizeKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(finalizeBody),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.expectedMediaCount").value(1))
+            .andExpect(jsonPath("$.registeredMediaCount").value(1))
+            .andExpect(jsonPath("$.analysisStatus").value("COMPLETED"))
+
+        mockMvc.perform(
+            post("/api/v1/inspections/{inspectionId}/media/finalize", inspectionId)
+                .header("Idempotency-Key", finalizeKey)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(finalizeBody),
+        ).andExpect(status().isOk)
+
+        mockMvc.perform(
+            post("/api/v1/inspections/{inspectionId}/media/upload-requests", inspectionId)
+                .header("Idempotency-Key", UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody(UUID.randomUUID(), sourceVideoId)),
+        )
+            .andExpect(status().isConflict)
+            .andExpect(jsonPath("$.code").value("MEDIA_SET_FINALIZED"))
+
         mockMvc.perform(get("/api/v1/inspections/{inspectionId}/media", inspectionId))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.totalElements").value(1))
@@ -150,7 +179,7 @@ class MediaApiIntegrationTests(
     }
 
     private fun requestBody(clientMediaId: UUID, sourceVideoId: UUID) =
-        """{"items":[{"clientMediaId":"$clientMediaId","zone":"KITCHEN","contentType":"image/jpeg","fileSize":123,"width":640,"height":480,"sourceVideoId":"$sourceVideoId","sourceVideoOffsetMs":3000,"frameOrigin":"POST_RECORDING_EXTRACTION","captureSource":"META_GLASS","capturedAt":"2026-08-19T10:00:00+09:00"}]}"""
+        """{"items":[{"clientMediaId":"$clientMediaId","contentType":"image/jpeg","fileSize":123,"width":640,"height":480,"sourceVideoId":"$sourceVideoId","sourceVideoOffsetMs":3000,"frameOrigin":"POST_RECORDING_EXTRACTION","captureSource":"META_GLASS","capturedAt":"2026-08-19T10:00:00+09:00"}]}"""
 
     private fun createEndedInspection() = createInspection(InspectionLifecycleStatus.ENDED)
 

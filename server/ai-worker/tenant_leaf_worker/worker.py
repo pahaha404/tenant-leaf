@@ -294,6 +294,14 @@ class MediaAnalysisWorker:
                     SELECT 1 FROM media m WHERE m.inspection_id = i.id AND m.deleted_at IS NULL
                       AND m.analysis_status = 'ANALYZING'
                 ) THEN 'ANALYZING'
+                WHEN EXISTS (
+                    SELECT 1 FROM media m WHERE m.inspection_id = i.id AND m.deleted_at IS NULL
+                      AND m.analysis_status IN ('NOT_REQUESTED', 'QUEUED')
+                ) THEN 'QUEUED'
+                WHEN i.media_finalized_at IS NULL THEN 'UPLOADING'
+                WHEN NOT EXISTS (
+                    SELECT 1 FROM media m WHERE m.inspection_id = i.id AND m.deleted_at IS NULL
+                ) THEN 'FAILED'
                 WHEN NOT EXISTS (
                     SELECT 1 FROM media m WHERE m.inspection_id = i.id AND m.deleted_at IS NULL
                       AND m.analysis_status <> 'COMPLETED'

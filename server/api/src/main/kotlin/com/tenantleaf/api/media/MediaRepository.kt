@@ -9,6 +9,7 @@ interface MediaRepository : JpaRepository<MediaEntity, UUID> {
     fun findByIdAndOwnerIdAndDeletedAtIsNull(id: UUID, ownerId: UUID): MediaEntity?
     fun findByInspectionIdAndClientMediaId(inspectionId: UUID, clientMediaId: UUID): MediaEntity?
     fun findAllByInspectionIdAndDeletedAtIsNull(inspectionId: UUID): List<MediaEntity>
+    fun countByInspectionIdAndOwnerIdAndDeletedAtIsNull(inspectionId: UUID, ownerId: UUID): Long
     fun findAllByInspectionIdAndOwnerIdAndDeletedAtIsNull(inspectionId: UUID, ownerId: UUID, pageable: Pageable): Page<MediaEntity>
 }
 

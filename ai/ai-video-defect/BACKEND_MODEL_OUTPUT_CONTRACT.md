@@ -4,6 +4,8 @@
 
 YOLO 객체탐지 모델의 결과를 백엔드와 프론트엔드에서 동일하게 해석하기 위한 API 출력 형식을 정의한다.
 
+백엔드 저장, EXIF 방향 정규화, 안드로이드 `Fit`·`Crop` 좌표 계산과 한글 라벨 표시 방법은 `BBOX_RENDERING_ANDROID_BACKEND_GUIDE.md`를 따른다.
+
 ## 1. 좌표 기준
 
 탐지 영역은 `xyxy` 형식을 사용한다.
@@ -47,16 +49,18 @@ YOLO 내부에서 이미지가 resize되더라도 백엔드 응답은 resize된 
 
 `width`, `height`는 원본 이미지의 픽셀 크기이며, bounding box 좌표의 기준이 된다.
 
-## 4. classId와 label
+## 4. classId, label, displayLabel
 
-`classId`와 `label`을 모두 반환한다.
+`classId`, `label`, `displayLabel`, `displayColor`를 반환한다.
 
 | 필드 | 용도 |
 |---|---|
 | `classId` | 모델·백엔드 간 고정된 숫자 식별자 |
-| `label` | 화면 표시, 로그, 사용자에게 보여줄 클래스 이름 |
+| `label` | API·DB·로그에서 사용하는 영문 고정 식별자 |
+| `displayLabel` | 박스와 사용자 화면에 표시하는 한글 이름 |
+| `displayColor` | 클래스별 고정 박스 색상(`#RRGGBB`) |
 
-`classId`는 내부 처리와 데이터 저장에 사용하고, `label`은 표시용으로 사용한다. label 이름만으로 처리하면 추후 이름 변경이나 다국어 지원 시 호환성 문제가 생길 수 있다.
+백엔드는 분기와 저장에 `classId` 또는 `label`을 사용하고, 화면에는 `displayLabel`과 `displayColor`를 사용한다. 한글 명칭을 바꾸더라도 영문 `label`과 class ID는 변경하지 않는다.
 
 현재 주요 class ID는 다음과 같다.
 
@@ -74,6 +78,8 @@ YOLO 내부에서 이미지가 resize되더라도 백엔드 응답은 resize된 
 | 9 | `surface_defect` | 활성 |
 | 10 | `stain` | 활성 |
 | 11 | `trowel_mark` | 활성 |
+
+현재 표시 이름은 `crack=균열`, `mold=곰팡이`, `peeling=들뜸·박리`, `water_damage=누수`, `tile_damage=타일 손상`, `hole=구멍`, `tile_crack=타일 균열`, `pin_hole=미세 구멍`, `surface_defect=표면 하자`, `stain=오염`, `trowel_mark=마감 자국`, `unknown_defect=하자 의심`이다. 색상은 AI 결과의 `displayColor`를 그대로 사용한다.
 
 ### 현재 모델 개선 우선순위
 
@@ -105,6 +111,8 @@ API class ID와 호환성은 변경하지 않는다. 다만 현재 모델 측정
     {
       "classId": 1,
       "label": "mold",
+      "displayLabel": "곰팡이",
+      "displayColor": "#2E7D32",
       "confidence": 0.87,
       "box": {
         "left": 120,
@@ -116,6 +124,8 @@ API class ID와 호환성은 변경하지 않는다. 다만 현재 모델 측정
     {
       "classId": 3,
       "label": "water_damage",
+      "displayLabel": "누수",
+      "displayColor": "#1E88E5",
       "confidence": 0.64,
       "box": {
         "left": 720,
@@ -224,10 +234,11 @@ Binary detector가 하자 후보를 찾았지만 후단 classifier가 하자 유
 이미지 묶음 파이프라인은 백엔드가 시간순으로 전달한 각 이미지를 추론한다. 각 탐지 observation에는 리포트 연결을 위한 다음 이미지 경로가 포함된다.
 
 - `evidencePath`: 하자가 탐지된 원본 이미지
-- `cropPath`: bbox에 15% 여백을 적용한 하자 영역 crop
-- `cropImage.width`, `cropImage.height`: 생성된 crop 이미지 크기
+- `candidateAnnotatedPath`: Gemini 검증 전 모든 YOLO 후보 박스 이미지
+- `annotatedPath`: Gemini가 확신도 0.90 이상으로 판단한 `not_defect`를 제외한 최종 박스 이미지
+- `rejectedDetections`: 최종 결과에서 제외된 후보의 테스트 감사 기록
 
-AI가 반환하는 값은 서버 내부 파일 경로다. 백엔드는 원본 이미지와 crop 파일을 저장소에 보관하고 인증된 `evidenceUrl`, `cropUrl`로 변환해 리포트에 연결한다. 리포트 초안·확정본·목록·상세·공유 기능은 백엔드 책임이다.
+AI가 반환하는 값은 서버 내부 파일 경로다. 백엔드는 원본 이미지와 최종 박스 이미지를 저장소에 보관하고 인증된 `evidenceUrl`, `annotatedUrl`로 변환해 리포트에 연결한다. 하자 영역 crop은 생성하지 않는다. 리포트 초안·확정본·목록·상세·공유 기능은 백엔드 책임이다.
 
 ## 이미지 묶음 결과 형식
 
@@ -267,4 +278,4 @@ AI가 반환하는 값은 서버 내부 파일 경로다. 백엔드는 원본 �
 }
 ```
 
-`images[]`의 `detections[]`는 기존 단일 이미지 계약과 동일한 `classId`, `label`, `confidence`, `box` 형식을 사용한다. `observations[]`의 `cropPath`는 해당 이미지의 bbox crop을 가리키며, 공간 연결에는 `room`과 `roomSegmentId`를 사용한다.
+`images[]`의 `detections[]`는 Gemini 보조 검증 후 남은 결과이며 기존 단일 이미지 계약과 동일한 `classId`, `label`, `displayLabel`, `displayColor`, `confidence`, `box` 형식을 사용한다. `not_defect`이면서 판단 확신도 0.90 이상인 결과만 `detections[]`와 `observations[]`에서 제외하고 `images[].rejectedDetections[]`에 남긴다. 그보다 확신도가 낮은 결과와 `uncertain`은 미탐 방지를 위해 유지한다. `observations[]`의 `annotatedPath`는 한글 라벨과 클래스별 색상이 적용된 최종 박스 이미지를 가리키며, 공간 연결에는 `room`과 `roomSegmentId`를 사용한다.

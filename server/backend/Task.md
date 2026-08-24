@@ -22,6 +22,8 @@
 
 ## 완료 기록
 
+- 2026-08-24 — 매물 삭제 정책을 소프트 삭제(Soft Delete, `deleted_at`)로 전환함. Flyway 마이그레이션 `V8__add_deleted_at_to_properties.sql`을 추가하고, `PropertyEntity`, `PropertyRepository`, `PropertyService`, `InspectionService`에 `deletedAtIsNull` 조회를 적용함. 임장 기록이 있는 매물도 외래키 제약 충돌 없이 안전하게 삭제(보관/숨김 처리)되어 목록과 상세 조회에서 제외되며, 과거 임장 세션 및 리포트 데이터의 무결성은 영구 보존됨. `server/api` 22개 전체 단위/통합 테스트 통과 (`BUILD SUCCESSFUL`).
+
 - 2026-08-20 — 로컬 기본 설정과 실배포 `prod` 프로필을 분리했다. 실배포 DB·객체 저장소 설정은 배포 환경변수가 없으면 해석되지 않도록 구성했고, `clean test`로 검증했다. 실제 배포 인프라와 운영 DB 연결은 배포처 확정 전이므로 미검증이다.
 
 - 2026-08-19 — MinIO Compose 구성, `media`·멱등성 레코드 Flyway 테이블, 업로드 등록·완료·재시도·목록·상세 Spring Boot 구현과 저장소 대체 테스트를 추가함. OpenAPI 검사와 Kotlin 주·테스트 소스 컴파일은 통과했으나 현재 실행 환경에서 MinIO SDK 다운로드와 Docker 실행이 불가능하여 실제 MinIO PUT 통합 검증 전까지 작업 체크는 미완료로 유지함.
