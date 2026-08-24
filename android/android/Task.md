@@ -27,6 +27,8 @@
 
 ## 진행 기록
 
+- 2026-08-24 — JPEG 업로드 완료 뒤 실제 임장 리포트 API를 2초 간격으로 조회하고 서버 상태를 `Generating`, `Completed`, `Empty`, `Partial`, `Error` UI에 연결함. 근거 사진은 원본 픽셀 `xyxy`를 `ContentScale.Fit` 표시 영역에 맞춰 변환하며 같은 사진의 여러 bbox를 함께 그리고 선택 관찰을 마지막에 굵게 표시하도록 변경함. Gradle 플러그인 원격 해석 제한으로 코드 생성·앱 빌드·실기기 확인은 미검증이므로 관련 체크 항목은 `[ ]`로 유지함.
+
 - 2026-08-24 — `design/UI/UI.pen`의 리포트 상세 상태를 Compose로 옮겨 `Completed`, `Evidence Viewer`, `Empty`, `Partial`, `Error`, `Generating` 화면을 상태 모델로 구성함. 기존 점검 종료 후 `reportProcessing` 상태에는 생성 중 화면을 연결하고, 관찰 카드에서 서명 URL 근거 사진과 bbox를 전체화면으로 확인할 수 있게 구현함. 참고 점수는 관찰 1건당 5점 차감·최저 0점으로 계산하며 단위 테스트를 추가함. Gradle 9.5 및 Android Gradle Plugin 9.3.1 다운로드가 실행 환경에서 차단되어 빌드·테스트 실행은 미검증 상태임.
 - 2026-08-24 — 구역 관찰 화면 하단을 시스템 내비게이션 영역과 분리된 고정 Bottom Surface로 개선하고, 54dp 주황색 `매물 상세로 돌아가기` CTA를 배치함. 관찰 목록 아래에 `#FFF0E4` 안내 카드와 전체 비확정 안내 문구를 추가하고, 확인 필요 배지에 아이콘을 함께 표시함. `:app:testDebugUnitTest` 및 수정 파일 진단 통과. 실기기 화면 위치와 실제 백스택 복귀는 미검증임.
 - 2026-08-24 — 실시간 점검 중 체크리스트 가이드 확인 시 녹화 세션 중단 버그 수정. 외부 라우트 이동으로 `LiveInspectionScreen` 컴포저블이 언마운트되며 레코더(`InspectionVideoRecorder`)가 강제 닫히던 문제를 해결하고, 화면 내부 모달 오버레이 다이얼로그(`activeGuideIndex`) 방식으로 변경하여 가이드 확인 후 되돌아오더라도 끊김 없이 녹화 및 프리뷰가 연속 유지되도록 수정함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 실기기 가이드 모달 터치는 실기기 미검증임.

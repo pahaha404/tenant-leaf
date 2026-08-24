@@ -4,6 +4,7 @@ import com.seipseip.core.BuildConfig
 import com.seipseip.core.network.generated.api.InspectionsApi
 import com.seipseip.core.network.generated.api.MediaApi
 import com.seipseip.core.network.generated.api.PropertiesApi
+import com.seipseip.core.network.generated.api.ReportsApi
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -60,5 +61,8 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideMediaApi(retrofit: Retrofit): MediaApi = retrofit.create(MediaApi::class.java)
-}
 
+    @Provides
+    @Singleton
+    fun provideReportsApi(retrofit: Retrofit): ReportsApi = retrofit.create(ReportsApi::class.java)
+}

@@ -304,7 +304,7 @@ Box(Modifier.fillMaxWidth().aspectRatio(imageWidth / imageHeight)) {
 | `surface_defect` | 표면 하자 | `#F9A825` |
 | `stain` | 오염 | `#558B2F` |
 | `trowel_mark` | 마감 자국 | `#546E7A` |
-| `unknown_defect` | 하자 의심 | `#F4511E` |
+| `other` | 하자 의심 | `#F4511E` |
 
 ### 5-3. 텍스트 표시 권장 형식
 
@@ -316,7 +316,7 @@ Box(Modifier.fillMaxWidth().aspectRatio(imageWidth / imageHeight)) {
 
 - 사용자 화면에는 후보 ID `D1`, `D2`를 표시하지 않는다.
 - confidence는 `0.87 → 87%`처럼 표시한다.
-- `unknown_defect`는 특정 하자로 확정하지 않고 `하자 의심`으로 표시한다.
+- `other`는 특정 하자로 확정하지 않고 `하자 의심`으로 표시한다.
 - 한글 라벨은 계약 또는 하자 확정이 아니라 AI 관찰 결과라는 안내 문구와 함께 사용한다.
 
 Python이 생성한 박스 이미지에는 서버 한글 폰트가 필요하지만, 안드로이드가 JSON으로 직접 렌더링할 때는 안드로이드 시스템 한글 폰트를 사용하므로 별도 폰트 파일이 필요하지 않다.
@@ -339,4 +339,3 @@ Python이 생성한 박스 이미지에는 서버 한글 폰트가 필요하지�
 4. 회전 정보가 있는 스마트폰 JPEG에서도 위치가 맞는다.
 5. 확대 전·후에도 박스와 이미지가 함께 이동한다.
 6. `누수`, `오염`, `곰팡이` 등 한글명과 클래스별 색상이 API 응답과 일치한다.
-

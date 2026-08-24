@@ -27,3 +27,20 @@ class MediaAnalysisJobEntity(
     @Column(name = "created_at", nullable = false) val createdAt: OffsetDateTime,
     @Column(name = "updated_at", nullable = false) var updatedAt: OffsetDateTime,
 )
+
+@Entity
+@Table(name = "media_analysis_detections")
+class MediaAnalysisDetectionEntity(
+    @Id val id: UUID,
+    @Column(name = "job_id", nullable = false) val jobId: UUID,
+    @Column(name = "media_id", nullable = false) val mediaId: UUID,
+    @Column(name = "class_id", nullable = false) val classId: Int,
+    @Column(nullable = false, length = 64) val label: String,
+    @Column(nullable = false) val confidence: Double,
+    @Column(name = "box_left", nullable = false) val boxLeft: Double,
+    @Column(name = "box_top", nullable = false) val boxTop: Double,
+    @Column(name = "box_right", nullable = false) val boxRight: Double,
+    @Column(name = "box_bottom", nullable = false) val boxBottom: Double,
+    @Column(name = "model_version", nullable = false, length = 128) val modelVersion: String,
+    @Column(name = "created_at", nullable = false) val createdAt: OffsetDateTime,
+)

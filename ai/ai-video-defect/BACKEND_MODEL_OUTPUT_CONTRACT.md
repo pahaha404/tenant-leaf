@@ -79,7 +79,7 @@ YOLO 내부에서 이미지가 resize되더라도 백엔드 응답은 resize된 
 | 10 | `stain` | 활성 |
 | 11 | `trowel_mark` | 활성 |
 
-현재 표시 이름은 `crack=균열`, `mold=곰팡이`, `peeling=들뜸·박리`, `water_damage=누수`, `tile_damage=타일 손상`, `hole=구멍`, `tile_crack=타일 균열`, `pin_hole=미세 구멍`, `surface_defect=표면 하자`, `stain=오염`, `trowel_mark=마감 자국`, `unknown_defect=하자 의심`이다. 색상은 AI 결과의 `displayColor`를 그대로 사용한다.
+현재 표시 이름은 `crack=균열`, `mold=곰팡이`, `peeling=들뜸·박리`, `water_damage=누수`, `tile_damage=타일 손상`, `hole=구멍`, `tile_crack=타일 균열`, `paint_drips=페인트 흘러내림`, `pin_hole=미세 구멍`, `surface_defect=표면 하자`, `stain=오염`, `trowel_mark=마감 자국`, `other=하자 의심`이다. 색상은 AI 결과의 `displayColor`를 그대로 사용한다.
 
 ### 현재 모델 개선 우선순위
 
@@ -152,16 +152,16 @@ API class ID와 호환성은 변경하지 않는다. 다만 현재 모델 측정
 
 ## 6. 분류되지 않은 하자 후보
 
-Binary detector가 하자 후보를 찾았지만 후단 classifier가 하자 유형을 확정하지 못한 경우, `unknown_defect`를 학습용 class ID로 취급하지 않는다.
+Binary detector가 하자 후보를 찾았지만 후단 classifier가 구체적인 유형을 확정하지 못한 경우 서비스 계약의 `other`로 반환한다.
 
-- `classId`: `null`
-- `label`: `unknown_defect`
+- `classId`: `12`
+- `label`: `other`
 - `classificationStatus`: `unclassified`
 - `reviewStatus`: `needs_review`
 - `defectConfidence`: binary detector의 하자 존재 confidence
 - `classConfidence`: classifier confidence. 분류 실패 시 `null`
 
-`unknown_defect`는 “하자가 아니다”라는 뜻이 아니라 “하자 후보는 있으나 종류를 아직 모른다”는 뜻이다. 백엔드는 이 결과를 삭제하거나 정상 이미지로 처리하지 않고, 사용자 확인 필요 관찰로 저장해야 한다.
+`other`는 “하자가 아니다”라는 뜻이 아니라 “하자 후보는 있으나 구체적인 종류를 분류하지 못했다”는 뜻이다. 배경·낮은 신뢰도·분석 실패를 `other`로 대신하지 않는다.
 
 `classificationStatus`와 `reviewStatus`는 분리한다.
 
@@ -174,8 +174,8 @@ Binary detector가 하자 후보를 찾았지만 후단 classifier가 하자 유
 
 ```json
 {
-  "classId": null,
-  "label": "unknown_defect",
+  "classId": 12,
+  "label": "other",
   "classificationStatus": "unclassified",
   "reviewStatus": "needs_review",
   "defectConfidence": 0.78,
@@ -212,8 +212,7 @@ Binary detector가 하자 후보를 찾았지만 후단 classifier가 하자 유
 - [ ] 탐지 결과가 없을 때 빈 배열 반환
 - [ ] confidence 내림차순 정렬
 - [ ] 좌표가 이미지 경계를 벗어나지 않도록 보정
-- [ ] `paint_drips` 등 비활성 class가 API에 노출되지 않는지 확인
-- [ ] `unknown_defect`를 고정 class ID로 저장하지 않고 `classId: null`로 처리
+- [ ] `other`를 `classId: 12`와 고정 쌍으로 반환
 - [ ] binary 하자 존재 confidence와 후단 class confidence를 별도 저장
 - [ ] 분류 실패 후보도 `needs_review` 관찰로 보존
 

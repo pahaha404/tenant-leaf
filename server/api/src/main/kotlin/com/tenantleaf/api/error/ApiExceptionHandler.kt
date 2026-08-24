@@ -17,6 +17,8 @@ import com.tenantleaf.api.media.ObjectStorageUnavailableException
 import com.tenantleaf.api.media.UnsupportedMediaTypeException
 import com.tenantleaf.api.property.PropertyNotFoundException
 import com.tenantleaf.api.property.PropertyValidationException
+import com.tenantleaf.api.report.ObservationNotFoundException
+import com.tenantleaf.api.report.ReportNotFoundException
 import jakarta.validation.ConstraintViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -39,6 +41,14 @@ class ApiExceptionHandler {
     @ExceptionHandler(MediaNotFoundException::class)
     fun handleMediaNotFound(): ResponseEntity<ErrorResponse> =
         response(HttpStatus.NOT_FOUND, "MEDIA_NOT_FOUND", "요청한 미디어를 찾을 수 없습니다.")
+
+    @ExceptionHandler(ObservationNotFoundException::class)
+    fun handleObservationNotFound(): ResponseEntity<ErrorResponse> =
+        response(HttpStatus.NOT_FOUND, "OBSERVATION_NOT_FOUND", "요청한 확인 필요 관찰을 찾을 수 없습니다.")
+
+    @ExceptionHandler(ReportNotFoundException::class)
+    fun handleReportNotFound(): ResponseEntity<ErrorResponse> =
+        response(HttpStatus.NOT_FOUND, "REPORT_NOT_FOUND", "아직 생성된 리포트가 없습니다.")
 
     @ExceptionHandler(InspectionStateTransitionException::class)
     fun handleInspectionStateTransition(): ResponseEntity<ErrorResponse> =

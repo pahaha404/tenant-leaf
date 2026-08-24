@@ -25,3 +25,7 @@ interface ApiIdempotencyRecordRepository : JpaRepository<ApiIdempotencyRecordEnt
 interface MediaAnalysisJobRepository : JpaRepository<MediaAnalysisJobEntity, UUID> {
     fun findByMediaId(mediaId: UUID): MediaAnalysisJobEntity?
 }
+
+interface MediaAnalysisDetectionRepository : JpaRepository<MediaAnalysisDetectionEntity, UUID> {
+    fun findAllByMediaIdIn(mediaIds: Collection<UUID>): List<MediaAnalysisDetectionEntity>
+}

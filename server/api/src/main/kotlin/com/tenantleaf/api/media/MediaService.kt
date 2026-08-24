@@ -21,6 +21,7 @@ import com.tenantleaf.api.inspection.InspectionNotFoundException
 import com.tenantleaf.api.inspection.InspectionRepository
 import com.tenantleaf.api.inspection.InspectionStateTransitionException
 import com.tenantleaf.api.property.DemoUserContext
+import com.tenantleaf.api.report.ReportGenerationCoordinator
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
@@ -38,6 +39,7 @@ class MediaService(
     private val inspectionRepository: InspectionRepository,
     private val storage: ObjectStorageGateway,
     private val userContext: DemoUserContext,
+    private val reportCoordinator: ReportGenerationCoordinator,
 ) {
     @Transactional
     fun createUploadRequests(
@@ -165,6 +167,7 @@ class MediaService(
         if (inspection.expectedMediaCount != request.expectedMediaCount) throw MediaSetCountMismatchException()
 
         refreshInspectionAnalysisStatus(inspectionId, ownerId)
+        reportCoordinator.evaluate(inspectionId)
         return FinalizeInspectionMediaResponse(
             inspectionId = inspectionId,
             expectedMediaCount = request.expectedMediaCount,

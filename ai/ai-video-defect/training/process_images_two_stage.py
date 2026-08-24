@@ -21,6 +21,7 @@ IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 LABEL_DISPLAY = {
     "defect": "하자 의심",
     "unknown_defect": "하자 의심",
+    "other": "하자 의심",
     "crack": "균열",
     "mold": "곰팡이",
     "peeling": "들뜸·박리",
@@ -50,6 +51,7 @@ LABEL_COLORS_RGB = {
     "trowel_mark": (84, 110, 122),
     "defect": (244, 81, 30),
     "unknown_defect": (244, 81, 30),
+    "other": (244, 81, 30),
 }
 
 
@@ -136,10 +138,10 @@ def merge_detections(binary: list[dict], multiclass: list[dict], merge_iou: floa
     for binary_item in binary:
         if not any(box_iou(box_list(binary_item), box_list(multi_item)) >= merge_iou for multi_item in multiclass):
             merged.append({
-                "classId": None,
-                "label": "unknown_defect",
-                "displayLabel": display_label("unknown_defect"),
-                "displayColor": display_color_hex("unknown_defect"),
+                "classId": 12,
+                "label": "other",
+                "displayLabel": display_label("other"),
+                "displayColor": display_color_hex("other"),
                 "confidence": binary_item["confidence"],
                 "box": binary_item["box"],
                 "classificationStatus": "unclassified",
@@ -281,6 +283,8 @@ def process_images(args: argparse.Namespace) -> dict:
     elapsed = time.perf_counter() - started
     payload = {
         "jobId": args.job_id,
+        "mediaId": args.media_id,
+        "modelVersion": args.model_version,
         "status": "completed",
         "input": {"path": display_path(input_path, root), "imageCount": len(image_paths)},
             "processing": {
@@ -308,6 +312,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run full-image Binary + multiclass YOLO on server-provided images.")
     parser.add_argument("--input", type=Path, required=True, help="An image file or a directory of images")
     parser.add_argument("--job-id", default="local-image-test")
+    parser.add_argument("--media-id", default="local-image-test", help="Server media UUID for result correlation")
+    parser.add_argument("--model-version", default="two_stage_negative_rot4")
     parser.add_argument("--output", type=Path, default=Path("reports/image_two_stage_test"))
     parser.add_argument("--binary", type=Path, default=Path("models/active/two_stage_negative_rot4/binary/best.pt"))
     parser.add_argument("--multiclass", type=Path, default=Path("models/active/two_stage_negative_rot4/multiclass/best.pt"))
