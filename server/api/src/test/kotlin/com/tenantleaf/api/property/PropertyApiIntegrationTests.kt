@@ -150,6 +150,34 @@ class PropertyApiIntegrationTests(
             .andExpect(jsonPath("$.code").value("PROPERTY_NOT_FOUND"))
     }
 
+    @Test
+    fun `임장 기록이 존재하는 매물도 소프트 삭제할 수 있고 목록과 조회에서 제외된다`() {
+        val propertyId = createPropertyDirectly(ownerId = DemoUserContext.DEMO_USER_ID)
+        val now = OffsetDateTime.now()
+        inspectionRepository.save(
+            com.tenantleaf.api.inspection.InspectionEntity(
+                id = UUID.randomUUID(),
+                propertyId = propertyId,
+                ownerId = DemoUserContext.DEMO_USER_ID,
+                status = com.tenantleaf.api.inspection.InspectionLifecycleStatus.IN_PROGRESS,
+                analysisStatus = com.tenantleaf.api.inspection.InspectionAggregateStatus.NOT_STARTED,
+                startedAt = now,
+                createdAt = now,
+            ),
+        )
+
+        mockMvc.perform(delete("/api/v1/properties/{propertyId}", propertyId))
+            .andExpect(status().isNoContent)
+
+        mockMvc.perform(get("/api/v1/properties/{propertyId}", propertyId))
+            .andExpect(status().isNotFound)
+            .andExpect(jsonPath("$.code").value("PROPERTY_NOT_FOUND"))
+
+        mockMvc.perform(get("/api/v1/properties"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.totalElements").value(0))
+    }
+
     private fun createPropertyDirectly(ownerId: UUID): UUID {
         val now = OffsetDateTime.now()
         val entity = repository.save(

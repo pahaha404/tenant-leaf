@@ -2,11 +2,9 @@ package com.seipseip.app.integration
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,14 +26,6 @@ fun MediaUploadApiRoute(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_VIDEO
     else Manifest.permission.READ_EXTERNAL_STORAGE
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        uri?.let {
-            runCatching {
-                context.contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            viewModel.useSelected(it)
-        }
-    }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         viewModel.onPermissionResult(it)
     }
@@ -46,7 +36,6 @@ fun MediaUploadApiRoute(
         requestPermission = { permissionLauncher.launch(permission) },
         useNewest = viewModel::useNewest,
         retry = viewModel::retry,
-        selectVideo = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)) },
         finish = onOpenReport,
     )
     AnalysisProgressScreen(
@@ -56,7 +45,6 @@ fun MediaUploadApiRoute(
         errorMessage = presentation.error,
         primaryActionLabel = presentation.primaryLabel,
         onPrimaryAction = presentation.primaryAction,
-        onSelectVideo = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)) },
     )
 }
 
@@ -72,13 +60,12 @@ private fun MediaUploadUiState.toPresentation(
     requestPermission: () -> Unit,
     useNewest: () -> Unit,
     retry: () -> Unit,
-    selectVideo: () -> Unit,
     finish: () -> Unit,
 ): MediaPresentation = when (this) {
     MediaUploadUiState.PermissionRequired -> MediaPresentation(0f, "동영상 접근 권한이 필요해요.", primaryLabel = "권한 허용", primaryAction = requestPermission)
-    MediaUploadUiState.FindingVideo -> MediaPresentation(.05f, "임장 시간 이후의 최근 영상을 찾고 있어요.", primaryLabel = "영상 직접 선택", primaryAction = selectVideo)
-    MediaUploadUiState.NoVideo -> MediaPresentation(0f, "자동으로 찾은 영상이 없어요.", primaryLabel = "영상 직접 선택", primaryAction = selectVideo)
-    is MediaUploadUiState.ConfirmNewest -> MediaPresentation(.1f, "후보 영상이 여러 개예요. 가장 최근 영상을 사용할까요?", primaryLabel = "최근 영상 사용", primaryAction = useNewest)
+    MediaUploadUiState.FindingVideo -> MediaPresentation(.05f, "갤러리에서 촬영된 영상을 자동으로 찾고 있어요.", primaryLabel = "영상 검색 중", primaryAction = {})
+    MediaUploadUiState.NoVideo -> MediaPresentation(0f, "갤러리에서 촬영된 영상을 찾는 중이에요.", primaryLabel = "다시 확인", primaryAction = retry)
+    is MediaUploadUiState.ConfirmNewest -> MediaPresentation(.1f, "가장 최근 촬영 영상을 처리 중이에요.", primaryLabel = "최근 영상 분석", primaryAction = useNewest)
     is MediaUploadUiState.Extracting -> MediaPresentation(
         progress = if (total == 0) .15f else .15f + .35f * completed / total,
         message = "3초 구간별 JPEG를 준비 중이에요. ${completed} / ${total}",

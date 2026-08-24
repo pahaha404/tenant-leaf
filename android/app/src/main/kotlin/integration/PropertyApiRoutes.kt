@@ -22,10 +22,13 @@ import com.seipseip.feature.property.presentation.PropertyFormViewModel
 import com.seipseip.feature.property.presentation.PropertyListViewModel
 import java.util.UUID
 
+import com.seipseip.app.feature.property.PropertyMapOverviewScreen
+
 @Composable
 fun PropertyListApiRoute(
     onAddProperty: () -> Unit,
     onOpenProperty: (String) -> Unit,
+    onOpenMapOverview: () -> Unit = {},
     onTabSelected: (String) -> Unit,
     viewModel: PropertyListViewModel = hiltViewModel(),
 ) {
@@ -39,8 +42,32 @@ fun PropertyListApiRoute(
         onAddProperty = onAddProperty,
         onOpenProperty = onOpenProperty,
         onDeleteProperty = { id -> runCatching { UUID.fromString(id) }.getOrNull()?.let(viewModel::delete) },
+        onDeleteMultipleProperties = { ids ->
+            val uuids = ids.mapNotNull { id -> runCatching { UUID.fromString(id) }.getOrNull() }
+            viewModel.deleteMultiple(uuids)
+        },
         onRetry = viewModel::refresh,
+        onOpenMapOverview = onOpenMapOverview,
         onTabSelected = onTabSelected,
+    )
+}
+
+@Composable
+fun PropertyMapApiRoute(
+    onBack: () -> Unit,
+    onOpenProperty: (String) -> Unit,
+    onAddProperty: () -> Unit,
+    viewModel: PropertyListViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    PropertyMapOverviewScreen(
+        properties = state.values().map(Property::toUi),
+        loading = state is ContentState.Loading || state is ContentState.Idle,
+        errorMessage = state.errorMessage(),
+        onBack = onBack,
+        onOpenProperty = onOpenProperty,
+        onAddProperty = onAddProperty,
+        onRetry = viewModel::refresh,
     )
 }
 
@@ -59,6 +86,17 @@ fun PropertyFormApiRoute(
             if (event is PropertyFormEvent.Saved) onSaved(event.id.toString())
         }
     }
+    val initialProperty = remember(state.fields, state.editing) {
+        if (state.editing) {
+            PropertyUiModel(
+                id = "",
+                name = state.fields.name,
+                address = state.fields.addressSummary,
+                depositAmount = state.fields.depositAmount?.toLongOrNull(),
+                monthlyRentAmount = state.fields.monthlyRentAmount?.toLongOrNull(),
+            )
+        } else null
+    }
     PropertyFormScreen(
         onBack = onBack,
         saving = state.saving,
@@ -66,6 +104,7 @@ fun PropertyFormApiRoute(
         onOpenAddressPicker = onOpenAddressPicker,
         onOpenLocationPicker = onOpenLocationPicker,
         selectedAddress = selectedAddress,
+        initialProperty = initialProperty,
         onSaved = { input ->
             viewModel.updateFields { fields ->
                 fields.copy(
@@ -86,11 +125,17 @@ fun PropertyDetailApiRoute(
     onStartInspection: (String) -> Unit,
     onOpenReport: () -> Unit,
     onOpenBasicInfo: (PropertyUiModel?) -> Unit,
+    onEditProperty: ((String) -> Unit)? = null,
     onTabSelected: (String) -> Unit,
     viewModel: PropertyDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val property = (state.content as? ContentState.Success<Property>)?.value?.toUi()
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            if (event is com.seipseip.feature.property.presentation.PropertyDetailEvent.Deleted) onBack()
+        }
+    }
     PropertyDetailScreen(
         property = property,
         loading = state.content is ContentState.Loading || state.content is ContentState.Idle,
@@ -99,6 +144,9 @@ fun PropertyDetailApiRoute(
         onStartInspection = { property?.id?.let(onStartInspection) },
         onOpenReport = onOpenReport,
         onOpenBasicInfo = { onOpenBasicInfo(property) },
+        onEditProperty = onEditProperty?.let { edit -> { property?.id?.let(edit) } },
+        onDeleteProperty = viewModel::delete,
+        onRefresh = viewModel::load,
         onTabSelected = onTabSelected,
     )
 }
