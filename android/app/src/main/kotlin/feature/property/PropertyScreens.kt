@@ -789,18 +789,32 @@ fun PropertySelectScreen(
     onSelected: (String) -> Unit,
     onAddProperty: () -> Unit,
 ) {
-    AppPageScaffold(title = "점검할 매물 선택", onBack = onBack) {
+    AppPageScaffold(
+        title = "점검할 매물 선택",
+        onBack = onBack,
+        bottomAction = {
+            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
+                PrimaryButton(
+                    label = "선택한 매물로 계속하기",
+                    onClick = { selectedId?.let(onSelected) },
+                    enabled = selectedId != null,
+                )
+            }
+        },
+    ) {
         SectionTitle("어느 매물을 점검할까요?", "점검 기록은 선택한 매물에 저장돼요.")
         if (loading) Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
-        properties.forEach { property ->
-            PropertyCard(property, selected = property.id == selectedId) { onPropertySelected(property.id) }
+        if (properties.isEmpty() && !loading) {
+            InfoCard(
+                title = "다른 매물이 없나요?",
+                description = "새 매물을 등록하면 방문 준비와 점검을 바로 시작할 수 있어요.",
+                onClick = onAddProperty,
+            )
+        } else {
+            properties.forEach { property ->
+                PropertyCard(property, selected = property.id == selectedId) { onPropertySelected(property.id) }
+            }
         }
-        InfoCard(
-            title = "다른 매물이 없나요?",
-            description = "새 매물을 등록하면 방문 준비와 점검을 바로 시작할 수 있어요.",
-            onClick = onAddProperty,
-        )
-        PrimaryButton("선택한 매물로 계속하기", { selectedId?.let(onSelected) }, enabled = selectedId != null)
     }
 }
 
