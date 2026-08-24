@@ -1468,6 +1468,7 @@ components:
         - propertyId
         - inspectionId
         - status
+        - totalMediaCount
         - successfulMediaCount
         - failedMediaCount
         - observationCount
@@ -1489,6 +1490,10 @@ components:
           format: uuid
         status:
           $ref: "#/components/schemas/ReportStatus"
+        totalMediaCount:
+          type: integer
+          minimum: 0
+          description: 미디어 집합 확정 시 서버가 기록한 전체 분석 대상 JPEG 수입니다.
         successfulMediaCount:
           type: integer
           minimum: 0

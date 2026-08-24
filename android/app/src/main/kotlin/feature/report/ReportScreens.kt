@@ -81,7 +81,7 @@ import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-enum class ReportDetailStatus { GENERATING, COMPLETED, EMPTY, PARTIAL, ERROR }
+enum class ReportDetailStatus { WAITING_FOR_ANALYSIS, GENERATING, COMPLETED, EMPTY, PARTIAL, ERROR }
 
 data class EvidenceBoxUiModel(
     val observationId: String,
@@ -130,6 +130,7 @@ data class ReportDetailUiModel(
     val errorMessage: String? = null,
 ) {
     val observations: List<ReportObservationUiModel> get() = zones.flatMap(ReportZoneUiModel::observations)
+    val processedPhotoCount: Int get() = completedPhotoCount + failedPhotoCount
     val referenceScore: Int get() = serverReferenceScore ?: reportReferenceScore(observations.size)
 }
 
@@ -271,7 +272,10 @@ fun ReportDetailScreen(
         return
     }
 
-    val showsPropertyAction = uiModel.status != ReportDetailStatus.GENERATING
+    val showsPropertyAction = uiModel.status !in setOf(
+        ReportDetailStatus.WAITING_FOR_ANALYSIS,
+        ReportDetailStatus.GENERATING,
+    )
     AppPageScaffold(
         title = "리포트",
         onBack = onBack,
@@ -294,6 +298,7 @@ fun ReportDetailScreen(
     ) {
         ReportHeader(uiModel)
         when (uiModel.status) {
+            ReportDetailStatus.WAITING_FOR_ANALYSIS -> ProcessingReport(uiModel, waitingForAnalysis = true)
             ReportDetailStatus.GENERATING -> GeneratingReport(uiModel)
             ReportDetailStatus.COMPLETED -> CompletedReport(nickname, uiModel) { selectedEvidence = it }
             ReportDetailStatus.EMPTY -> EmptyReport(uiModel)
@@ -312,6 +317,7 @@ private fun ReportHeader(uiModel: ReportDetailUiModel) {
         }
         StateBadge(
             label = when (uiModel.status) {
+                ReportDetailStatus.WAITING_FOR_ANALYSIS -> "분석 중"
                 ReportDetailStatus.GENERATING -> "생성 중"
                 ReportDetailStatus.COMPLETED -> "작성 완료"
                 ReportDetailStatus.EMPTY -> "분석 완료"
@@ -329,21 +335,49 @@ private fun ReportHeader(uiModel: ReportDetailUiModel) {
 
 @Composable
 private fun GeneratingReport(uiModel: ReportDetailUiModel) {
-    val progress = if (uiModel.totalPhotoCount == 0) 0f else uiModel.completedPhotoCount.toFloat() / uiModel.totalPhotoCount
+    ProcessingReport(uiModel, waitingForAnalysis = false)
+}
+
+@Composable
+private fun ProcessingReport(uiModel: ReportDetailUiModel, waitingForAnalysis: Boolean) {
+    val progress = if (uiModel.totalPhotoCount == 0) 0f else uiModel.processedPhotoCount.toFloat() / uiModel.totalPhotoCount
     Column(Modifier.fillMaxWidth().padding(top = 34.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Box(Modifier.size(76.dp).background(PaleGreen, CircleShape), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = Green, strokeWidth = 4.dp, modifier = Modifier.size(48.dp))
             Icon(Icons.Outlined.HourglassTop, null, tint = DeepGreen, modifier = Modifier.size(22.dp))
         }
-        Text("리포트를 만들고 있어요", color = DeepGreen, fontSize = 21.sp, fontWeight = FontWeight.ExtraBold)
-        Text("사진 분석 결과를 구역별 확인 필요 관찰로 정리하고 있어요.\n완료되면 리포트에서 근거 사진을 확인할 수 있어요.", color = Secondary, fontSize = 12.sp, lineHeight = 18.sp, textAlign = TextAlign.Center)
+        Text(
+            if (waitingForAnalysis) "사진을 분석하고 있어요" else "리포트를 만들고 있어요",
+            color = DeepGreen,
+            fontSize = 21.sp,
+            fontWeight = FontWeight.ExtraBold,
+        )
+        Text(
+            if (waitingForAnalysis) {
+                "업로드한 사진을 AI가 순서대로 확인하고 있어요.\n모든 사진 분석이 끝나면 리포트를 자동으로 만들어요."
+            } else {
+                "사진 분석 결과를 구역별 확인 필요 관찰로 정리하고 있어요.\n완료되면 리포트에서 근거 사진을 확인할 수 있어요."
+            },
+            color = Secondary,
+            fontSize = 12.sp,
+            lineHeight = 18.sp,
+            textAlign = TextAlign.Center,
+        )
         LinearProgressIndicator(progress = { progress.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth().height(7.dp).clip(CircleShape), color = Green, trackColor = PaleGreen)
         Row(Modifier.fillMaxWidth()) {
             Text("사진 분석", color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.weight(1f))
-            Text("${uiModel.completedPhotoCount} / ${uiModel.totalPhotoCount}장", color = Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text("${uiModel.processedPhotoCount} / ${uiModel.totalPhotoCount}장", color = Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
-        InfoNotice("앱을 닫아도 서버에서 분석은 계속돼요. 완료 알림을 받은 뒤 다시 확인해 주세요.", PaleGreen, Green)
+        InfoNotice(
+            if (waitingForAnalysis) {
+                "AI 분석 서버가 실행 중이어야 처리가 계속돼요. 분석이 멈춰 있으면 서버 상태를 확인해 주세요."
+            } else {
+                "앱을 닫아도 서버에서 리포트 생성은 계속돼요. 잠시 후 다시 확인해 주세요."
+            },
+            PaleGreen,
+            Green,
+        )
     }
 }
 

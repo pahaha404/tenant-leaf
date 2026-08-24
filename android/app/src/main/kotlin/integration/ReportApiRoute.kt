@@ -125,7 +125,8 @@ private fun ReportDetail.toUiModel(): ReportDetailUiModel {
     val items = observations.map(Observation::toUiModel)
     val statusName = status.name
     val detailStatus = when {
-        statusName in setOf("NOT_REQUESTED", "WAITING_FOR_ANALYSIS", "GENERATING") -> ReportDetailStatus.GENERATING
+        statusName in setOf("NOT_REQUESTED", "WAITING_FOR_ANALYSIS") -> ReportDetailStatus.WAITING_FOR_ANALYSIS
+        statusName == "GENERATING" -> ReportDetailStatus.GENERATING
         statusName == "PARTIAL_COMPLETED" -> ReportDetailStatus.PARTIAL
         statusName == "FAILED" -> ReportDetailStatus.ERROR
         items.isEmpty() -> ReportDetailStatus.EMPTY
@@ -136,7 +137,7 @@ private fun ReportDetail.toUiModel(): ReportDetailUiModel {
         propertyName = propertyDisplayName,
         inspectionDate = inspectionEndedAt.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
         completedPhotoCount = successfulMediaCount,
-        totalPhotoCount = successfulMediaCount + failedMediaCount,
+        totalPhotoCount = totalMediaCount,
         failedPhotoCount = failedMediaCount,
         serverReferenceScore = referenceScore,
         scoreIsProvisional = scoreIsProvisional,
