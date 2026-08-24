@@ -83,6 +83,9 @@ class InspectionVideoRecorder(private val context: Context) {
         }
     }
 
+    private var hasReceivedFirstKeyFrame = false
+    private var lastWrittenPtsUs = -1L
+
     @Synchronized
     fun onVideoFormatAvailable(format: MediaFormat) {
         val muxer = mediaMuxer ?: return
@@ -91,6 +94,8 @@ class InspectionVideoRecorder(private val context: Context) {
             muxer.start()
             isMuxerStarted = true
             formatAdded = true
+            hasReceivedFirstKeyFrame = false
+            lastWrittenPtsUs = -1L
             Log.d(TAG, "Muxer started with track index: $videoTrackIndex")
         }
     }
@@ -101,11 +106,28 @@ class InspectionVideoRecorder(private val context: Context) {
         val muxer = mediaMuxer ?: return
         if (videoTrackIndex < 0) return
 
+        // 1. Skip CODEC_CONFIG frames from sample data
+        if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+            return
+        }
+
+        // 2. Prevent MPEG4Writer SIGABRT crash: first frame MUST be a KEY_FRAME
+        val isKeyFrame = (bufferInfo.flags and MediaCodec.BUFFER_FLAG_KEY_FRAME) != 0
+        if (!hasReceivedFirstKeyFrame) {
+            if (!isKeyFrame) return
+            hasReceivedFirstKeyFrame = true
+            Log.d(TAG, "First key frame received for Muxer.")
+        }
+
         try {
-            // Adjust presentation time for paused duration
-            val adjustedPts = bufferInfo.presentationTimeUs - (totalPausedDurationNs / 1000L)
-            bufferInfo.presentationTimeUs = adjustedPts.coerceAtLeast(0L)
-            muxer.writeSampleData(videoTrackIndex, byteBuffer, bufferInfo)
+            val adjustedPts = (bufferInfo.presentationTimeUs - (totalPausedDurationNs / 1000L)).coerceAtLeast(0L)
+            val finalPts = if (adjustedPts <= lastWrittenPtsUs) lastWrittenPtsUs + 1_000L else adjustedPts
+            lastWrittenPtsUs = finalPts
+
+            val sampleInfo = MediaCodec.BufferInfo().apply {
+                set(bufferInfo.offset, bufferInfo.size, finalPts, bufferInfo.flags)
+            }
+            muxer.writeSampleData(videoTrackIndex, byteBuffer, sampleInfo)
         } catch (e: Exception) {
             Log.e(TAG, "Error writing sample data: ${e.message}")
         }
