@@ -586,19 +586,6 @@ fun LiveInspectionScreen(
                 ) { Text("‹", color = DeepGreen, fontSize = 28.sp, fontWeight = FontWeight.Medium) }
                 Spacer(Modifier.width(8.dp))
                 Text("실시간 점검", color = DeepGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.width(8.dp))
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(if (isPaused) PaleGreen else Color(0xFFFFE7E2))
-                        .clickable(onClick = togglePause)
-                        .padding(horizontal = 9.dp, vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(Modifier.size(7.dp).clip(RoundedCornerShape(9.dp)).background(if (isPaused) Green else Color(0xFFC9573D)))
-                    Spacer(Modifier.width(5.dp))
-                    Text(if (isPaused) "일시정지" else "녹화 중", color = if (isPaused) Green else Color(0xFFC9573D), fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
-                }
                 Spacer(Modifier.weight(1f))
                 Box {
                     Box(
@@ -686,6 +673,20 @@ fun LiveInspectionScreen(
                             applyCenterCropTransform(textureView, previewState.videoWidth, previewState.videoHeight)
                         },
                     )
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(10.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.Black.copy(alpha = 0.55f))
+                            .clickable(onClick = togglePause)
+                            .padding(horizontal = 9.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(Modifier.size(7.dp).clip(RoundedCornerShape(9.dp)).background(if (isPaused) Green else Color(0xFFE53935)))
+                        Spacer(Modifier.width(5.dp))
+                        Text(if (isPaused) "일시정지" else "녹화 중", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                    }
 
                     Row(
                         modifier = Modifier
