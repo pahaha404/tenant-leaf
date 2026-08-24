@@ -131,6 +131,9 @@ fun InspectionPrepScreen(
 @Composable
 fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit) {
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        VoiceGuideManager.warmUp(context)
+    }
     AppPageScaffold(
         title = "촬영 전 경고",
         onBack = onBack,
@@ -178,11 +181,9 @@ fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit
 }
 @Composable
 fun InspectionCountdownScreen(onFinished: () -> Unit) {
-    val context = LocalContext.current
     var count by remember { mutableStateOf(3) }
 
     LaunchedEffect(Unit) {
-        VoiceGuideManager.speak(context, "3초 뒤 촬영이 시작됩니다.")
         count = 3
         kotlinx.coroutines.delay(1_000)
         count = 2
@@ -1063,10 +1064,17 @@ object VoiceGuideManager {
             tts = TextToSpeech(appContext) { status ->
                 synchronized(lock) {
                     if (status == TextToSpeech.SUCCESS) {
-                        tts?.language = java.util.Locale.KOREAN
+                        val result = tts?.setLanguage(java.util.Locale.KOREAN)
+                        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                            tts?.language = java.util.Locale.getDefault()
+                        }
+                        tts?.setSpeechRate(1.05f)
                         isInitialized = true
                         pendingText?.let { text ->
-                            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "voice_guide_${System.currentTimeMillis()}")
+                            val params = android.os.Bundle().apply {
+                                putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, android.media.AudioManager.STREAM_MUSIC)
+                            }
+                            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "voice_guide_${System.currentTimeMillis()}")
                             pendingText = null
                         }
                     }
@@ -1082,7 +1090,10 @@ object VoiceGuideManager {
                 pendingText = text
                 warmUp(appContext)
             } else if (isInitialized) {
-                tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "voice_guide_${System.currentTimeMillis()}")
+                val params = android.os.Bundle().apply {
+                    putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, android.media.AudioManager.STREAM_MUSIC)
+                }
+                tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "voice_guide_${System.currentTimeMillis()}")
             } else {
                 pendingText = text
             }
