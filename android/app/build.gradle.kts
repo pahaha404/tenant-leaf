@@ -74,6 +74,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
     implementation("com.meta.wearable:mwdat-core:0.9.0")
+    implementation("com.meta.wearable:mwdat-camera:0.9.0")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     implementation("com.google.dagger:hilt-android:2.60.1")
     kapt("com.google.dagger:hilt-compiler:2.60.1")

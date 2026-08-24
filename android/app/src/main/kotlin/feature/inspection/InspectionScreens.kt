@@ -6,14 +6,20 @@ import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.SystemClock
 import android.speech.tts.TextToSpeech
+import android.graphics.SurfaceTexture
+import android.view.Surface
+import android.view.TextureView
 import android.widget.MediaController
 import android.widget.VideoView
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.seipseip.app.feature.home.GlassConnectionViewModel
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
@@ -487,11 +493,23 @@ fun LiveInspectionScreen(
     onOpenGuide: (Int) -> Unit,
     onNextZone: (String) -> Unit,
     onFinish: (Long) -> Unit,
+    glassViewModel: GlassConnectionViewModel = viewModel(),
 ) {
     val zone = UiCatalog.zone(zoneId)
     val nextZone = UiCatalog.nextZone(zoneId)
     val zoneRows = UiCatalog.guideZones
     val liveContent = liveInspectionContent(zoneId)
+    val previewState by glassViewModel.previewUiState.collectAsState()
+    val connectionState by glassViewModel.uiState.collectAsState()
+
+    DisposableEffect(glassViewModel) {
+        glassViewModel.startPreview()
+        onDispose {
+            glassViewModel.stopPreview()
+            glassViewModel.setPreviewSurface(null)
+        }
+    }
+
     var showFinishDialog by remember { mutableStateOf(false) }
     var isPaused by remember { mutableStateOf(false) }
     var nowElapsed by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
@@ -532,7 +550,43 @@ fun LiveInspectionScreen(
                 Box(
                     modifier = Modifier.fillMaxWidth().height(156.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xFF2F4437)),
                 ) {
-                    Text("AI 글래스 카메라 프리뷰", modifier = Modifier.align(Alignment.Center), color = Color.White.copy(alpha = .8f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    AndroidView(
+                        modifier = Modifier.fillMaxSize(),
+                        factory = { context ->
+                            TextureView(context).apply {
+                                surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+                                    override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
+                                        glassViewModel.setPreviewSurface(Surface(surfaceTexture))
+                                    }
+                                    override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture, width: Int, height: Int) {}
+                                    override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture): Boolean {
+                                        glassViewModel.setPreviewSurface(null)
+                                        return true
+                                    }
+                                    override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {}
+                                }
+                            }
+                        },
+                    )
+
+                    if (!previewState.hasFirstFrame) {
+                        Column(
+                            modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                if (connectionState.isConnected) "AI 글래스 카메라 스트리밍 연결 중..." else "AI 글래스 연결 대기 중",
+                                color = Color.White.copy(alpha = .85f),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            previewState.message?.let {
+                                Text(it, color = Color(0xFFFFCC45), fontSize = 11.sp)
+                            }
+                        }
+                    }
+
                     Row(
                         modifier = Modifier.align(Alignment.TopStart).padding(13.dp).clip(RoundedCornerShape(16.dp)).background(Color.White.copy(alpha = .92f)).padding(horizontal = 10.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,

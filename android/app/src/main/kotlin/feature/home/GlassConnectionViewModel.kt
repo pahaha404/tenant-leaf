@@ -2,19 +2,34 @@ package com.seipseip.app.feature.home
 
 import android.app.Activity
 import android.app.Application
+import android.util.Log
+import android.view.Surface
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.meta.wearable.dat.core.Wearables
+import com.meta.wearable.dat.camera.Camera
+import com.meta.wearable.dat.camera.Stream
+import com.meta.wearable.dat.camera.addCamera
+import com.meta.wearable.dat.camera.types.StreamConfiguration
+import com.meta.wearable.dat.camera.types.StreamState
+import com.meta.wearable.dat.camera.types.VideoFrame
+import com.meta.wearable.dat.camera.types.VideoQuality
 import com.meta.wearable.dat.core.selectors.AutoDeviceSelector
 import com.meta.wearable.dat.core.session.DeviceSession
 import com.meta.wearable.dat.core.session.DeviceSessionState
 import com.meta.wearable.dat.core.types.DeviceSessionError
+import com.meta.wearable.dat.core.types.Permission
+import com.meta.wearable.dat.core.types.PermissionStatus
 import com.meta.wearable.dat.core.types.RegistrationState
+import com.seipseip.app.feature.inspection.preview.HevcDecoder
+import com.seipseip.app.feature.inspection.preview.HevcParameterSetCollector
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 internal object GlassSessionReconnect {
@@ -77,11 +92,26 @@ data class GlassConnectionUiState(
 ) {
     val title get() = status.title
     val detail get() = errorDetail ?: status.detail
+    val isConnected get() = status == GlassConnectionStatus.CONNECTED
+}
+
+data class GlassPreviewUiState(
+    val state: StreamState = StreamState.STOPPED,
+    val hasFirstFrame: Boolean = false,
+    val needsCameraPermission: Boolean = false,
+    val message: String? = null,
+) {
+    val isStreaming get() = state == StreamState.STREAMING
+    val isStarting get() = state == StreamState.STARTING
 }
 
 class GlassConnectionViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(GlassConnectionUiState())
     val uiState: StateFlow<GlassConnectionUiState> = _uiState.asStateFlow()
+
+    private val _previewUiState = MutableStateFlow(GlassPreviewUiState())
+    val previewUiState: StateFlow<GlassPreviewUiState> = _previewUiState.asStateFlow()
+
     private val deviceSelector = AutoDeviceSelector()
     private var session: DeviceSession? = null
     private var sessionStateJob: Job? = null
@@ -91,6 +121,17 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
     private var stopRequested = false
     private var datAppUpdateRequired = false
     private var retryOnStop = true
+
+    private var camera: Camera? = null
+    private var stream: Stream? = null
+    private var previewVideoJob: Job? = null
+    private var previewStateJob: Job? = null
+    private var previewErrorJob: Job? = null
+    private val previewDispatcher = Dispatchers.Default.limitedParallelism(1)
+    private val decoderLock = Any()
+    private val parameterSets = HevcParameterSetCollector()
+    @Volatile private var previewSurface: Surface? = null
+    @Volatile private var decoder: HevcDecoder? = null
 
     init {
         viewModelScope.launch {
@@ -166,6 +207,7 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
                     reconnectAttempt = 0
                 }
                 if (state == DeviceSessionState.STOPPED) {
+                    clearPreview()
                     cleanupSession()
                     scheduleReconnect()
                 }
@@ -176,6 +218,133 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
                 handleSessionError(error)
             }
         }
+    }
+
+    fun setPreviewSurface(surface: Surface?) {
+        synchronized(decoderLock) {
+            previewSurface = surface
+            if (surface == null) {
+                decoder?.stop()
+                decoder = null
+            }
+        }
+    }
+
+    fun startPreview() {
+        if (stream != null || _previewUiState.value.state == StreamState.STARTING) return
+        val activeSession = session
+        if (activeSession == null || !_uiState.value.isConnected) {
+            _previewUiState.value = GlassPreviewUiState(message = "안경 연결이 완료된 뒤 프리뷰를 시작할 수 있어요.")
+            return
+        }
+        viewModelScope.launch {
+            Wearables.checkPermissionStatus(Permission.CAMERA).fold(
+                onSuccess = { status ->
+                    if (status == PermissionStatus.Granted) {
+                        beginPreview(activeSession)
+                    } else {
+                        _previewUiState.value = GlassPreviewUiState(
+                            needsCameraPermission = true,
+                            message = "Meta AI 앱에서 카메라 접근을 허용해 주세요.",
+                        )
+                    }
+                },
+                onFailure = { error, _ ->
+                    _previewUiState.value = GlassPreviewUiState(message = error.description)
+                },
+            )
+        }
+    }
+
+    fun stopPreview() {
+        _previewUiState.update { it.copy(state = StreamState.STOPPING, message = null) }
+        camera?.close() ?: clearPreview()
+    }
+
+    private fun beginPreview(activeSession: DeviceSession) {
+        if (stream != null) return
+        activeSession.addCamera(
+            StreamConfiguration(videoQuality = VideoQuality.MEDIUM, frameRate = 24, compressVideo = true),
+        ).fold(
+            onSuccess = { addedCamera ->
+                camera = addedCamera
+                val addedStream = addedCamera.stream
+                stream = addedStream
+                observePreview(addedStream)
+                _previewUiState.value = GlassPreviewUiState(state = StreamState.STARTING)
+                addedStream.start().onFailure { error, _ ->
+                    _previewUiState.value = GlassPreviewUiState(message = error.description)
+                    clearPreview()
+                }
+            },
+            onFailure = { error, _ ->
+                _previewUiState.value = GlassPreviewUiState(message = error.description)
+            },
+        )
+    }
+
+    private fun observePreview(activeStream: Stream) {
+        previewVideoJob = viewModelScope.launch(previewDispatcher) {
+            activeStream.videoStream.collect(::onVideoFrame)
+        }
+        previewStateJob = viewModelScope.launch {
+            var wasActive = false
+            activeStream.state.collect { state ->
+                _previewUiState.update { it.copy(state = state, message = null) }
+                if (state != StreamState.STOPPED && state != StreamState.CLOSED) {
+                    wasActive = true
+                } else if (wasActive) {
+                    clearPreview()
+                }
+            }
+        }
+        previewErrorJob = viewModelScope.launch {
+            activeStream.errorStream.collect { error ->
+                Log.e("TenantLeafDAT", "Camera stream error: ${error.description}")
+                _previewUiState.update { it.copy(message = error.description) }
+            }
+        }
+    }
+
+    private fun onVideoFrame(frame: VideoFrame) {
+        if (!frame.isCompressed) return
+        val buffer = frame.buffer
+        val bytes = ByteArray(buffer.remaining())
+        val position = buffer.position()
+        buffer.get(bytes)
+        buffer.position(position)
+        parameterSets.offer(bytes)
+        synchronized(decoderLock) {
+            val surface = previewSurface
+            if (decoder == null && surface != null) {
+                decoder = HevcDecoder().also {
+                    it.start(frame.width, frame.height, surface)
+                    parameterSets.complete()?.let { config -> it.decodeFrame(config, 0) }
+                }
+            }
+            decoder?.decodeFrame(bytes, frame.presentationTimeUs)
+        }
+        if (!frame.isCodecConfig && !_previewUiState.value.hasFirstFrame) {
+            _previewUiState.update { it.copy(hasFirstFrame = true) }
+        }
+    }
+
+    private fun clearPreview() {
+        previewVideoJob?.cancel()
+        previewVideoJob = null
+        previewStateJob?.cancel()
+        previewStateJob = null
+        previewErrorJob?.cancel()
+        previewErrorJob = null
+        synchronized(decoderLock) {
+            decoder?.stop()
+            decoder = null
+        }
+        parameterSets.clear()
+        camera?.close()
+        camera = null
+        stream = null
+        _previewUiState.value = GlassPreviewUiState()
     }
 
     private fun cleanupSession() {
@@ -219,6 +388,7 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
     }
 
     override fun onCleared() {
+        clearPreview()
         reconnectJob?.cancel()
         stopRequested = true
         session?.stop()
@@ -226,3 +396,4 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
         super.onCleared()
     }
 }
+

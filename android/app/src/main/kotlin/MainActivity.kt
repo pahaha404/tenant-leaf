@@ -3,8 +3,8 @@ package com.seipseip.app
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
@@ -14,8 +14,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private var contentSet = false
-    private var datInitialized = false
 
     private val datPermissionsLauncher =
         registerForActivityResult(RequestMultiplePermissions()) {
@@ -24,10 +22,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContent {
+            TenantLeafApp()
+        }
+        checkAndInitializeDat()
     }
 
-    override fun onStart() {
-        super.onStart()
+    private fun checkAndInitializeDat() {
         if (hasDatPermissions()) {
             initializeDatWhenPermitted()
         } else {
@@ -36,22 +37,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initializeDatWhenPermitted() {
-        if (!hasDatPermissions()) {
-            showApp()
-            return
-        }
-        if (!datInitialized) {
-            Wearables.initialize(this)
-                .onSuccess { datInitialized = true }
-                .onFailure { error, _ -> Log.e(DAT_TAG, "DAT initialization failed: ${error.description}") }
-        }
-        showApp()
-    }
-
-    private fun showApp() {
-        if (contentSet) return
-        contentSet = true
-        setContent { TenantLeafApp() }
+        if (!hasDatPermissions()) return
+        Wearables.initialize(this)
+            .onSuccess { Log.d(DAT_TAG, "DAT initialized successfully") }
+            .onFailure { error, _ -> Log.e(DAT_TAG, "DAT initialization failed: ${error.description}") }
     }
 
     private fun hasDatPermissions(): Boolean =
@@ -70,3 +59,4 @@ class MainActivity : ComponentActivity() {
         const val DAT_TAG = "TenantLeafDAT"
     }
 }
+
