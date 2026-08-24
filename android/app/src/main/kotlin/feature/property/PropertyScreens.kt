@@ -49,6 +49,7 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.MyLocation
@@ -466,12 +467,13 @@ fun PropertyFormScreen(
     onOpenAddressPicker: () -> Unit,
     onOpenLocationPicker: () -> Unit,
     selectedAddress: String,
+    initialProperty: PropertyUiModel? = null,
 ) {
-    var propertyName by rememberSaveable { mutableStateOf("") }
-    var address by rememberSaveable { mutableStateOf("") }
+    var propertyName by rememberSaveable { mutableStateOf(initialProperty?.name ?: "") }
+    var address by rememberSaveable { mutableStateOf(initialProperty?.address ?: "") }
     var addressDetail by rememberSaveable { mutableStateOf("") }
-    var deposit by rememberSaveable { mutableStateOf("") }
-    var monthlyRent by rememberSaveable { mutableStateOf("") }
+    var deposit by rememberSaveable { mutableStateOf(initialProperty?.depositAmount?.toString() ?: "") }
+    var monthlyRent by rememberSaveable { mutableStateOf(initialProperty?.monthlyRentAmount?.toString() ?: "") }
     var housingType by remember { mutableStateOf("원룸") }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
@@ -479,6 +481,16 @@ fun PropertyFormScreen(
     var visitHour by rememberSaveable { mutableStateOf(14) }
     var visitMinute by rememberSaveable { mutableStateOf(0) }
     var visitTimeSelected by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(initialProperty) {
+        if (initialProperty != null) {
+            if (propertyName.isBlank()) propertyName = initialProperty.name
+            if (address.isBlank()) address = initialProperty.address
+            if (deposit.isBlank()) deposit = initialProperty.depositAmount?.toString() ?: ""
+            if (monthlyRent.isBlank()) monthlyRent = initialProperty.monthlyRentAmount?.toString() ?: ""
+        }
+    }
+
     LaunchedEffect(selectedAddress) {
         if (selectedAddress.isNotBlank() && selectedAddress != address) {
             address = selectedAddress
@@ -489,9 +501,15 @@ fun PropertyFormScreen(
         SimpleDateFormat("yyyy. MM. dd (EEE)", Locale.KOREAN).format(Date(millis)) + "  %02d:%02d".format(visitHour, visitMinute)
     } ?: "방문 날짜와 시간 선택"
 
-    AppPageScaffold(title = "매물 등록", onBack = onBack) {
+    val isEditing = initialProperty != null
+    AppPageScaffold(title = if (isEditing) "매물 수정" else "매물 등록", onBack = onBack) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("점검할 방을 알려주세요", color = Green, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold)
+            Text(
+                if (isEditing) "매물 정보를 수정해요" else "점검할 방을 알려주세요",
+                color = Green,
+                fontSize = 23.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
         }
         Text("기본 정보는 리포트 제목과 증거 정리에 사용돼요.", color = Secondary, fontSize = 13.sp)
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -530,7 +548,7 @@ fun PropertyFormScreen(
         }
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
         PrimaryButton(
-            if (saving) "저장 중..." else "매물 등록하기",
+            if (saving) "저장 중..." else if (isEditing) "수정 완료" else "매물 등록하기",
             { onSaved(PropertyFormSubmission(propertyName, addressWithDetail(address, addressDetail), deposit, monthlyRent)) },
             enabled = propertyName.isNotBlank() && !saving,
         )
@@ -665,6 +683,7 @@ fun PropertyDetailScreen(
     onStartInspection: () -> Unit,
     onOpenReport: () -> Unit,
     onOpenBasicInfo: () -> Unit = {},
+    onEditProperty: (() -> Unit)? = null,
     onDeleteProperty: (() -> Unit)? = null,
     onTabSelected: (String) -> Unit,
 ) {
@@ -675,14 +694,26 @@ fun PropertyDetailScreen(
         onBack = onBack,
         selectedTab = AppTab.Property,
         topTrailingAction = {
-            if (property != null && onDeleteProperty != null) {
-                IconButton(onClick = { showDeleteDialog = true }) {
-                    Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = "매물 삭제",
-                        tint = Color(0xFFC93B2B),
-                        modifier = Modifier.size(22.dp),
-                    )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (property != null && onEditProperty != null) {
+                    IconButton(onClick = onEditProperty) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = "매물 수정",
+                            tint = DeepGreen,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                }
+                if (property != null && onDeleteProperty != null) {
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "매물 삭제",
+                            tint = Color(0xFFC93B2B),
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
                 }
             }
         },

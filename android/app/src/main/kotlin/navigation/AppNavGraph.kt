@@ -97,6 +97,7 @@ object Route {
     const val PropertyForm = "property_form"
     const val AddressPicker = "address_picker"
     const val PropertyDetail = "property_detail/{propertyId}"
+    const val PropertyEdit = "property_edit/{propertyId}"
     const val PropertyInfo = "property_info/{propertyId}"
     const val PropertySelect = "property_select"
     const val PropertyEmpty = "property_empty"
@@ -120,6 +121,7 @@ object Route {
     fun guideZone(zone: String) = "guide/$zone"
     fun guideDetail(zone: String, item: Int) = "guide_detail/$zone/$item"
     fun propertyDetail(propertyId: String) = "property_detail/$propertyId"
+    fun propertyEdit(propertyId: String) = "property_edit/$propertyId"
     fun propertyInfo(propertyId: String) = "property_info/$propertyId"
     fun inspectionPrep(propertyId: String) = "inspection_prep/$propertyId"
     fun inspectionPermission(inspectionId: String) = "inspection_permission_warning/$inspectionId"
@@ -368,6 +370,31 @@ fun AppNavGraph(
             )
         }
         composable(
+            route = Route.PropertyEdit,
+            arguments = listOf(navArgument("propertyId") { type = NavType.StringType }),
+        ) { entry ->
+            val context = LocalContext.current
+            val selectedAddress by entry.savedStateHandle.getStateFlow("addressSummary", "").collectAsState()
+            val locationPicker = rememberLauncherForActivityResult(
+                ActivityResultContracts.StartActivityForResult(),
+            ) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    result.data?.getStringExtra(LocationPickerActivity.EXTRA_ADDRESS)?.let { address ->
+                        entry.savedStateHandle["addressSummary"] = address
+                    }
+                }
+            }
+            PropertyFormApiRoute(
+                onBack = navController::popBackStack,
+                onSaved = { _ -> navController.popBackStack() },
+                onOpenAddressPicker = { navController.navigate(Route.AddressPicker) },
+                onOpenLocationPicker = {
+                    locationPicker.launch(Intent(context, LocationPickerActivity::class.java))
+                },
+                selectedAddress = selectedAddress,
+            )
+        }
+        composable(
             route = Route.PropertyDetail,
             arguments = listOf(navArgument("propertyId") { type = NavType.StringType }),
         ) {
@@ -376,6 +403,7 @@ fun AppNavGraph(
                 onStartInspection = { navController.navigate(Route.inspectionPrep(it)) },
                 onOpenReport = { navController.navigate(Route.ReportDetail) },
                 onOpenBasicInfo = { property -> property?.id?.let { navController.navigate(Route.propertyInfo(it)) } },
+                onEditProperty = { propertyId -> navController.navigate(Route.propertyEdit(propertyId)) },
                 onTabSelected = { tab ->
                     goToTab(
                         when (tab) {

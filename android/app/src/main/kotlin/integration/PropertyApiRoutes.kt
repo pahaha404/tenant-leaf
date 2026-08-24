@@ -86,6 +86,17 @@ fun PropertyFormApiRoute(
             if (event is PropertyFormEvent.Saved) onSaved(event.id.toString())
         }
     }
+    val initialProperty = remember(state.fields, state.editing) {
+        if (state.editing) {
+            PropertyUiModel(
+                id = "",
+                name = state.fields.name,
+                address = state.fields.addressSummary,
+                depositAmount = state.fields.depositAmount?.toLongOrNull(),
+                monthlyRentAmount = state.fields.monthlyRentAmount?.toLongOrNull(),
+            )
+        } else null
+    }
     PropertyFormScreen(
         onBack = onBack,
         saving = state.saving,
@@ -93,6 +104,7 @@ fun PropertyFormApiRoute(
         onOpenAddressPicker = onOpenAddressPicker,
         onOpenLocationPicker = onOpenLocationPicker,
         selectedAddress = selectedAddress,
+        initialProperty = initialProperty,
         onSaved = { input ->
             viewModel.updateFields { fields ->
                 fields.copy(
@@ -113,6 +125,7 @@ fun PropertyDetailApiRoute(
     onStartInspection: (String) -> Unit,
     onOpenReport: () -> Unit,
     onOpenBasicInfo: (PropertyUiModel?) -> Unit,
+    onEditProperty: ((String) -> Unit)? = null,
     onTabSelected: (String) -> Unit,
     viewModel: PropertyDetailViewModel = hiltViewModel(),
 ) {
@@ -131,6 +144,7 @@ fun PropertyDetailApiRoute(
         onStartInspection = { property?.id?.let(onStartInspection) },
         onOpenReport = onOpenReport,
         onOpenBasicInfo = { onOpenBasicInfo(property) },
+        onEditProperty = onEditProperty?.let { edit -> { property?.id?.let(edit) } },
         onDeleteProperty = viewModel::delete,
         onTabSelected = onTabSelected,
     )
