@@ -670,5 +670,3 @@ private fun createMyLocationMarkerBitmap(context: Context): Bitmap {
 
     return bitmap
 }
-
-private fun formatWon(value: Long): String = "%,d원".format(value)
