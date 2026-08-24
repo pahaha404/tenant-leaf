@@ -27,6 +27,8 @@
 
 ## 진행 기록
 
+- 2026-08-24 — `design/UI/UI.pen`의 리포트 상세 상태를 Compose로 옮겨 `Completed`, `Evidence Viewer`, `Empty`, `Partial`, `Error`, `Generating` 화면을 상태 모델로 구성함. 기존 점검 종료 후 `reportProcessing` 상태에는 생성 중 화면을 연결하고, 관찰 카드에서 서명 URL 근거 사진과 bbox를 전체화면으로 확인할 수 있게 구현함. 참고 점수는 관찰 1건당 5점 차감·최저 0점으로 계산하며 단위 테스트를 추가함. Gradle 9.5 및 Android Gradle Plugin 9.3.1 다운로드가 실행 환경에서 차단되어 빌드·테스트 실행은 미검증 상태임.
+- 2026-08-24 — 구역 관찰 화면 하단을 시스템 내비게이션 영역과 분리된 고정 Bottom Surface로 개선하고, 54dp 주황색 `매물 상세로 돌아가기` CTA를 배치함. 관찰 목록 아래에 `#FFF0E4` 안내 카드와 전체 비확정 안내 문구를 추가하고, 확인 필요 배지에 아이콘을 함께 표시함. `:app:testDebugUnitTest` 및 수정 파일 진단 통과. 실기기 화면 위치와 실제 백스택 복귀는 미검증임.
 - 2026-08-24 — 실시간 점검 중 체크리스트 가이드 확인 시 녹화 세션 중단 버그 수정. 외부 라우트 이동으로 `LiveInspectionScreen` 컴포저블이 언마운트되며 레코더(`InspectionVideoRecorder`)가 강제 닫히던 문제를 해결하고, 화면 내부 모달 오버레이 다이얼로그(`activeGuideIndex`) 방식으로 변경하여 가이드 확인 후 되돌아오더라도 끊김 없이 녹화 및 프리뷰가 연속 유지되도록 수정함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 실기기 가이드 모달 터치는 실기기 미검증임.
 - 2026-08-24 — 점검 비디오 레코더 표준 9:16 세로 해상도(`720x1280`) 복구 및 Center-Crop 렌더링 유지. 갤러리 재생 시 좌우 왜곡(뚱뚱해지는 현상)을 방지하고 스마트폰 화면에 자연스럽게 꽉 차도록 표준 해상도로 복원함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 실기기 갤러리 재생 비율은 실기기 미검증임.
 - 2026-08-24 — 실시간 점검 카메라 스트리밍 제어 기능 추가. 일시정지/재개 시 프리뷰 정지/재개, 타이머 일시정지 및 TTS 음성 피드백 연동, 동적 스트림 화질 수동 선택 칩 및 드롭다운(`HIGH`/`MEDIUM`/`LOW`), Meta AI 안경 ↔ 스마트폰 카메라(`PhoneCameraPreviewHelper`) 수동 소스 전환 버튼을 상단 바에 구현함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 스마트폰 카메라 실제 하드웨어 센서 및 실기기 안경 전환은 실기기 미검증임.
