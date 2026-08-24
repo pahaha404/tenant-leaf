@@ -549,7 +549,16 @@ fun LiveInspectionScreen(
     val coroutineScope = rememberCoroutineScope()
     var isFinishing by remember { mutableStateOf(false) }
     val recorder = remember(context) { com.seipseip.app.feature.inspection.preview.InspectionVideoRecorder(context) }
-    var cameraSource by remember { mutableStateOf(CameraSource.GLASS) }
+    val isGlassConnected = connectionState.isConnected
+    var cameraSource by remember(isGlassConnected) {
+        mutableStateOf(if (isGlassConnected) CameraSource.GLASS else CameraSource.PHONE)
+    }
+
+    LaunchedEffect(isGlassConnected) {
+        if (!isGlassConnected && cameraSource == CameraSource.GLASS) {
+            cameraSource = CameraSource.PHONE
+        }
+    }
     var activeSurface by remember { mutableStateOf<Surface?>(null) }
     val phoneCameraHelper = remember(context) { PhoneCameraPreviewHelper(context) }
 
@@ -645,93 +654,97 @@ fun LiveInspectionScreen(
                 Text("실시간 점검", color = DeepGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.weight(1f))
 
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.White)
-                        .padding(3.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
+                if (isGlassConnected) {
+                    Row(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(if (cameraSource == CameraSource.GLASS) Green else Color.Transparent)
-                            .clickable {
-                                if (cameraSource != CameraSource.GLASS) {
-                                    cameraSource = CameraSource.GLASS
-                                    val surface = activeSurface
-                                    phoneCameraHelper.stopPreview()
-                                    glassViewModel.startPreview()
-                                    if (surface != null) {
-                                        glassViewModel.setPreviewSurface(surface)
-                                    }
-                                    VoiceGuideManager.speak(context, "안경 카메라로 전환합니다.")
-                                }
-                            }
-                            .padding(horizontal = 9.dp, vertical = 5.dp),
-                    ) {
-                        Text("안경", color = if (cameraSource == CameraSource.GLASS) Color.White else Secondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(if (cameraSource == CameraSource.PHONE) Green else Color.Transparent)
-                            .clickable {
-                                if (cameraSource != CameraSource.PHONE) {
-                                    cameraSource = CameraSource.PHONE
-                                    val surface = activeSurface
-                                    glassViewModel.stopPreview()
-                                    glassViewModel.setPreviewSurface(null)
-                                    if (surface != null) {
-                                        phoneCameraHelper.startPreview(surface)
-                                    }
-                                    VoiceGuideManager.speak(context, "스마트폰 카메라로 전환합니다.")
-                                }
-                            }
-                            .padding(horizontal = 9.dp, vertical = 5.dp),
-                    ) {
-                        Text("핸드폰", color = if (cameraSource == CameraSource.PHONE) Color.White else Secondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                Spacer(Modifier.width(6.dp))
-                Box {
-                    Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(RoundedCornerShape(17.dp))
+                            .clip(RoundedCornerShape(16.dp))
                             .background(Color.White)
-                            .clickable { showQualityMenu = true },
-                        contentAlignment = Alignment.Center,
+                            .padding(3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text("⚙️", fontSize = 14.sp)
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(if (cameraSource == CameraSource.GLASS) Green else Color.Transparent)
+                                .clickable {
+                                    if (cameraSource != CameraSource.GLASS) {
+                                        cameraSource = CameraSource.GLASS
+                                        val surface = activeSurface
+                                        phoneCameraHelper.stopPreview()
+                                        glassViewModel.startPreview()
+                                        if (surface != null) {
+                                            glassViewModel.setPreviewSurface(surface)
+                                        }
+                                        VoiceGuideManager.speak(context, "안경 카메라로 전환합니다.")
+                                    }
+                                }
+                                .padding(horizontal = 9.dp, vertical = 5.dp),
+                        ) {
+                            Text("안경", color = if (cameraSource == CameraSource.GLASS) Color.White else Secondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(if (cameraSource == CameraSource.PHONE) Green else Color.Transparent)
+                                .clickable {
+                                    if (cameraSource != CameraSource.PHONE) {
+                                        cameraSource = CameraSource.PHONE
+                                        val surface = activeSurface
+                                        glassViewModel.stopPreview()
+                                        glassViewModel.setPreviewSurface(null)
+                                        if (surface != null) {
+                                            phoneCameraHelper.startPreview(surface)
+                                        }
+                                        VoiceGuideManager.speak(context, "스마트폰 카메라로 전환합니다.")
+                                    }
+                                }
+                                .padding(horizontal = 9.dp, vertical = 5.dp),
+                        ) {
+                            Text("핸드폰", color = if (cameraSource == CameraSource.PHONE) Color.White else Secondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
-                    DropdownMenu(
-                        expanded = showQualityMenu,
-                        onDismissRequest = { showQualityMenu = false },
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("고화질 (HIGH - 30fps/최대화질)") },
-                            onClick = {
-                                glassViewModel.setVideoQuality(VideoQuality.HIGH)
-                                showQualityMenu = false
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("일반화질 (MEDIUM - 표준해상도)") },
-                            onClick = {
-                                glassViewModel.setVideoQuality(VideoQuality.MEDIUM)
-                                showQualityMenu = false
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text("절전화질 (LOW - 배터리/데이터 절약)") },
-                            onClick = {
-                                glassViewModel.setVideoQuality(VideoQuality.LOW)
-                                showQualityMenu = false
-                            },
-                        )
+
+                    Spacer(Modifier.width(6.dp))
+                    Box {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(17.dp))
+                                .background(Color.White)
+                                .clickable { showQualityMenu = true },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text("⚙️", fontSize = 14.sp)
+                        }
+                        DropdownMenu(
+                            expanded = showQualityMenu,
+                            onDismissRequest = { showQualityMenu = false },
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("고화질 (HIGH - 30fps/최대화질)") },
+                                onClick = {
+                                    glassViewModel.setVideoQuality(VideoQuality.HIGH)
+                                    showQualityMenu = false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("일반화질 (MEDIUM - 표준해상도)") },
+                                onClick = {
+                                    glassViewModel.setVideoQuality(VideoQuality.MEDIUM)
+                                    showQualityMenu = false
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text("절전화질 (LOW - 배터리/데이터 절약)") },
+                                onClick = {
+                                    glassViewModel.setVideoQuality(VideoQuality.LOW)
+                                    showQualityMenu = false
+                                },
+                            )
+                        }
                     }
+                } else {
+                    StateBadge("핸드폰 촬영", Green)
                 }
             }
             Column(
