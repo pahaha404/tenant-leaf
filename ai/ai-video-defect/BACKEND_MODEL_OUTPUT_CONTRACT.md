@@ -74,7 +74,6 @@ YOLO 내부에서 이미지가 resize되더라도 백엔드 응답은 resize된 
 | 9 | `surface_defect` | 활성 |
 | 10 | `stain` | 활성 |
 | 11 | `trowel_mark` | 활성 |
-| 12 | `other` | 활성·구체 유형 분류 불가 후보 |
 
 ### 현재 모델 개선 우선순위
 
@@ -141,33 +140,33 @@ API class ID와 호환성은 변경하지 않는다. 다만 현재 모델 측정
 }
 ```
 
-## 6. 기타 확인 필요 후보
+## 6. 분류되지 않은 하자 후보
 
-Binary detector가 하자 후보를 찾았지만 다중 클래스 모델과 겹치는 구체 유형을 찾지 못한 경우 공통 계약의 `other`로 반환한다.
+Binary detector가 하자 후보를 찾았지만 후단 classifier가 하자 유형을 확정하지 못한 경우, `unknown_defect`를 학습용 class ID로 취급하지 않는다.
 
-- `classId`: `12`
-- `label`: `other`
-- `classificationStatus`: `classified_as_other`
+- `classId`: `null`
+- `label`: `unknown_defect`
+- `classificationStatus`: `unclassified`
 - `reviewStatus`: `needs_review`
 - `defectConfidence`: binary detector의 하자 존재 confidence
 - `classConfidence`: classifier confidence. 분류 실패 시 `null`
 
-`other`는 “하자가 아니다”라는 뜻이 아니라 “확인 필요 후보지만 구체 유형을 분류하지 못했다”는 뜻이다. 탐지 없음, 낮은 신뢰도 또는 분석 실패를 `other`로 대신하지 않는다.
+`unknown_defect`는 “하자가 아니다”라는 뜻이 아니라 “하자 후보는 있으나 종류를 아직 모른다”는 뜻이다. 백엔드는 이 결과를 삭제하거나 정상 이미지로 처리하지 않고, 사용자 확인 필요 관찰로 저장해야 한다.
 
 `classificationStatus`와 `reviewStatus`는 분리한다.
 
 | 필드 | 예시 값 | 의미 |
 |---|---|---|
-| `classificationStatus` | `classified` / `classified_as_other` | 구체 유형 또는 기타 후보로 분류된 상태 |
+| `classificationStatus` | `classified` / `unclassified` | 하자 유형 분류가 끝났는지 여부 |
 | `reviewStatus` | `needs_review` / `confirmed` / `dismissed` | 사용자가 확인한 상태 |
 
 예시:
 
 ```json
 {
-  "classId": 12,
-  "label": "other",
-  "classificationStatus": "classified_as_other",
+  "classId": null,
+  "label": "unknown_defect",
+  "classificationStatus": "unclassified",
   "reviewStatus": "needs_review",
   "defectConfidence": 0.78,
   "classConfidence": null,
@@ -204,27 +203,68 @@ Binary detector가 하자 후보를 찾았지만 다중 클래스 모델과 겹�
 - [ ] confidence 내림차순 정렬
 - [ ] 좌표가 이미지 경계를 벗어나지 않도록 보정
 - [ ] `paint_drips` 등 비활성 class가 API에 노출되지 않는지 확인
-- [ ] 구체 유형 분류 실패 후보를 `other`, `classId: 12`로 저장
+- [ ] `unknown_defect`를 고정 class ID로 저장하지 않고 `classId: null`로 처리
 - [ ] binary 하자 존재 confidence와 후단 class confidence를 별도 저장
 - [ ] 분류 실패 후보도 `needs_review` 관찰로 보존
 
-## 현재 구현과의 차이
+## 현재 서비스 구현
 
-현재 `inference/predict_yolo.py`는 `xyxy`, confidence, class ID, class name을 반환한다. 다음 구현 작업에서 아래 항목을 schema에 맞게 보완한다.
+현재 서비스 진입점은 `training/process_image_batch_room_defect.py`다. 내부 하자 추론은 `training/process_images_two_stage.py`를 사용하며 다음 형식의 결과를 생성한다.
 
-- `image.width`, `image.height` 추가
-- `class_id`를 API 표준인 `classId`로 변경
-- `class_name`을 API 표준인 `label`로 변경
-- 배열 내부의 `xyxy`를 `box.left/top/right/bottom` 구조로 변경
+- `image.width`, `image.height`
+- API 표준 `classId`, `label`
+- `box.left/top/right/bottom`
+- 이미지별 `room.raw`, `room.stable`, `roomSegmentId`
+- 하자 observation별 `room`, `roomSegmentId`
 
-서비스 진입점은 `training/process_images_two_stage.py`이며 서버가 지정한 JPEG 한 장과 `mediaId`를 처리한다. `training/process_video_two_stage.py`와 기존 단일 모델 추론 코드는 과거 실험용이며 MVP 실행 경로에서 사용하지 않는다.
+`inference/predict_yolo.py`와 `training/process_video_two_stage.py`는 단일 모델·과거 영상 실험용이며 현재 서비스 worker 진입점으로 사용하지 않는다. 공간 분류 연동 변경은 `BACKEND_ROOM_CLASSIFICATION_API_CHANGES.md`를 따른다.
 
-## JPEG 관찰 결과의 파생 이미지
+## 이미지 기반 관찰 결과의 리포트 이미지
 
-사진 파이프라인은 탐지 결과마다 `observations[]` 항목을 생성한다. 각 항목에는 근거 연결을 위한 다음 이미지 경로가 포함된다.
+이미지 묶음 파이프라인은 백엔드가 시간순으로 전달한 각 이미지를 추론한다. 각 탐지 observation에는 리포트 연결을 위한 다음 이미지 경로가 포함된다.
 
-- `evidencePath`: 하자가 탐지된 대표 원본 프레임
+- `evidencePath`: 하자가 탐지된 원본 이미지
 - `cropPath`: bbox에 15% 여백을 적용한 하자 영역 crop
 - `cropImage.width`, `cropImage.height`: 생성된 crop 이미지 크기
 
-AI가 반환하는 경로는 Worker 임시 경로다. Worker는 crop을 접근 제어된 객체 저장소로 옮기고 DB에는 객체 키만 저장한다. 내부 파일 경로나 영구 공개 URL은 앱 응답에 노출하지 않는다. 여러 JPEG의 결과를 하나의 관찰로 병합하는 규칙은 별도 계약 확정 전까지 적용하지 않는다.
+AI가 반환하는 값은 서버 내부 파일 경로다. 백엔드는 원본 이미지와 crop 파일을 저장소에 보관하고 인증된 `evidenceUrl`, `cropUrl`로 변환해 리포트에 연결한다. 리포트 초안·확정본·목록·상세·공유 기능은 백엔드 책임이다.
+
+## 이미지 묶음 결과 형식
+
+이미지 묶음 요청의 최상위 결과는 공간 분류 정보, `roomSegments[]`, `images[]`, `observations[]`를 포함한다.
+
+```json
+{
+  "jobId": "job-001",
+  "status": "completed",
+  "processing": {
+    "mode": "backend_sampled_images_room_gemini_yolo",
+    "processedCount": 2
+  },
+  "roomClassification": {
+    "provider": "gemini",
+    "model": "gemini-2.5-flash-lite",
+    "errors": []
+  },
+  "roomSegments": [],
+  "images": [
+    {
+      "imageId": "image-0001",
+      "filename": "room_0001.jpg",
+      "sequenceIndex": 0,
+      "timestampSec": 0.0,
+      "image": {"width": 1920, "height": 1080},
+      "room": {
+        "raw": "living_room",
+        "stable": "living_room",
+        "uncertain": false,
+        "roomSegmentId": "room-seg-0001"
+      },
+      "detections": []
+    }
+  ],
+  "observations": []
+}
+```
+
+`images[]`의 `detections[]`는 기존 단일 이미지 계약과 동일한 `classId`, `label`, `confidence`, `box` 형식을 사용한다. `observations[]`의 `cropPath`는 해당 이미지의 bbox crop을 가리키며, 공간 연결에는 `room`과 `roomSegmentId`를 사용한다.

@@ -1,7 +1,5 @@
 ultralytics==8.4.117
-torch==2.13.0
-torchvision==0.28.0
 opencv-python-headless
 Pillow
 numpy
-
+google-genai>=2.0.0
