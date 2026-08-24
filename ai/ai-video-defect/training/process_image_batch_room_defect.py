@@ -138,7 +138,10 @@ def process_image_batch(args: argparse.Namespace) -> dict[str, Any]:
         confidence=args.confidence,
         nms_iou=args.nms_iou,
         merge_iou=args.merge_iou,
-        crop_margin_ratio=args.crop_margin_ratio,
+        defect_verifier=args.defect_verifier,
+        gemini_defect_model=args.gemini_defect_model,
+        gemini_defect_retries=args.gemini_defect_retries,
+        gemini_reject_confidence=args.gemini_reject_confidence,
     )
     defects = process_images(defect_args)
 
@@ -238,7 +241,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--confidence", type=float, default=0.0325)
     parser.add_argument("--nms-iou", type=float, default=0.40)
     parser.add_argument("--merge-iou", type=float, default=0.30)
-    parser.add_argument("--crop-margin-ratio", type=float, default=0.15)
+    parser.add_argument("--defect-verifier", choices=("disabled", "gemini"), default="gemini")
+    parser.add_argument("--gemini-defect-model", default="gemini-3.5-flash-lite")
+    parser.add_argument("--gemini-defect-retries", type=int, default=3)
+    parser.add_argument("--gemini-reject-confidence", type=float, default=0.90)
     return parser
 
 
