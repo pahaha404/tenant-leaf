@@ -56,4 +56,31 @@ class PropertyListViewModel @Inject constructor(
             }
         }
     }
+
+    fun deleteMultiple(ids: List<java.util.UUID>) {
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            _deleteErrorMessage.value = null
+            var hasFailure = false
+            var lastError: String? = null
+            val deletedIds = mutableSetOf<java.util.UUID>()
+            for (id in ids) {
+                when (val result = deleteProperty(id)) {
+                    is AppResult.Success -> deletedIds.add(id)
+                    is AppResult.Failure -> {
+                        hasFailure = true
+                        lastError = result.error.userMessage
+                    }
+                }
+            }
+            if (deletedIds.isNotEmpty()) {
+                val remaining = (_state.value as? ContentState.Success)?.value.orEmpty()
+                    .filterNot { it.id in deletedIds }
+                _state.value = if (remaining.isEmpty()) ContentState.Empty else ContentState.Success(remaining)
+            }
+            if (hasFailure) {
+                _deleteErrorMessage.value = lastError
+            }
+        }
+    }
 }

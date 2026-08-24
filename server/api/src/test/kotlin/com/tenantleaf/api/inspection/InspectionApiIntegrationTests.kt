@@ -122,13 +122,24 @@ class InspectionApiIntegrationTests(
     }
 
     @Test
-    fun `임장이 존재하는 매물 삭제는 안전하게 거부한다`() {
+    fun `임장이 존재하는 매물도 소프트 삭제가 가능하며 삭제 후 신규 임장 생성은 거부된다`() {
         val propertyId = createProperty(DemoUserContext.DEMO_USER_ID)
-        createInspection(propertyId, DemoUserContext.DEMO_USER_ID)
+        val inspection = createInspection(propertyId, DemoUserContext.DEMO_USER_ID)
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/v1/properties/{propertyId}", propertyId))
-            .andExpect(status().isConflict)
-            .andExpect(jsonPath("$.code").value("INVALID_STATE_TRANSITION"))
+            .andExpect(status().isNoContent)
+
+        mockMvc.perform(get("/api/v1/properties/{propertyId}", propertyId))
+            .andExpect(status().isNotFound)
+            .andExpect(jsonPath("$.code").value("PROPERTY_NOT_FOUND"))
+
+        mockMvc.perform(post("/api/v1/properties/{propertyId}/inspections", propertyId))
+            .andExpect(status().isNotFound)
+            .andExpect(jsonPath("$.code").value("PROPERTY_NOT_FOUND"))
+
+        mockMvc.perform(get("/api/v1/inspections/{inspectionId}", inspection.id))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(inspection.id.toString()))
     }
 
     private fun createProperty(ownerId: UUID): UUID {
