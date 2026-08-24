@@ -4,3 +4,4 @@ torchvision==0.28.0
 opencv-python-headless
 Pillow
 numpy
+
