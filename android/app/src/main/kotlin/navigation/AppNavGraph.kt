@@ -626,6 +626,12 @@ fun AppNavGraph(
         composable(Route.Profile) {
             ProfileScreen(
                 nickname = nickname,
+                onLogout = {
+                    sessionPreferences.edit().putBoolean(KEY_LOGGED_IN, false).apply()
+                    navController.navigate(Route.Login) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
                 onTabSelected = { tab ->
                     goToTab(
                         when (tab) {
