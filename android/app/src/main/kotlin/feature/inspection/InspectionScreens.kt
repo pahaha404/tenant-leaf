@@ -1053,28 +1053,30 @@ fun LiveInspectionScreen(
 
 object VoiceGuideManager {
     private val lock = Any()
+    @Volatile
     private var tts: TextToSpeech? = null
+    @Volatile
     private var isInitialized = false
     private var pendingText: String? = null
 
     fun warmUp(context: Context) {
+        if (tts != null) return
+        val appContext = context.applicationContext
         synchronized(lock) {
             if (tts != null) return
-            val appContext = context.applicationContext
             tts = TextToSpeech(appContext) { status ->
                 synchronized(lock) {
                     if (status == TextToSpeech.SUCCESS) {
-                        val result = tts?.setLanguage(java.util.Locale.KOREAN)
-                        if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                            tts?.language = java.util.Locale.getDefault()
-                        }
-                        tts?.setSpeechRate(1.05f)
+                        try {
+                            val result = tts?.setLanguage(java.util.Locale.KOREAN)
+                            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                                tts?.language = java.util.Locale.getDefault()
+                            }
+                            tts?.setSpeechRate(1.05f)
+                        } catch (_: Exception) {}
                         isInitialized = true
                         pendingText?.let { text ->
-                            val params = android.os.Bundle().apply {
-                                putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, android.media.AudioManager.STREAM_MUSIC)
-                            }
-                            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "voice_guide_${System.currentTimeMillis()}")
+                            speakInternal(text)
                             pendingText = null
                         }
                     }
@@ -1083,17 +1085,25 @@ object VoiceGuideManager {
         }
     }
 
+    private fun speakInternal(text: String) {
+        try {
+            val params = android.os.Bundle().apply {
+                putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, android.media.AudioManager.STREAM_MUSIC)
+            }
+            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "voice_guide_${System.currentTimeMillis()}")
+        } catch (_: Exception) {
+            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "voice_guide_${System.currentTimeMillis()}")
+        }
+    }
+
     fun speak(context: Context, text: String) {
+        val appContext = context.applicationContext
         synchronized(lock) {
-            val appContext = context.applicationContext
             if (tts == null) {
                 pendingText = text
                 warmUp(appContext)
             } else if (isInitialized) {
-                val params = android.os.Bundle().apply {
-                    putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, android.media.AudioManager.STREAM_MUSIC)
-                }
-                tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "voice_guide_${System.currentTimeMillis()}")
+                speakInternal(text)
             } else {
                 pendingText = text
             }
