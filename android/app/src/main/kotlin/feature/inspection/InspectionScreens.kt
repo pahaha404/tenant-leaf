@@ -1238,7 +1238,6 @@ fun AnalysisProgressScreen(
     errorMessage: String?,
     primaryActionLabel: String,
     onPrimaryAction: () -> Unit,
-    onSelectVideo: () -> Unit,
 ) {
     AppPageScaffold(title = "분석 진행", onBack = onBackToHome) {
         SectionTitle("구역별 기록을 정리하고 있어요", "촬영한 사진과 메모를 점검 구역별로 묶는 중이에요.")
@@ -1283,12 +1282,6 @@ fun AnalysisProgressScreen(
             }
         }
         PrimaryButton(primaryActionLabel, onPrimaryAction)
-        Box(
-            modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(14.dp))
-                .background(Color.White).border(1.dp, Green, RoundedCornerShape(14.dp))
-                .clickable(onClick = onSelectVideo),
-            contentAlignment = Alignment.Center,
-        ) { Text("영상 직접 선택", color = Green, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
     }
 }
 
