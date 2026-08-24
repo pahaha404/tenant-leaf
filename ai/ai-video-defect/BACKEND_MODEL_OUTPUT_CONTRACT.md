@@ -243,7 +243,7 @@ AI가 반환하는 값은 서버 내부 파일 경로다. 백엔드는 원본 �
   },
   "roomClassification": {
     "provider": "gemini",
-    "model": "gemini-2.5-flash-lite",
+    "model": "gemini-3.5-flash-lite",
     "errors": []
   },
   "roomSegments": [],

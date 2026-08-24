@@ -225,7 +225,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--job-id", default="local-image-room-test")
     parser.add_argument("--output", type=Path, default=Path("reports/image_room_defect_test"))
     parser.add_argument("--room-provider", choices=("gemini", "disabled"), default="gemini")
-    parser.add_argument("--gemini-model", default="gemini-2.5-flash-lite")
+    parser.add_argument("--gemini-model", default="gemini-3.5-flash-lite")
     parser.add_argument("--room-batch-size", type=int, default=10)
     parser.add_argument("--room-image-size", type=int, default=384)
     parser.add_argument("--room-retries", type=int, default=3)

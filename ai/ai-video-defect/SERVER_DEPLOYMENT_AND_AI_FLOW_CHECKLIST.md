@@ -36,9 +36,11 @@ AI Python 모듈
 - `opencv-python-headless` — 이미지 읽기와 crop 생성
 - `Pillow` — 이미지 검증 및 처리
 - `numpy` — 이미지 배열 처리
-- `google-genai` — Gemini 공간 분류 API
+- `google-genai==2.19.0` — Gemini 공간 분류 API
 
 가상환경을 만든 다음 서버 GPU·CUDA에 맞는 PyTorch와 torchvision을 공식 설치 명령으로 먼저 설치하고, 이어서 `requirements.txt`를 설치한다. GPU가 없는 서버는 CPU용 PyTorch를 설치한다.
+
+로컬 `.venv`는 서버로 복사하지 않는다. 가상환경에는 생성 당시 Python의 절대 경로가 들어가므로 서버에서 새로 생성해야 한다.
 
 Windows PowerShell:
 
@@ -48,6 +50,30 @@ python -m venv .venv
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+공간 분류의 기본 모델은 `gemini-3.5-flash-lite`다. `gemini-2.5-flash-lite`는 신규 프로젝트에서 404가 발생할 수 있으므로 배포 설정에서 사용하지 않는다.
+
+AI worker 프로세스에 `GEMINI_API_KEY`를 비밀 환경변수로 설정하고 변경 후 worker를 재시작한다. systemd·Docker·queue worker는 로그인 셸과 환경이 다를 수 있으므로 실제 worker 설정에 등록해야 한다. 키는 코드, manifest, DB, 로그, Git에 저장하지 않는다.
+
+```bash
+export GEMINI_API_KEY="발급받은_API_KEY"
+```
+
+```powershell
+$env:GEMINI_API_KEY="발급받은_API_KEY"
+```
+
+네트워크는 AI worker에서 `generativelanguage.googleapis.com`으로 나가는 HTTPS 443을 허용한다. Gemini 때문에 새 인바운드 포트를 열 필요는 없다. 대상 이미지는 외부 Gemini API로 전송되므로 데이터 정책과 사용자 동의 범위를 확인한다.
+
+설치 후 다음 명령을 worker와 같은 가상환경에서 확인한다.
+
+```bash
+python -m pip show google-genai
+python -c "from google import genai; print('google-genai import OK')"
+python -m training.process_image_batch_room_defect --help
+```
+
+API 연결 없이 YOLO·crop·JSON 흐름만 점검할 때는 실행 명령에 `--room-provider disabled`를 추가한다. 상세 설치·오류 대응은 `BACKEND_ROOM_CLASSIFICATION_API_CHANGES.md`의 6절을 따른다.
 
 Linux 서버:
 
