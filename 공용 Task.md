@@ -82,6 +82,7 @@
 
 ## 진행 기록
 
+- 2026-08-24 — Android 점검 플로우 및 매물 관리 UI/UX 대규모 고도화(`feature/uiux-better`). 매물 지도 오버뷰 핀 연동 및 당겨서 새로고침(Pull-to-Refresh), 휴지통 기반 다중 선택 일괄 삭제, 매물 상세 연필 아이콘 수정 모드, 점검 준비/경고 화면 하단 CTA 버튼 고정, TTS 음성 엔진 앱 기동 사전 예열을 통한 0ms 즉각 발화, 안경 미연결 시 스마트폰 카메라 자동 전환 및 실시간 점검 화면 카드 정리, 분석 진행 탭 내 수동 선택 제거 및 갤러리 영상 100% 자동 추출·업로드 파이프라인 단일화를 구현함. `:app:testDebugUnitTest`, `:feature:property:testDebugUnitTest`, `:feature:media:testDebugUnitTest`, `:feature:inspection:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-22 — Android 앱이 로그인 완료와 튜토리얼 완료 상태를 `SharedPreferences`에 저장해 재실행 시 로그인과 앱 소개 흐름을 건너뛸 수 있게 연결함. `:app:testDebugUnitTest`, `:app:assembleDebug`, Galaxy SM-G991N(Android 15) `:app:installDebug`를 통과했지만, 잠금 화면과 `run-as` 제한으로 저장 상태별 실기기 분기 화면은 아직 확인하지 못함.
 - 2026-08-22 — Android 점검 시작 전 체크리스트 화면의 주요 버튼과 건너뛰기를 하단 액션 영역에 고정해 튜토리얼 화면과 동일한 정렬로 맞춤.
 - 2026-08-22 — Android 튜토리얼 화면의 영상 보기·건너뛰기 동작을 공통 하단 액션 영역으로 옮겨 하단 정렬함. Debug 빌드와 Galaxy SM-G991N(Android 15) 설치를 통과했으나, 약관 동의 전 상태이므로 변경된 튜토리얼 화면의 실기기 위치는 아직 확인하지 않음.
