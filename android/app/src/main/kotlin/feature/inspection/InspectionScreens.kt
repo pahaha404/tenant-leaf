@@ -601,22 +601,15 @@ fun LiveInspectionScreen(
                 }
                 Spacer(Modifier.weight(1f))
                 Box {
-                    val qualityLabel = when (previewState.selectedQuality) {
-                        VideoQuality.HIGH -> "고화질"
-                        VideoQuality.MEDIUM -> "일반"
-                        VideoQuality.LOW -> "절전"
-                    }
-                    Row(
+                    Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
+                            .size(34.dp)
+                            .clip(RoundedCornerShape(17.dp))
                             .background(Color.White)
-                            .clickable { showQualityMenu = true }
-                            .padding(horizontal = 9.dp, vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                            .clickable { showQualityMenu = true },
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Text("⚙️ $qualityLabel", color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.width(2.dp))
-                        Text("▾", color = DeepGreen, fontSize = 9.sp)
+                        Text("⚙️", fontSize = 14.sp)
                     }
                     DropdownMenu(
                         expanded = showQualityMenu,
