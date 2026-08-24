@@ -63,6 +63,7 @@ import com.seipseip.app.feature.property.location.LocationPickerActivity
 import com.seipseip.app.feature.property.PropertyListScreen
 import com.seipseip.app.feature.property.PropertySelectScreen
 import com.seipseip.app.feature.report.ReportDetailScreen
+import com.seipseip.app.feature.report.ReportSamples
 import com.seipseip.app.feature.report.ReportListScreen
 import com.seipseip.app.feature.state.EmptyPropertyScreen
 import com.seipseip.app.feature.state.HomeProcessingScreen
@@ -554,8 +555,11 @@ fun AppNavGraph(
             ObservationScreen(
                 zoneId = zone,
                 onBack = navController::popBackStack,
-                onNextZone = { nextZone -> navController.navigate(Route.observation(nextZone)) },
-                onOpenReport = { navController.navigate(Route.ReportDetail) },
+                onReturnToProperty = {
+                    if (!navController.popBackStack(Route.PropertyDetail, inclusive = false)) {
+                        navController.navigate(Route.PropertyList)
+                    }
+                },
             )
         }
         composable(Route.Reports) {
@@ -578,6 +582,7 @@ fun AppNavGraph(
                 nickname = nickname,
                 onBack = navController::popBackStack,
                 onOpenProperty = { navController.navigate(Route.PropertyList) },
+                uiModel = if (reportProcessing) ReportSamples.generating else ReportSamples.completed,
             )
         }
         composable(Route.Profile) {

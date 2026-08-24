@@ -59,9 +59,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.WarningAmber
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -1387,13 +1390,10 @@ private fun observationItems(zoneId: String): List<ObservationItem> = when (zone
 fun ObservationScreen(
     zoneId: String,
     onBack: () -> Unit,
-    onNextZone: (String) -> Unit,
-    onOpenReport: () -> Unit,
+    onReturnToProperty: () -> Unit,
 ) {
     val zone = UiCatalog.zone(zoneId)
-    val nextZone = UiCatalog.nextZone(zoneId)
     val observations = observationItems(zoneId)
-    val nextLabel = nextZone?.let { "${it.title} 관찰 보기" } ?: "점검 리포트 보기"
 
     Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
         Row(
@@ -1430,23 +1430,31 @@ fun ObservationScreen(
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(13.dp)).background(PaleGreen).padding(horizontal = 10.dp, vertical = 10.dp),
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(13.dp)).background(PaleOrange).padding(horizontal = 12.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("ⓘ", color = Green, fontSize = 15.sp)
-                Spacer(Modifier.width(7.dp))
-                Text("AI 관찰은 하자 확정이 아닌 촬영 장면 정리예요.", color = Secondary, fontSize = 10.sp, lineHeight = 15.sp)
+                Icon(Icons.Outlined.Info, contentDescription = "안내", tint = Orange, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "AI 관찰 결과는 하자 또는 안전 상태를 확정하지 않습니다. 촬영 사진에서 확인이 필요한 흔적을 정리한 참고 정보이므로, 계약 전 현장에서 실제 상태를 직접 확인해 주세요.",
+                    color = Color(0xFF8B542D),
+                    fontSize = 10.sp,
+                    lineHeight = 15.sp,
+                )
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(16.dp))
         }
 
-        Box(modifier = Modifier.fillMaxWidth().height(72.dp).padding(start = 20.dp, top = 8.dp, end = 20.dp, bottom = 16.dp)) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+            color = Color.White,
+            shadowElevation = 8.dp,
+        ) {
             Box(
-                modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(14.dp)).background(Orange).clickable {
-                    if (nextZone != null) onNextZone(nextZone.id) else onOpenReport()
-                },
+                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, top = 12.dp, end = 20.dp, bottom = 12.dp)
+                    .height(54.dp).clip(RoundedCornerShape(16.dp)).background(Orange).clickable(onClick = onReturnToProperty),
                 contentAlignment = Alignment.Center,
-            ) { Text(nextLabel, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold) }
+            ) { Text("매물 상세로 돌아가기", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
         }
     }
 }
@@ -1475,13 +1483,14 @@ private fun ObservationResultCard(observation: ObservationItem) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(observation.title, color = DeepGreen, fontSize = 12.sp, lineHeight = 15.sp, fontWeight = FontWeight.ExtraBold)
             Text(observation.description, color = Secondary, fontSize = 10.sp, lineHeight = 14.sp)
-            Text(
-                "확인 필요",
+            Row(
                 modifier = Modifier.clip(RoundedCornerShape(99.dp)).background(PaleOrange).padding(horizontal = 6.dp, vertical = 3.dp),
-                color = Orange,
-                fontSize = 9.sp,
-                fontWeight = FontWeight.ExtraBold,
-            )
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Outlined.WarningAmber, contentDescription = "확인 필요", tint = Orange, modifier = Modifier.size(12.dp))
+                Spacer(Modifier.width(3.dp))
+                Text("확인 필요", color = Orange, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold)
+            }
         }
     }
 }
