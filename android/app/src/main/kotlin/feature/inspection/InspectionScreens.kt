@@ -23,6 +23,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.seipseip.app.feature.home.GlassConnectionViewModel
 import com.seipseip.app.feature.home.rememberGlassConnectionViewModel
+import com.seipseip.app.feature.inspection.preview.PhoneCameraPreviewHelper
 import com.meta.wearable.dat.camera.types.VideoQuality
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -491,6 +492,10 @@ private fun formatInspectionDuration(totalSeconds: Long): String {
     }
 }
 
+enum class CameraSource {
+    GLASS, PHONE
+}
+
 @Composable
 fun LiveInspectionScreen(
     zoneId: String,
@@ -508,11 +513,30 @@ fun LiveInspectionScreen(
     val previewState by glassViewModel.previewUiState.collectAsState()
     val connectionState by glassViewModel.uiState.collectAsState()
 
-    DisposableEffect(glassViewModel) {
-        glassViewModel.startPreview()
+    val context = LocalContext.current
+    var cameraSource by remember { mutableStateOf(CameraSource.GLASS) }
+    var activeSurface by remember { mutableStateOf<Surface?>(null) }
+    val phoneCameraHelper = remember(context) { PhoneCameraPreviewHelper(context) }
+
+    DisposableEffect(glassViewModel, cameraSource) {
+        val surface = activeSurface
+        if (cameraSource == CameraSource.GLASS) {
+            phoneCameraHelper.stopPreview()
+            glassViewModel.startPreview()
+            if (surface != null) {
+                glassViewModel.setPreviewSurface(surface)
+            }
+        } else {
+            glassViewModel.stopPreview()
+            glassViewModel.setPreviewSurface(null)
+            if (surface != null) {
+                phoneCameraHelper.startPreview(surface)
+            }
+        }
         onDispose {
             glassViewModel.stopPreview()
             glassViewModel.setPreviewSurface(null)
+            phoneCameraHelper.stopPreview()
         }
     }
 
@@ -521,7 +545,6 @@ fun LiveInspectionScreen(
     var nowElapsed by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
     var accumulatedPausedTime by remember { mutableStateOf(0L) }
     var lastPauseTimestamp by remember { mutableStateOf(0L) }
-    val context = LocalContext.current
 
     val togglePause = {
         if (isPaused) {
@@ -637,18 +660,26 @@ fun LiveInspectionScreen(
                 ) {
                     AndroidView(
                         modifier = Modifier.fillMaxSize(),
-                        factory = { context ->
-                            TextureView(context).apply {
+                        factory = { ctx ->
+                            TextureView(ctx).apply {
                                 surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                                     override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
-                                        glassViewModel.setPreviewSurface(Surface(surfaceTexture))
-                                        applyCenterCropTransform(this@apply, previewState.videoWidth, previewState.videoHeight)
+                                        val surface = Surface(surfaceTexture)
+                                        activeSurface = surface
+                                        if (cameraSource == CameraSource.GLASS) {
+                                            glassViewModel.setPreviewSurface(surface)
+                                            applyCenterCropTransform(this@apply, previewState.videoWidth, previewState.videoHeight)
+                                        } else {
+                                            phoneCameraHelper.startPreview(surface)
+                                        }
                                     }
                                     override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
                                         applyCenterCropTransform(this@apply, previewState.videoWidth, previewState.videoHeight)
                                     }
                                     override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture): Boolean {
+                                        activeSurface = null
                                         glassViewModel.setPreviewSurface(null)
+                                        phoneCameraHelper.stopPreview()
                                         return true
                                     }
                                     override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {}
@@ -662,6 +693,57 @@ fun LiveInspectionScreen(
                             applyCenterCropTransform(textureView, previewState.videoWidth, previewState.videoHeight)
                         },
                     )
+
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(10.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.Black.copy(alpha = 0.55f))
+                            .padding(3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(if (cameraSource == CameraSource.GLASS) Green else Color.Transparent)
+                                .clickable {
+                                    if (cameraSource != CameraSource.GLASS) {
+                                        cameraSource = CameraSource.GLASS
+                                        val surface = activeSurface
+                                        phoneCameraHelper.stopPreview()
+                                        glassViewModel.startPreview()
+                                        if (surface != null) {
+                                            glassViewModel.setPreviewSurface(surface)
+                                        }
+                                        VoiceGuideManager.speak(context, "안경 카메라로 전환합니다.")
+                                    }
+                                }
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                        ) {
+                            Text("🕶️ 안경", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(if (cameraSource == CameraSource.PHONE) Green else Color.Transparent)
+                                .clickable {
+                                    if (cameraSource != CameraSource.PHONE) {
+                                        cameraSource = CameraSource.PHONE
+                                        val surface = activeSurface
+                                        glassViewModel.stopPreview()
+                                        glassViewModel.setPreviewSurface(null)
+                                        if (surface != null) {
+                                            phoneCameraHelper.startPreview(surface)
+                                        }
+                                        VoiceGuideManager.speak(context, "스마트폰 카메라로 전환합니다.")
+                                    }
+                                }
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                        ) {
+                            Text("📱 핸드폰", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
 
                     if (isPaused) {
                         Box(
@@ -678,7 +760,7 @@ fun LiveInspectionScreen(
                                 Text("탭하여 다시 시작하기", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
                             }
                         }
-                    } else if (!previewState.hasFirstFrame) {
+                    } else if (cameraSource == CameraSource.GLASS && !previewState.hasFirstFrame) {
                         Column(
                             modifier = Modifier.align(Alignment.Center).padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
