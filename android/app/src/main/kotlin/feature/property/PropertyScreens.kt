@@ -41,13 +41,18 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.MyLocation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -122,40 +127,110 @@ fun PropertyListScreen(
     onAddProperty: () -> Unit,
     onOpenProperty: (String) -> Unit,
     onDeleteProperty: (String) -> Unit,
+    onDeleteMultipleProperties: ((List<String>) -> Unit)? = null,
     onRetry: () -> Unit,
     onOpenMapOverview: (() -> Unit)? = null,
     onTabSelected: (String) -> Unit,
 ) {
+    var isSelectionMode by rememberSaveable { mutableStateOf(false) }
+    var selectedIds by rememberSaveable { mutableStateOf(setOf<String>()) }
+    var showBatchDeleteDialog by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(properties) {
+        if (properties.isEmpty()) {
+            isSelectionMode = false
+            selectedIds = emptySet()
+        } else {
+            selectedIds = selectedIds.filter { id -> properties.any { it.id == id } }.toSet()
+        }
+    }
+
     AppPageScaffold(
-        title = "매물",
+        title = if (isSelectionMode) "매물 삭제 (${selectedIds.size})" else "매물",
         selectedTab = AppTab.Property,
-        topTrailingAction = if (onOpenMapOverview != null) {
+        topTrailingAction = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (properties.isNotEmpty()) {
+                    IconButton(
+                        onClick = {
+                            isSelectionMode = !isSelectionMode
+                            selectedIds = emptySet()
+                        },
+                    ) {
+                        Icon(
+                            imageVector = if (isSelectionMode) Icons.Outlined.Close else Icons.Outlined.DeleteOutline,
+                            contentDescription = if (isSelectionMode) "선택 모드 종료" else "매물 다중 삭제",
+                            tint = if (isSelectionMode) Color(0xFFC93B2B) else DeepGreen,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                }
+                if (onOpenMapOverview != null && !isSelectionMode) {
+                    IconButton(onClick = onOpenMapOverview) {
+                        Icon(
+                            imageVector = Icons.Outlined.Map,
+                            contentDescription = "매물 지도 보기",
+                            tint = DeepGreen,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                }
+            }
+        },
+        floatingActionButton = if (!isSelectionMode) {
             {
-                IconButton(onClick = onOpenMapOverview) {
+                FloatingActionButton(
+                    onClick = onAddProperty,
+                    containerColor = Green,
+                    contentColor = Color.White,
+                    shape = CircleShape,
+                    modifier = Modifier.size(56.dp),
+                ) {
                     Icon(
-                        imageVector = Icons.Outlined.Map,
-                        contentDescription = "매물 지도 보기",
-                        tint = DeepGreen,
-                        modifier = Modifier.size(24.dp),
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = "새 매물 등록",
+                        modifier = Modifier.size(28.dp),
                     )
                 }
             }
         } else null,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddProperty,
-                containerColor = Green,
-                contentColor = Color.White,
-                shape = CircleShape,
-                modifier = Modifier.size(56.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Add,
-                    contentDescription = "새 매물 등록",
-                    modifier = Modifier.size(28.dp),
-                )
+        bottomAction = if (isSelectionMode && properties.isNotEmpty()) {
+            {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 10.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(if (selectedIds.isNotEmpty()) Color(0xFFB42318) else Color(0xFFE0E0E0))
+                            .clickable(enabled = selectedIds.isNotEmpty()) {
+                                showBatchDeleteDialog = true
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = null,
+                                tint = if (selectedIds.isNotEmpty()) Color.White else Secondary,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = if (selectedIds.isEmpty()) "삭제할 매물을 선택해 주세요" else "선택한 ${selectedIds.size}개 매물 삭제하기",
+                                color = if (selectedIds.isNotEmpty()) Color.White else Secondary,
+                                fontSize = 13.5.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                        }
+                    }
+                }
             }
-        },
+        } else null,
         onTabSelected = { tab ->
             onTabSelected(
                 when (tab) {
@@ -167,10 +242,95 @@ fun PropertyListScreen(
             )
         },
     ) {
+        if (isSelectionMode && properties.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "${selectedIds.size}개 선택됨",
+                    color = if (selectedIds.isNotEmpty()) Green else Secondary,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                TextButton(
+                    onClick = {
+                        selectedIds = if (selectedIds.size == properties.size) emptySet() else properties.map { it.id }.toSet()
+                    },
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                ) {
+                    Text(
+                        text = if (selectedIds.size == properties.size) "전체 해제" else "전체 선택",
+                        color = Green,
+                        fontSize = 12.5.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+
         when {
             loading -> Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
             errorMessage != null -> InfoCard("서버 연결 확인 필요", errorMessage, onClick = onRetry)
             properties.isEmpty() -> InfoCard("등록된 매물이 없어요", "우측 하단 + 버튼으로 첫 매물을 등록해 주세요.", onClick = onAddProperty)
+            isSelectionMode -> properties.forEach { property ->
+                val isSelected = property.id in selectedIds
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            selectedIds = if (isSelected) selectedIds - property.id else selectedIds + property.id
+                        },
+                    colors = CardDefaults.cardColors(containerColor = if (isSelected) PaleGreen else Color.White),
+                    shape = RoundedCornerShape(14.dp),
+                    border = if (isSelected) BorderStroke(1.5.dp, Green) else null,
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 11.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(22.dp)
+                                .clip(CircleShape)
+                                .background(if (isSelected) Green else Color.Transparent)
+                                .border(1.5.dp, if (isSelected) Green else Color(0xFFC0C0C0), CircleShape),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Check,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp),
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text(
+                                text = property.name,
+                                color = DeepGreen,
+                                fontSize = 14.5.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                            Text(
+                                text = property.address,
+                                color = Secondary,
+                                fontSize = 11.5.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
+            }
             else -> properties.forEach { property ->
                 SwipeToDeletePropertyCard(
                     property = property,
@@ -181,6 +341,37 @@ fun PropertyListScreen(
         }
         deleteErrorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
 
+        if (showBatchDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showBatchDeleteDialog = false },
+                title = { Text("선택 매물 삭제", fontWeight = FontWeight.Bold) },
+                text = { Text("선택한 ${selectedIds.size}개의 매물을 삭제하시겠습니까?\n임장 기록이 있는 매물은 상태가 정리됩니다.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val idsToDelete = selectedIds.toList()
+                            if (onDeleteMultipleProperties != null) {
+                                onDeleteMultipleProperties(idsToDelete)
+                            } else {
+                                idsToDelete.forEach(onDeleteProperty)
+                            }
+                            selectedIds = emptySet()
+                            isSelectionMode = false
+                            showBatchDeleteDialog = false
+                        },
+                    ) {
+                        Text("삭제", color = Color(0xFFB42318), fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showBatchDeleteDialog = false }) {
+                        Text("취소", color = Secondary)
+                    }
+                },
+                shape = RoundedCornerShape(18.dp),
+                containerColor = Color.White,
+            )
+        }
     }
 }
 

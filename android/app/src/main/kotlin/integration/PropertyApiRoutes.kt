@@ -42,6 +42,10 @@ fun PropertyListApiRoute(
         onAddProperty = onAddProperty,
         onOpenProperty = onOpenProperty,
         onDeleteProperty = { id -> runCatching { UUID.fromString(id) }.getOrNull()?.let(viewModel::delete) },
+        onDeleteMultipleProperties = { ids ->
+            val uuids = ids.mapNotNull { id -> runCatching { UUID.fromString(id) }.getOrNull() }
+            viewModel.deleteMultiple(uuids)
+        },
         onRetry = viewModel::refresh,
         onOpenMapOverview = onOpenMapOverview,
         onTabSelected = onTabSelected,

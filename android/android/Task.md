@@ -27,6 +27,7 @@
 
 ## 진행 기록
 
+- 2026-08-24 — 매물 탭 우측 상단 휴지통 아이콘 추가 및 다중 선택 일괄 삭제 기능 구현(`PropertyListScreen`, `PropertyListViewModel.deleteMultiple`). 지도 아이콘 왼쪽에 휴지통(`DeleteOutline`) 아이콘을 배치하여 탭 시 다중 선택 모드로 전환되며, 개별 체크/전체 선택/전체 해제 및 하단 "선택한 N개 매물 삭제하기" 액션 버튼을 통해 일괄 삭제 다이얼로그 확인 후 한 번에 안전하게 삭제할 수 있도록 완성함. `:app:testDebugUnitTest` 및 `:feature:property:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — TTS 음성 엔진 `TenantLeafApplication` 레벨 초조기 사전 예열 및 빨간 버튼 탭 0ms 즉시 발화 적용. 안드로이드 프로세스 기동(`Application.onCreate`) 즉시 TextToSpeech 엔진 백그라운드 바인딩을 수행하고, 빨간 확인 버튼 탭 시 미디어 스트림(`STREAM_MUSIC`)을 통해 터치와 동시에 "3초 뒤 촬영이 시작됩니다" 음성이 딜레이 없이 즉각 출력되도록 개선 완료. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 3초 카운트다운 화면(`InspectionCountdownScreen`) 유지 및 "3초 뒤 촬영이 시작됩니다" 단독 음성 안내(TTS) 정합. 촬영 전 경고 동의 후 3초 카운트다운 화면(`3 -> 2 -> 1`)이 정상적으로 노출되며 TTS 음성("3초 뒤 촬영이 시작됩니다")이 출력되고, 이후 실시간 점검 화면에서는 추가 음성 발화 없이 깔끔하게 카메라 촬영 모드로 돌입하도록 가이드 사운드 흐름을 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 실시간 점검 안경 미연결 시 스마트폰 카메라 자동 전용 촬영 전환(`CameraSource.PHONE`). Meta 안경이 블루투스로 연결되어 있지 않은 경우, 안경 전환 토글을 숨기고 즉시 스마트폰 후면 카메라로 실시간 프리뷰와 녹화가 실행되도록 폴백 로직을 강화함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
