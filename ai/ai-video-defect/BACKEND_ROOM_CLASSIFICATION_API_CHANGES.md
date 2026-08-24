@@ -7,7 +7,7 @@
 
 백엔드가 영상에서 샘플링·품질 선별한 이미지 묶음을 AI Python에 전달하면, AI가 이미지별 공간 분류와 하자 탐지를 함께 수행한다.
 
-기존 하자 탐지 좌표·클래스·crop 계약은 유지하고 다음 데이터만 추가한다.
+기존 하자 탐지 좌표·클래스 계약은 유지하고 공간 및 Gemini 검증 데이터를 추가한다. 하자 crop 계약은 폐기하고 전체 이미지 박스 경로로 교체한다.
 
 - 이미지별 공간 분류 결과
 - 연속 이미지 기반 공간 구간
@@ -18,7 +18,8 @@
   → 시간순 이미지 폴더와 manifest 생성
   → AI Python worker 실행
   → Gemini 공간 분류·구간 안정화
-  → 기존 2단계 YOLO·하자 crop 생성
+  → 기존 2단계 YOLO·전체 이미지 후보 박스 생성
+  → Gemini 하자 보조 검증 및 확신도 0.90 이상의 `not_defect` 제외
   → 통합 result.json
 ```
 
@@ -37,7 +38,7 @@ AI Python:
 1. 전달된 이미지의 Gemini 공간 분류
 2. 연속 이미지 결과 안정화와 공간 구간 생성
 3. 기존 Binary YOLO·다중 클래스 YOLO 하자 추론
-4. 공간·하자·근거 crop 통합 JSON 생성
+4. 공간·하자·최종 박스 이미지 통합 JSON 생성
 
 AI Python은 영상 열기·프레임 추출·이미지 품질 필터링을 수행하지 않는다.
 
@@ -114,7 +115,7 @@ manifest가 없으면 AI가 `image-0001` 형식의 ID를 만들고 `timestampSec
 |---|---|---|
 | `ultralytics` | `8.4.117` | Binary·다중 클래스 YOLO 추론 |
 | `torch`, `torchvision` | 서버 CUDA/CPU에 맞게 별도 설치 | YOLO 실행 |
-| `opencv-python-headless` | `requirements.txt` | 이미지 읽기·crop 생성 |
+| `opencv-python-headless` | `requirements.txt` | 이미지 읽기·박스 이미지 생성 |
 | `Pillow`, `numpy` | `requirements.txt` | 이미지 처리 |
 | `google-genai` | `2.19.0` | Gemini 공간 분류 |
 
@@ -188,7 +189,7 @@ Windows PowerShell의 키 확인:
 if ($env:GEMINI_API_KEY) { "configured" } else { "missing" }
 ```
 
-Gemini 연결 전 로컬 파이프라인만 먼저 확인할 때는 `--room-provider disabled`를 사용한다. 이 경우 공간은 `unknown`이지만 YOLO·crop·JSON 생성은 실행된다.
+Gemini 연결 전 로컬 파이프라인만 먼저 확인할 때는 `--room-provider disabled --defect-verifier disabled`를 사용한다. 이 경우 공간은 `unknown`이지만 YOLO·박스 이미지·JSON 생성은 실행된다.
 
 ### 6-5. 자주 발생하는 오류
 
@@ -321,7 +322,7 @@ Python은 별도 HTTP 서버가 아니라 worker가 실행하는 모듈이다. �
   "sequenceIndex": 0,
   "timestampSec": 0.0,
   "evidencePath": "output/job-001/evidence/000001.jpg",
-  "cropPath": "output/job-001/crops/obs-0001-001_mold.jpg"
+  "annotatedPath": "output/job-001/annotated/final/000001.jpg"
 }
 ```
 
@@ -337,7 +338,7 @@ Python은 별도 HTTP 서버가 아니라 worker가 실행하는 모듈이다. �
 - `classId`, `label`, `confidence`
 - 탐지 결과가 없으면 `detections: []`
 - `unknown_defect`는 `classId: null`
-- `evidencePath`, `cropPath`를 백엔드가 인증 URL로 변환
+- `evidencePath`, `annotatedPath`를 백엔드가 인증 URL로 변환
 - AI 결과는 하자 확정이 아니라 `needs_review` 관찰
 
 ## 11. 오류 처리
@@ -372,7 +373,7 @@ Gemini 일부 또는 전체 요청 실패:
 - [ ] `images[].room.stable` 저장 및 화면 안내에 사용
 - [ ] `roomSegments[]` 저장 또는 JSON 보존
 - [ ] `observations[].room`, `roomSegmentId`를 리포트에 연결
-- [ ] evidence·crop 경로를 인증 URL로 변환
+- [ ] evidence·최종 박스 이미지 경로를 인증 URL로 변환
 - [ ] `unknown` 공간과 `unknown_defect` 하자를 별도 값으로 처리
 - [ ] AI job 상태를 `queued`, `processing`, `completed`, `failed`로 관리
 
@@ -380,6 +381,6 @@ Gemini 일부 또는 전체 요청 실패:
 
 1. 실제 샘플 이미지 묶음으로 Python 작업이 `completed` 상태로 종료된다.
 2. 모든 이미지에 `room.raw`, `room.stable`, `roomSegmentId`가 존재한다.
-3. 모든 하자 observation에 공간과 근거 crop이 연결된다.
+3. 모든 최종 하자 observation에 공간과 최종 박스 이미지가 연결된다.
 4. 공간 API 실패 시 `unknown`으로 반환되면서 하자 분석은 완료된다.
 5. 백엔드 결과 조회 API에서 공간 구간과 공간별 하자를 확인할 수 있다.

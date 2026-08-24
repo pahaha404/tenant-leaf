@@ -49148,6 +49148,2884 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "CGUmy",
+      "x": 11714,
+      "y": -215,
+      "name": "Report / Detail / Completed",
+      "clip": true,
+      "width": 412,
+      "height": 1867,
+      "fill": "#F6F4EF",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "J10iG",
+          "x": 0,
+          "y": 0,
+          "name": "Report scroll content",
+          "clip": true,
+          "width": 412,
+          "height": 1800,
+          "fill": "#F6F4EF",
+          "layout": "vertical",
+          "gap": 12,
+          "padding": [
+            18,
+            20,
+            24,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "YQz01",
+              "name": "Report header",
+              "width": "fill_container",
+              "height": 42,
+              "gap": 12,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "dhfNx",
+                  "name": "Back button",
+                  "width": 38,
+                  "height": 38,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 999,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "EVJtB",
+                      "name": "Back icon",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "arrow-left",
+                      "library": "lucide",
+                      "fill": "#1E4933"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "qOxRL",
+                  "name": "Report title",
+                  "fill": "#1E4933",
+                  "content": "분석 리포트",
+                  "fontFamily": "Noto Sans KR",
+                  "fontSize": 20,
+                  "fontWeight": "800"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "CzyBT",
+              "name": "Property intro",
+              "width": "fill_container",
+              "height": 66,
+              "layout": "vertical",
+              "gap": 4,
+              "padding": [
+                2,
+                0
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "XfFxf",
+                  "name": "Property name",
+                  "fill": "#1E4933",
+                  "content": "망원동 리버뷰",
+                  "fontFamily": "Noto Sans KR",
+                  "fontSize": 26,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "frame",
+                  "id": "fFXte",
+                  "name": "Visit meta row",
+                  "gap": 8,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "rWvW3",
+                      "name": "Visit date",
+                      "fill": "#607267",
+                      "content": "2026년 8월 24일 · 첫 방문 점검",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 12,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "isRny",
+                      "name": "Completed badge",
+                      "fill": "#DCE9D6",
+                      "cornerRadius": 999,
+                      "gap": 5,
+                      "padding": [
+                        5,
+                        9
+                      ],
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "nCOuD",
+                          "name": "Completed icon",
+                          "width": 13,
+                          "height": 13,
+                          "icon": "circle-check",
+                          "library": "lucide",
+                          "fill": "#2F6848"
+                        },
+                        {
+                          "type": "text",
+                          "id": "p624Y",
+                          "name": "Completed label",
+                          "fill": "#2F6848",
+                          "content": "분석 완료",
+                          "fontFamily": "Noto Sans KR",
+                          "fontSize": 11,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "G3vaD",
+              "name": "Reference score card",
+              "width": "fill_container",
+              "height": 142,
+              "fill": "#2F6848",
+              "cornerRadius": 16,
+              "layout": "vertical",
+              "gap": 7,
+              "padding": 18,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QgTXH",
+                  "name": "Score card header",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "ighlV",
+                      "name": "Score eyebrow",
+                      "fill": "#EEF4EA",
+                      "content": "점검 참고 점수",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 13,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "icon",
+                      "id": "obUnB",
+                      "name": "Score info icon",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "info",
+                      "library": "lucide",
+                      "fill": "#DCE9D6"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Go9TD",
+                  "name": "Score main row",
+                  "width": "fill_container",
+                  "gap": 5,
+                  "alignItems": "end",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "zWrFP",
+                      "name": "Score value",
+                      "fill": "#FFFFFF",
+                      "content": "85",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 42,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "fruGz",
+                      "name": "Score unit",
+                      "fill": "#DCE9D6",
+                      "content": "점 / 100점",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 14,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "W3lqKq",
+                  "name": "Score summary",
+                  "fill": "#FFFFFF",
+                  "content": "확인이 필요한 관찰 3건이 생성됐어요.",
+                  "fontFamily": "Noto Sans KR",
+                  "fontSize": 13,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "y5n8h3",
+                  "name": "Score note",
+                  "fill": "#DCE9D6",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "최종 관찰 1건당 5점을 차감하는 참고 지표입니다.",
+                  "fontFamily": "Noto Sans KR",
+                  "fontSize": 10,
+                  "fontWeight": "500"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "rcpgh",
+              "name": "Summary cards",
+              "width": "fill_container",
+              "height": 88,
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "n6lch",
+                  "name": "Observations metric",
+                  "width": "fill_container",
+                  "height": 88,
+                  "fill": "#FFF0E4",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    12,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "KtIWE",
+                      "name": "Observations metric value",
+                      "fill": "#F68B38",
+                      "content": "3건",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 20,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "xI13C",
+                      "name": "Observations metric label",
+                      "fill": "#607267",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "확인 필요 관찰",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "swrjB",
+                  "name": "Completed photos metric",
+                  "width": "fill_container",
+                  "height": 88,
+                  "fill": "#EEF4EA",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    12,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "p2ZMP",
+                      "name": "Completed photos metric value",
+                      "fill": "#2F6848",
+                      "content": "21장",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 20,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "SdBvg",
+                      "name": "Completed photos metric label",
+                      "fill": "#607267",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "분석 완료 사진",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "XvS9f",
+                  "name": "Failed photos metric",
+                  "width": "fill_container",
+                  "height": 88,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 16,
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    12,
+                    10
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "AJ3Si",
+                      "name": "Failed photos metric value",
+                      "fill": "#C9573D",
+                      "content": "1장",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 20,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "dMyOt",
+                      "name": "Failed photos metric label",
+                      "fill": "#607267",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "분석 실패 사진",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "HIAXy",
+              "name": "Area results section",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "m0L4F8",
+                  "name": "Area results header",
+                  "width": "fill_container",
+                  "height": 30,
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "O8YkBU",
+                      "name": "Area results title",
+                      "fill": "#1E4933",
+                      "content": "구역별 확인 결과",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 16,
+                      "fontWeight": "800"
+                    },
+                    {
+                      "type": "text",
+                      "id": "JgZkG",
+                      "name": "Area result count",
+                      "fill": "#607267",
+                      "content": "확인 필요 관찰 3건 · 근거 사진 4장",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 10,
+                      "fontWeight": "700"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "j54ml9",
+                  "name": "Bathroom accordion expanded",
+                  "width": "fill_container",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 14,
+                  "stroke": "#D9E1DA",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 14,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "xlwAo",
+                      "name": "Bathroom accordion header",
+                      "width": "fill_container",
+                      "height": 28,
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "l1vIhg",
+                          "name": "Bathroom accordion label",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "SksZL",
+                              "name": "Bathroom accordion icon",
+                              "width": 18,
+                              "height": 18,
+                              "icon": "bath",
+                              "library": "lucide",
+                              "fill": "#2F6848"
+                            },
+                            {
+                              "type": "text",
+                              "id": "D5Jnnk",
+                              "name": "Bathroom accordion title",
+                              "fill": "#1E4933",
+                              "content": "화장실",
+                              "fontFamily": "Noto Sans KR",
+                              "fontSize": 13,
+                              "fontWeight": "800"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "ibncF",
+                          "name": "Bathroom accordion meta",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "OMYIX",
+                              "name": "Bathroom accordion count",
+                              "fill": "#C76628",
+                              "content": "확인 필요 2건 · 사진 3장",
+                              "fontFamily": "Noto Sans KR",
+                              "fontSize": 10,
+                              "fontWeight": "700"
+                            },
+                            {
+                              "type": "icon",
+                              "id": "cgl12",
+                              "name": "Bathroom accordion chevron",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "chevron-up",
+                              "library": "lucide",
+                              "fill": "#607267"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "fm3xp",
+                      "name": "Observation card one",
+                      "width": "fill_container",
+                      "fill": "#F8F7F2",
+                      "cornerRadius": 12,
+                      "stroke": "#E4E5DC",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 10,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "C2L05",
+                          "name": "Observation one photo",
+                          "metadata": {
+                            "type": "unsplash",
+                            "username": "ironstagram",
+                            "link": "https://unsplash.com/@ironstagram",
+                            "author": "Sung Shin"
+                          },
+                          "width": "fill_container",
+                          "height": 243,
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1647773570138-9f7a1258b942?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODc1NTEyMjB8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 9,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "KgC1a",
+                              "x": 92,
+                              "y": 53,
+                              "name": "Observation one detection box",
+                              "width": 174,
+                              "height": 112,
+                              "cornerRadius": 2,
+                              "stroke": "#F68B38",
+                              "strokeWidth": 3
+                            },
+                            {
+                              "type": "frame",
+                              "id": "WoFDi",
+                              "x": 92,
+                              "y": 28,
+                              "name": "Observation one detection label",
+                              "fill": "#F68B38",
+                              "cornerRadius": 4,
+                              "padding": [
+                                5,
+                                7
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "xdAUo",
+                                  "name": "Observation one detection label text",
+                                  "fill": "#FFFFFF",
+                                  "content": "곰팡이 추정 흔적 · 76%",
+                                  "fontFamily": "Noto Sans KR",
+                                  "fontSize": 9,
+                                  "fontWeight": "800"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "zu0cN",
+                              "x": 284,
+                              "y": 10,
+                              "name": "Observation one zoom button",
+                              "width": 30,
+                              "height": 30,
+                              "fill": "#17251ECC",
+                              "cornerRadius": 15,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "n9Q5ls",
+                                  "name": "Observation one zoom icon",
+                                  "width": 16,
+                                  "height": 16,
+                                  "icon": "scan-search",
+                                  "library": "lucide",
+                                  "fill": "#FFFFFF"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "rectangle",
+                              "id": "JcECj",
+                              "x": 1,
+                              "y": 1,
+                              "name": "Open evidence viewer hotspot",
+                              "metadata": {
+                                "type": "prototype-link",
+                                "action": "tap",
+                                "target": "OBF09",
+                                "label": "open evidence viewer"
+                              },
+                              "fill": "#00000000",
+                              "width": 322,
+                              "height": 241
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "jsGWA",
+                          "name": "Observation one heading",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "jvMjo",
+                              "name": "Observation one title",
+                              "fill": "#1E4933",
+                              "content": "곰팡이로 추정되는 흔적 확인 필요",
+                              "fontFamily": "Noto Sans KR",
+                              "fontSize": 12,
+                              "fontWeight": "800"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "e0VWWC",
+                              "name": "Observation one status",
+                              "fill": "#FFF0E4",
+                              "cornerRadius": 999,
+                              "padding": [
+                                5,
+                                8
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "uTuRm",
+                                  "name": "Observation one status text",
+                                  "fill": "#C76628",
+                                  "content": "확인 전",
+                                  "fontFamily": "Noto Sans KR",
+                                  "fontSize": 9,
+                                  "fontWeight": "800"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "c2ltg7",
+                          "name": "Observation one meta",
+                          "fill": "#607267",
+                          "content": "화장실 · AI 참고 신뢰도 76%",
+                          "fontFamily": "Noto Sans KR",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "qLIgU",
+                          "name": "Observation one description",
+                          "fill": "#45584C",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "천장 모서리에 변색된 부분이 촬영됐어요. 습기와 냄새를 직접 확인해 주세요.",
+                          "lineHeight": 1.35,
+                          "fontFamily": "Noto Sans KR",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "h5AwK",
+                          "name": "Observation one evidence count",
+                          "fill": "#607267",
+                          "content": "근거 사진 2장",
+                          "fontFamily": "Noto Sans KR",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "Q21Mk",
+                      "name": "Observation card two",
+                      "width": "fill_container",
+                      "fill": "#F8F7F2",
+                      "cornerRadius": 12,
+                      "stroke": "#E4E5DC",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 10,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "aR9uy",
+                          "name": "Observation two photo",
+                          "metadata": {
+                            "type": "unsplash",
+                            "username": "steffen_l",
+                            "link": "https://unsplash.com/@steffen_l",
+                            "author": "Steffen Lemmerzahl"
+                          },
+                          "width": "fill_container",
+                          "height": 243,
+                          "fill": {
+                            "type": "image",
+                            "enabled": true,
+                            "url": "https://images.unsplash.com/photo-1698824241382-677abdbee593?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODc1NTEyMjh8&ixlib=rb-4.1.0&q=80&w=1080",
+                            "mode": "fill"
+                          },
+                          "cornerRadius": 9,
+                          "layout": "none",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "C1uFdB",
+                              "x": 116,
+                              "y": 76,
+                              "name": "Observation two detection box",
+                              "width": 144,
+                              "height": 86,
+                              "cornerRadius": 2,
+                              "stroke": "#F68B38",
+                              "strokeWidth": 3
+                            },
+                            {
+                              "type": "frame",
+                              "id": "uu6Q3",
+                              "x": 116,
+                              "y": 51,
+                              "name": "Observation two detection label",
+                              "fill": "#F68B38",
+                              "cornerRadius": 4,
+                              "padding": [
+                                5,
+                                7
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "xiEDK",
+                                  "name": "Observation two detection label text",
+                                  "fill": "#FFFFFF",
+                                  "content": "누수 추정 흔적 · 71%",
+                                  "fontFamily": "Noto Sans KR",
+                                  "fontSize": 9,
+                                  "fontWeight": "800"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "IeQ1o",
+                              "x": 284,
+                              "y": 10,
+                              "name": "Observation two zoom button",
+                              "width": 30,
+                              "height": 30,
+                              "fill": "#17251ECC",
+                              "cornerRadius": 15,
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "icon",
+                                  "id": "fGhZx",
+                                  "name": "Observation two zoom icon",
+                                  "width": 16,
+                                  "height": 16,
+                                  "icon": "scan-search",
+                                  "library": "lucide",
+                                  "fill": "#FFFFFF"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "rectangle",
+                              "id": "N6tfp",
+                              "x": 1,
+                              "y": 1,
+                              "name": "Open evidence viewer hotspot two",
+                              "metadata": {
+                                "type": "prototype-link",
+                                "action": "tap",
+                                "target": "OBF09",
+                                "label": "open evidence viewer"
+                              },
+                              "fill": "#00000000",
+                              "width": 322,
+                              "height": 241
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "iwiDC",
+                          "name": "Observation two heading",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "B2Do7u",
+                              "name": "Observation two title",
+                              "fill": "#1E4933",
+                              "content": "누수로 추정되는 흔적 확인 필요",
+                              "fontFamily": "Noto Sans KR",
+                              "fontSize": 12,
+                              "fontWeight": "800"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "xy94Q",
+                              "name": "Observation two status",
+                              "fill": "#DCE9D6",
+                              "cornerRadius": 999,
+                              "padding": [
+                                5,
+                                8
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "Hmh6L",
+                                  "name": "Observation two status text",
+                                  "fill": "#2F6848",
+                                  "content": "확인함",
+                                  "fontFamily": "Noto Sans KR",
+                                  "fontSize": 9,
+                                  "fontWeight": "800"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "BV7nX",
+                          "name": "Observation two meta",
+                          "fill": "#607267",
+                          "content": "화장실 · AI 참고 신뢰도 71%",
+                          "fontFamily": "Noto Sans KR",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "LohOp",
+                          "name": "Observation two evidence count",
+                          "fill": "#607267",
+                          "content": "근거 사진 1장",
+                          "fontFamily": "Noto Sans KR",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Q25nKK",
+                  "name": "Living room accordion",
+                  "width": "fill_container",
+                  "height": 54,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 14,
+                  "stroke": "#D9E1DA",
+                  "strokeWidth": 1,
+                  "padding": [
+                    0,
+                    14
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "W2vhfN",
+                      "name": "Living room accordion copy",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "OAsvF",
+                          "name": "Living room icon",
+                          "width": 18,
+                          "height": 18,
+                          "icon": "sofa",
+                          "library": "lucide",
+                          "fill": "#2F6848"
+                        },
+                        {
+                          "type": "text",
+                          "id": "plwD7",
+                          "name": "Living room title",
+                          "fill": "#1E4933",
+                          "content": "거실·방",
+                          "fontFamily": "Noto Sans KR",
+                          "fontSize": 12,
+                          "fontWeight": "800"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "eeh5i",
+                      "name": "Living room accordion meta",
+                      "gap": 8,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "G6XG1K",
+                          "name": "Living room count",
+                          "fill": "#C76628",
+                          "content": "확인 필요 1건",
+                          "fontFamily": "Noto Sans KR",
+                          "fontSize": 10,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "icon",
+                          "id": "B6B3Wd",
+                          "name": "Living room chevron",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "chevron-down",
+                          "library": "lucide",
+                          "fill": "#607267"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "A0sUzB",
+                  "name": "Kitchen accordion",
+                  "width": "fill_container",
+                  "height": 76,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 14,
+                  "stroke": "#D9E1DA",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    12,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Avf62",
+                      "name": "Kitchen accordion header",
+                      "width": "fill_container",
+                      "height": 24,
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "esFD1",
+                          "name": "Kitchen accordion copy",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "l5MUN",
+                              "name": "Kitchen icon",
+                              "width": 18,
+                              "height": 18,
+                              "icon": "utensils",
+                              "library": "lucide",
+                              "fill": "#2F6848"
+                            },
+                            {
+                              "type": "text",
+                              "id": "VxLch",
+                              "name": "Kitchen title",
+                              "fill": "#1E4933",
+                              "content": "주방",
+                              "fontFamily": "Noto Sans KR",
+                              "fontSize": 12,
+                              "fontWeight": "800"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "icon",
+                          "id": "B7ehBe",
+                          "name": "Kitchen chevron",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "chevron-down",
+                          "library": "lucide",
+                          "fill": "#607267"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "dyZ4b",
+                      "name": "Kitchen empty state",
+                      "fill": "#607267",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "현재 촬영 근거에서 확인 필요 관찰이 생성되지 않았어요.",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "j69tv9",
+                  "name": "Entrance public accordion",
+                  "width": "fill_container",
+                  "height": 76,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 14,
+                  "stroke": "#D9E1DA",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    12,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "FkJ8I",
+                      "name": "Entrance public accordion header",
+                      "width": "fill_container",
+                      "height": 24,
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "OuzRC",
+                          "name": "Entrance public accordion copy",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "iF2C3",
+                              "name": "Entrance public icon",
+                              "width": 18,
+                              "height": 18,
+                              "icon": "door-open",
+                              "library": "lucide",
+                              "fill": "#2F6848"
+                            },
+                            {
+                              "type": "text",
+                              "id": "P9pLp",
+                              "name": "Entrance public title",
+                              "fill": "#1E4933",
+                              "content": "현관·공용",
+                              "fontFamily": "Noto Sans KR",
+                              "fontSize": 12,
+                              "fontWeight": "800"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "icon",
+                          "id": "iSiCR",
+                          "name": "Entrance public chevron",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "chevron-down",
+                          "library": "lucide",
+                          "fill": "#607267"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "RX5ik",
+                      "name": "Entrance public empty state",
+                      "fill": "#607267",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "현재 촬영 근거에서 확인 필요 관찰이 생성되지 않았어요.",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "Z17j3Y",
+                  "name": "Window ventilation accordion",
+                  "width": "fill_container",
+                  "height": 76,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 14,
+                  "stroke": "#D9E1DA",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    12,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "WXvDJ",
+                      "name": "Window ventilation accordion header",
+                      "width": "fill_container",
+                      "height": 24,
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "IDydB",
+                          "name": "Window ventilation accordion copy",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "L3QAYL",
+                              "name": "Window ventilation icon",
+                              "width": 18,
+                              "height": 18,
+                              "icon": "panels-top-left",
+                              "library": "lucide",
+                              "fill": "#2F6848"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ONfhc",
+                              "name": "Window ventilation title",
+                              "fill": "#1E4933",
+                              "content": "창틀·환기",
+                              "fontFamily": "Noto Sans KR",
+                              "fontSize": 12,
+                              "fontWeight": "800"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "icon",
+                          "id": "fjqdZ",
+                          "name": "Window ventilation chevron",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "chevron-down",
+                          "library": "lucide",
+                          "fill": "#607267"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "QQz2R",
+                      "name": "Window ventilation empty state",
+                      "fill": "#607267",
+                      "textGrowth": "fixed-width",
+                      "width": "fill_container",
+                      "content": "현재 촬영 근거에서 확인 필요 관찰이 생성되지 않았어요.",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "DI7NJ",
+                  "name": "Area-wide accordion",
+                  "width": "fill_container",
+                  "height": 76,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 14,
+                  "stroke": "#D9E1DA",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 5,
+                  "padding": [
+                    12,
+                    14
+                  ],
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "YaEBq",
+                      "name": "Area-wide accordion header",
+                      "width": "fill_container",
+                      "height": 24,
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "DVggk",
+                          "name": "Area-wide accordion copy",
+                          "gap": 8,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "fkO1w",
+                              "name": "Area-wide icon",
+                              "width": 18,
+                              "height": 18,
+                              "icon": "scan-search",
+                              "library": "lucide",
+                              "fill": "#C76628"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Njx36",
+                              "name": "Area-wide title",
+                              "fill": "#1E4933",
+                              "content": "구역 확인 필요",
+                              "fontFamily": "Noto Sans KR",
+                              "fontSize": 12,
+                              "fontWeight": "800"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "icon",
+                          "id": "wqFUU",
+                          "name": "Area-wide chevron",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "chevron-down",
+                          "library": "lucide",
+                          "fill": "#607267"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "d2YtqM",
+                      "name": "Area-wide detail",
+                      "fill": "#607267",
+                      "content": "근거 사진 1장 · 특정 구역으로 분류되지 않은 확인 필요 관찰",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 10,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "l3BlH",
+              "name": "AI guidance card",
+              "width": "fill_container",
+              "height": 105,
+              "fill": "#EEF4EA",
+              "cornerRadius": 16,
+              "layout": "vertical",
+              "gap": 7,
+              "padding": 14,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "g9786g",
+                  "name": "AI guidance header",
+                  "gap": 7,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "WsaBZ",
+                      "name": "AI guidance icon background",
+                      "width": 25,
+                      "height": 25,
+                      "fill": "#DCE9D6",
+                      "cornerRadius": 8,
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "ZKcom",
+                          "name": "AI guidance icon",
+                          "width": 14,
+                          "height": 14,
+                          "icon": "sparkles",
+                          "library": "lucide",
+                          "fill": "#2F6848"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "I0rXWF",
+                      "name": "AI guidance title",
+                      "fill": "#1E4933",
+                      "content": "AI 안내",
+                      "fontFamily": "Noto Sans KR",
+                      "fontSize": 13,
+                      "fontWeight": "800"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "Ra8G0",
+                  "name": "AI guidance copy",
+                  "fill": "#607267",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "촬영 사진에서 생성된 확인 필요 관찰 수를 보여주는 참고 지표이며, 주택의 안전성이나 계약 적합성을 의미하지 않습니다.",
+                  "lineHeight": 1.45,
+                  "fontFamily": "Noto Sans KR",
+                  "fontSize": 11,
+                  "fontWeight": "500"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "owLUA",
+          "x": 20,
+          "y": 855,
+          "name": "Fixed bottom CTA",
+          "width": 372,
+          "height": 48,
+          "fill": "#F68B38",
+          "cornerRadius": 16,
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#1E493326",
+            "offset": {
+              "x": 0,
+              "y": -3
+            },
+            "blur": 14
+          },
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Ltt1B",
+              "name": "CTA content",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "vBRCF",
+                  "name": "CTA label",
+                  "fill": "#FFFFFF",
+                  "content": "매물 상세로 돌아가기",
+                  "fontFamily": "Noto Sans KR",
+                  "fontSize": 14,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "icon",
+                  "id": "kpdEJ",
+                  "name": "CTA arrow",
+                  "width": 17,
+                  "height": 17,
+                  "icon": "arrow-right",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "OBF09",
+      "x": 11157,
+      "y": -215,
+      "name": "Report / Evidence Viewer",
+      "metadata": {
+        "type": "prototype-screen",
+        "source": "Report / Detail / Completed"
+      },
+      "clip": true,
+      "width": 412,
+      "height": 917,
+      "fill": "#FFFFFF",
+      "cornerRadius": 28,
+      "layout": "none",
+      "children": [
+        {
+          "type": "text",
+          "id": "vd96b",
+          "x": 24,
+          "y": 24,
+          "name": "Viewer section label",
+          "fill": "#AAB4B8",
+          "content": "REPORT / EVIDENCE VIEWER",
+          "fontFamily": "Inter",
+          "fontSize": 11,
+          "fontWeight": "bold",
+          "letterSpacing": 1.2
+        },
+        {
+          "type": "text",
+          "id": "dMmGV",
+          "x": 24,
+          "y": 43,
+          "name": "Viewer title",
+          "fill": "#F5F7F8",
+          "content": "현장 증거 사진",
+          "fontFamily": "Inter",
+          "fontSize": 20,
+          "fontWeight": "bold"
+        },
+        {
+          "type": "frame",
+          "id": "DlRkw",
+          "x": 352,
+          "y": 20,
+          "name": "Close button",
+          "metadata": {
+            "type": "prototype-link",
+            "action": "close",
+            "target": "CGUmy"
+          },
+          "width": 40,
+          "height": 40,
+          "fill": "#1A2226",
+          "cornerRadius": 20,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon",
+              "id": "Jnt0t",
+              "name": "Close icon",
+              "width": 20,
+              "height": 20,
+              "icon": "x",
+              "library": "lucide",
+              "fill": "#F5F7F8"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "b0Sc98",
+          "x": 16,
+          "y": 96,
+          "name": "Original evidence photo",
+          "metadata": {
+            "type": "prototype-link",
+            "action": "tap",
+            "target": "Report / Evidence Viewer",
+            "gestures": [
+              "pinch-zoom",
+              "drag",
+              "swipe-horizontal"
+            ]
+          },
+          "clip": true,
+          "width": 380,
+          "height": 508,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "https://images.unsplash.com/photo-1647773570138-9f7a1258b942?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDM0ODN8MHwxfHJhbmRvbXx8fHx8fHx8fDE3ODc1NTEyMjB8&ixlib=rb-4.1.0&q=80&w=1080",
+            "mode": "fill"
+          },
+          "cornerRadius": 18,
+          "layout": "none",
+          "children": [
+            {
+              "type": "rectangle",
+              "cornerRadius": 3,
+              "id": "t51vb",
+              "x": 105,
+              "y": 172,
+              "name": "Orange detection bounding box",
+              "fill": "#F68B3814",
+              "width": 184,
+              "height": 148,
+              "stroke": "#F68B38",
+              "strokeWidth": 3
+            },
+            {
+              "type": "frame",
+              "id": "tOl4N",
+              "x": 105,
+              "y": 143,
+              "name": "Detection label",
+              "fill": "#F68B38",
+              "cornerRadius": 5,
+              "gap": 6,
+              "padding": [
+                6,
+                9
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "PnZuX",
+                  "name": "Detection warning icon",
+                  "width": 14,
+                  "height": 14,
+                  "icon": "triangle-alert",
+                  "library": "lucide",
+                  "fill": "#24140A"
+                },
+                {
+                  "type": "text",
+                  "id": "cXeF3",
+                  "name": "Detection label text",
+                  "fill": "#24140A",
+                  "content": "곰팡이 추정 흔적 · 76%",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "bold"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "HWpIP",
+              "x": 322,
+              "y": 16,
+              "name": "Zoom controls",
+              "width": 36,
+              "height": 84,
+              "fill": "#11181CCC",
+              "cornerRadius": 20,
+              "layout": "vertical",
+              "gap": 1,
+              "padding": 5,
+              "alignItems": "center"
+            },
+            {
+              "type": "icon",
+              "id": "V6cSV",
+              "x": 0,
+              "y": 0,
+              "name": "Zoom in",
+              "width": 26,
+              "height": 26,
+              "icon": "plus",
+              "library": "lucide",
+              "fill": "#F5F7F8"
+            },
+            {
+              "type": "icon",
+              "id": "ZROCO",
+              "x": 0,
+              "y": 0,
+              "name": "Zoom out",
+              "width": 26,
+              "height": 26,
+              "icon": "minus",
+              "library": "lucide",
+              "fill": "#F5F7F8"
+            }
+          ]
+        },
+        {
+          "type": "icon",
+          "id": "peeV7",
+          "x": 7,
+          "y": 326,
+          "name": "Previous photo",
+          "width": 22,
+          "height": 22,
+          "icon": "chevron-left",
+          "library": "lucide",
+          "fill": "#F5F7F8"
+        },
+        {
+          "type": "icon",
+          "id": "kk3yy",
+          "x": 383,
+          "y": 326,
+          "name": "Next photo",
+          "width": 22,
+          "height": 22,
+          "icon": "chevron-right",
+          "library": "lucide",
+          "fill": "#F5F7F8"
+        },
+        {
+          "type": "text",
+          "id": "oKECb",
+          "x": 24,
+          "y": 622,
+          "name": "Photo counter",
+          "fill": "#E7ECEE",
+          "content": "1 / 3",
+          "fontFamily": "Inter",
+          "fontSize": 13,
+          "fontWeight": "bold"
+        },
+        {
+          "type": "frame",
+          "id": "cyyUO",
+          "x": 248,
+          "y": 614,
+          "name": "Observation location toggle",
+          "width": 140,
+          "height": 32,
+          "fill": "#182126",
+          "cornerRadius": 16,
+          "gap": 7,
+          "padding": [
+            4,
+            6
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "ellipse",
+              "id": "eA2xg",
+              "name": "Toggle knob",
+              "fill": "#F68B38",
+              "width": 24,
+              "height": 24
+            },
+            {
+              "type": "text",
+              "id": "k52da",
+              "name": "Toggle status",
+              "fill": "#E7ECEE",
+              "content": "관찰 위치 표시  ON",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "bold"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ctill",
+          "x": 16,
+          "y": 670,
+          "name": "Observation information panel",
+          "width": 380,
+          "height": 223,
+          "fill": "#182126",
+          "cornerRadius": 18,
+          "layout": "vertical",
+          "gap": 10,
+          "padding": [
+            20,
+            20,
+            18,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "z676L",
+              "name": "Observation panel eyebrow",
+              "fill": "#8F9DA3",
+              "content": "OBSERVATION 01",
+              "fontFamily": "Inter",
+              "fontSize": 11,
+              "fontWeight": "bold",
+              "letterSpacing": 1.1
+            },
+            {
+              "type": "text",
+              "id": "cCFbk",
+              "name": "Observation panel title",
+              "fill": "#F5F7F8",
+              "content": "곰팡이로 추정되는 흔적 확인 필요",
+              "lineHeight": 1.2,
+              "fontFamily": "Inter",
+              "fontSize": 19,
+              "fontWeight": "bold"
+            },
+            {
+              "type": "frame",
+              "id": "uwBB3",
+              "name": "Observation panel metadata",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ywoUd",
+                  "name": "Observation location",
+                  "fill": "#F68B38",
+                  "content": "화장실",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "bold"
+                },
+                {
+                  "type": "text",
+                  "id": "ofVc5",
+                  "name": "Observation separator",
+                  "fill": "#6C7A80",
+                  "content": "·",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "i0jAU",
+                  "name": "Observation timestamp",
+                  "fill": "#C5CFD2",
+                  "content": "영상 00:18",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "vUIuZ",
+              "name": "AI confidence row",
+              "gap": 8,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "efRmC",
+                  "name": "AI confidence icon",
+                  "width": 15,
+                  "height": 15,
+                  "icon": "sparkles",
+                  "library": "lucide",
+                  "fill": "#F68B38"
+                },
+                {
+                  "type": "text",
+                  "id": "z6AlX",
+                  "name": "AI confidence text",
+                  "fill": "#F5F7F8",
+                  "content": "AI 참고 신뢰도 76%",
+                  "fontFamily": "Inter",
+                  "fontSize": 13,
+                  "fontWeight": "bold"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "SU3y5",
+              "name": "Observation panel guidance",
+              "fill": "#AEBBC0",
+              "textGrowth": "fixed-width",
+              "width": 340,
+              "content": "현장에서 벽면의 습기와 냄새를 직접 확인해 주세요.",
+              "lineHeight": 1.35,
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "XDoVE",
+          "x": 118,
+          "y": 642,
+          "name": "Viewer gesture hint",
+          "fill": "#7E8C91",
+          "content": "핀치로 확대 · 드래그하여 이동",
+          "fontFamily": "Inter",
+          "fontSize": 11,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "WHF6T",
+      "x": 12658,
+      "y": 912,
+      "name": "Report / Detail / Generating",
+      "clip": true,
+      "width": 412,
+      "height": 1000,
+      "fill": "#F6F4EF",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "E74Go",
+          "x": 20,
+          "y": 18,
+          "name": "Report header",
+          "width": 372,
+          "height": 42,
+          "children": [
+            {
+              "type": "frame",
+              "id": "FX1cR",
+              "name": "Back button",
+              "width": 38,
+              "height": 38,
+              "fill": "#FFFFFF",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "NRRxP",
+                  "name": "Back arrow",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "arrow-left",
+                  "library": "lucide",
+                  "fill": "#1E4933"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "fs8iy",
+              "name": "Report title",
+              "fill": "#1E4933",
+              "content": "분석 리포트",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 20,
+              "fontWeight": "800"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "l69gny",
+          "x": 20,
+          "y": 86,
+          "name": "Property name",
+          "fill": "#1E4933",
+          "textGrowth": "fixed-width",
+          "width": 372,
+          "content": "망원동 리버뷰",
+          "lineHeight": 1.45,
+          "fontFamily": "Noto Sans KR",
+          "fontSize": 26,
+          "fontWeight": "800"
+        },
+        {
+          "type": "text",
+          "id": "H1lU4P",
+          "x": 20,
+          "y": 121,
+          "name": "Visit meta",
+          "fill": "#607267",
+          "textGrowth": "fixed-width",
+          "width": 372,
+          "content": "2026. 08. 24  ·  현장 점검 리포트",
+          "lineHeight": 1.45,
+          "fontFamily": "Noto Sans KR",
+          "fontSize": 12,
+          "fontWeight": "600"
+        },
+        {
+          "type": "frame",
+          "id": "IAQA7",
+          "x": 20,
+          "y": 177,
+          "name": "Status card",
+          "width": 372,
+          "height": 360,
+          "fill": "#FFFFFF",
+          "cornerRadius": 20,
+          "stroke": "#D9E1DA",
+          "strokeWidth": 1,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "aAnx3",
+              "x": 146,
+              "y": 36,
+              "name": "Status icon",
+              "width": 80,
+              "height": 80,
+              "fill": "#6E9B70",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "fwXsV",
+                  "name": "Status symbol",
+                  "width": 34,
+                  "height": 34,
+                  "icon": "loader-circle",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "fclXZ",
+              "x": 24,
+              "y": 140,
+              "name": "Status title",
+              "fill": "#1E4933",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "분석 결과를 정리하고 있어요.",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 22,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "BXMYi",
+              "x": 24,
+              "y": 188,
+              "name": "Status copy",
+              "fill": "#1E4933",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "21장 중 14장의 분석을 완료했어요.",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 16,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "AmrLz",
+              "x": 24,
+              "y": 246,
+              "name": "Status note",
+              "fill": "#607267",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "사진을 모두 살펴본 뒤 확인 필요 관찰을 정리합니다.",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 13,
+              "fontWeight": "500"
+            },
+            {
+              "type": "frame",
+              "id": "h3TN9X",
+              "x": 24,
+              "y": 305,
+              "name": "Progress track",
+              "width": 324,
+              "height": 8,
+              "fill": "#E5ECE4",
+              "cornerRadius": 999
+            },
+            {
+              "type": "frame",
+              "id": "B68Mo",
+              "x": 24,
+              "y": 305,
+              "name": "Progress value",
+              "width": 216,
+              "height": 8,
+              "fill": "#6E9B70",
+              "cornerRadius": 999
+            },
+            {
+              "type": "text",
+              "id": "F16GFQ",
+              "x": 24,
+              "y": 327,
+              "name": "Progress label",
+              "fill": "#6E9B70",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "14 / 21",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 12,
+              "fontWeight": "800"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "kLmhf",
+          "x": 20,
+          "y": 575,
+          "name": "Status footer",
+          "width": 372,
+          "height": 72,
+          "fill": "#EEF4EA",
+          "cornerRadius": 16,
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            14,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "I6rcMF",
+              "name": "Footer heading",
+              "fill": "#1E4933",
+              "content": "촬영 근거 기반 리포트",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 12,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "veo2F",
+              "name": "Footer copy",
+              "fill": "#607267",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "AI 결과는 참고용이며 최종 확인은 사용자의 판단으로 진행됩니다.",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 11,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "aCY5f",
+          "x": 20,
+          "y": 928,
+          "name": "Fixed bottom CTA",
+          "width": 372,
+          "height": 48,
+          "fill": "#F68B38",
+          "cornerRadius": 16,
+          "gap": 8,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "G0Sx7v",
+              "name": "CTA label",
+              "fill": "#FFFFFF",
+              "content": "매물 상세로 돌아가기",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 14,
+              "fontWeight": "800"
+            },
+            {
+              "type": "icon",
+              "id": "DHTRn",
+              "name": "CTA arrow",
+              "width": 17,
+              "height": 17,
+              "icon": "arrow-right",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "VFCEw",
+      "x": 12618,
+      "y": -215,
+      "name": "Report / Detail / Empty",
+      "clip": true,
+      "width": 412,
+      "height": 1000,
+      "fill": "#F6F4EF",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "OLiic",
+          "x": 20,
+          "y": 18,
+          "name": "Report header",
+          "width": 372,
+          "height": 42,
+          "children": [
+            {
+              "type": "frame",
+              "id": "TUDdd",
+              "name": "Back button",
+              "width": 38,
+              "height": 38,
+              "fill": "#FFFFFF",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "KZiMY",
+                  "name": "Back arrow",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "arrow-left",
+                  "library": "lucide",
+                  "fill": "#1E4933"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "S3XSwM",
+              "name": "Report title",
+              "fill": "#1E4933",
+              "content": "분석 리포트",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 20,
+              "fontWeight": "800"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "ziH8m",
+          "x": 20,
+          "y": 86,
+          "name": "Property name",
+          "fill": "#1E4933",
+          "textGrowth": "fixed-width",
+          "width": 372,
+          "content": "망원동 리버뷰",
+          "lineHeight": 1.45,
+          "fontFamily": "Noto Sans KR",
+          "fontSize": 26,
+          "fontWeight": "800"
+        },
+        {
+          "type": "text",
+          "id": "Wfnlg",
+          "x": 20,
+          "y": 121,
+          "name": "Visit meta",
+          "fill": "#607267",
+          "textGrowth": "fixed-width",
+          "width": 372,
+          "content": "2026. 08. 24  ·  현장 점검 리포트",
+          "lineHeight": 1.45,
+          "fontFamily": "Noto Sans KR",
+          "fontSize": 12,
+          "fontWeight": "600"
+        },
+        {
+          "type": "frame",
+          "id": "ci5Cc",
+          "x": 20,
+          "y": 177,
+          "name": "Status card",
+          "width": 372,
+          "height": 360,
+          "fill": "#FFFFFF",
+          "cornerRadius": 20,
+          "stroke": "#D9E1DA",
+          "strokeWidth": 1,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "H93bF",
+              "x": 146,
+              "y": 36,
+              "name": "Status icon",
+              "width": 80,
+              "height": 80,
+              "fill": "#7C9A86",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "EhzjB",
+                  "name": "Status symbol",
+                  "width": 34,
+                  "height": 34,
+                  "icon": "scan-search",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "wpyzq",
+              "x": 24,
+              "y": 140,
+              "name": "Status title",
+              "fill": "#1E4933",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "확인 필요 관찰이 없어요.",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 22,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "U8U6z",
+              "x": 24,
+              "y": 188,
+              "name": "Status copy",
+              "fill": "#1E4933",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "현재 촬영 근거에서 확인 필요 관찰이 생성되지 않았어요.",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 16,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "ai3aT",
+              "x": 24,
+              "y": 246,
+              "name": "Status note",
+              "fill": "#607267",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "촬영되지 않은 부분이나 사진 밖의 상태까지 확인한 것은 아닙니다.",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 13,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "OObSP",
+          "x": 20,
+          "y": 575,
+          "name": "Status footer",
+          "width": 372,
+          "height": 72,
+          "fill": "#EEF4EA",
+          "cornerRadius": 16,
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            14,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "QUmhw",
+              "name": "Footer heading",
+              "fill": "#1E4933",
+              "content": "촬영 근거 기반 리포트",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 12,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "H4EAFS",
+              "name": "Footer copy",
+              "fill": "#607267",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "AI 결과는 참고용이며 최종 확인은 사용자의 판단으로 진행됩니다.",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 11,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "zWdHi",
+          "x": 20,
+          "y": 928,
+          "name": "Fixed bottom CTA",
+          "width": 372,
+          "height": 48,
+          "fill": "#F68B38",
+          "cornerRadius": 16,
+          "gap": 8,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "PhtdC",
+              "name": "CTA label",
+              "fill": "#FFFFFF",
+              "content": "매물 상세로 돌아가기",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 14,
+              "fontWeight": "800"
+            },
+            {
+              "type": "icon",
+              "id": "pPOLq",
+              "name": "CTA arrow",
+              "width": 17,
+              "height": 17,
+              "icon": "arrow-right",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "nvX1c",
+      "x": 13070,
+      "y": -215,
+      "name": "Report / Detail / Partial",
+      "clip": true,
+      "width": 412,
+      "height": 1000,
+      "fill": "#F6F4EF",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "z3isp3",
+          "x": 20,
+          "y": 18,
+          "name": "Report header",
+          "width": 372,
+          "height": 42,
+          "children": [
+            {
+              "type": "frame",
+              "id": "l5rNVM",
+              "name": "Back button",
+              "width": 38,
+              "height": 38,
+              "fill": "#FFFFFF",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "A4bJJ",
+                  "name": "Back arrow",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "arrow-left",
+                  "library": "lucide",
+                  "fill": "#1E4933"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "dslTR",
+              "name": "Report title",
+              "fill": "#1E4933",
+              "content": "분석 리포트",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 20,
+              "fontWeight": "800"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "rzjLX",
+          "x": 20,
+          "y": 86,
+          "name": "Property name",
+          "fill": "#1E4933",
+          "textGrowth": "fixed-width",
+          "width": 372,
+          "content": "망원동 리버뷰",
+          "lineHeight": 1.45,
+          "fontFamily": "Noto Sans KR",
+          "fontSize": 26,
+          "fontWeight": "800"
+        },
+        {
+          "type": "text",
+          "id": "p81rz",
+          "x": 20,
+          "y": 121,
+          "name": "Visit meta",
+          "fill": "#607267",
+          "textGrowth": "fixed-width",
+          "width": 372,
+          "content": "2026. 08. 24  ·  현장 점검 리포트",
+          "lineHeight": 1.45,
+          "fontFamily": "Noto Sans KR",
+          "fontSize": 12,
+          "fontWeight": "600"
+        },
+        {
+          "type": "frame",
+          "id": "CNztf",
+          "x": 20,
+          "y": 177,
+          "name": "Status card",
+          "width": 372,
+          "height": 360,
+          "fill": "#FFFFFF",
+          "cornerRadius": 20,
+          "stroke": "#D9E1DA",
+          "strokeWidth": 1,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "PtLJ2",
+              "x": 146,
+              "y": 36,
+              "name": "Status icon",
+              "width": 80,
+              "height": 80,
+              "fill": "#D49452",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "Wkf1u",
+                  "name": "Status symbol",
+                  "width": 34,
+                  "height": 34,
+                  "icon": "layers-2",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "O8DX33",
+              "x": 24,
+              "y": 140,
+              "name": "Status title",
+              "fill": "#1E4933",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "일부 사진을 분석하지 못했어요.",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 22,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "MK0BH",
+              "x": 24,
+              "y": 188,
+              "name": "Status copy",
+              "fill": "#1E4933",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "확인 가능한 결과만 먼저 보여드려요.",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 16,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "ch7Ms",
+              "x": 24,
+              "y": 246,
+              "name": "Status note",
+              "fill": "#607267",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "분석된 사진의 결과를 기준으로 리포트를 확인해 주세요.",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 13,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "YKGAi",
+          "x": 20,
+          "y": 575,
+          "name": "Status footer",
+          "width": 372,
+          "height": 72,
+          "fill": "#EEF4EA",
+          "cornerRadius": 16,
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            14,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "EV5T7",
+              "name": "Footer heading",
+              "fill": "#1E4933",
+              "content": "촬영 근거 기반 리포트",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 12,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "pVnYE",
+              "name": "Footer copy",
+              "fill": "#607267",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "AI 결과는 참고용이며 최종 확인은 사용자의 판단으로 진행됩니다.",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 11,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "PVbkD",
+          "x": 20,
+          "y": 928,
+          "name": "Fixed bottom CTA",
+          "width": 372,
+          "height": 48,
+          "fill": "#F68B38",
+          "cornerRadius": 16,
+          "gap": 8,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "P9eJLX",
+              "name": "CTA label",
+              "fill": "#FFFFFF",
+              "content": "매물 상세로 돌아가기",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 14,
+              "fontWeight": "800"
+            },
+            {
+              "type": "icon",
+              "id": "IIqoj",
+              "name": "CTA arrow",
+              "width": 17,
+              "height": 17,
+              "icon": "arrow-right",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "y0UeLI",
+      "x": 13522,
+      "y": -215,
+      "name": "Report / Detail / Error",
+      "clip": true,
+      "width": 412,
+      "height": 1000,
+      "fill": "#F6F4EF",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "U2QFs",
+          "x": 20,
+          "y": 18,
+          "name": "Report header",
+          "width": 372,
+          "height": 42,
+          "children": [
+            {
+              "type": "frame",
+              "id": "a3LMc",
+              "name": "Back button",
+              "width": 38,
+              "height": 38,
+              "fill": "#FFFFFF",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "ITIpJ",
+                  "name": "Back arrow",
+                  "width": 18,
+                  "height": 18,
+                  "icon": "arrow-left",
+                  "library": "lucide",
+                  "fill": "#1E4933"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "z8NTrI",
+              "name": "Report title",
+              "fill": "#1E4933",
+              "content": "분석 리포트",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 20,
+              "fontWeight": "800"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "Epe6g",
+          "x": 20,
+          "y": 86,
+          "name": "Property name",
+          "fill": "#1E4933",
+          "textGrowth": "fixed-width",
+          "width": 372,
+          "content": "망원동 리버뷰",
+          "lineHeight": 1.45,
+          "fontFamily": "Noto Sans KR",
+          "fontSize": 26,
+          "fontWeight": "800"
+        },
+        {
+          "type": "text",
+          "id": "T1b7n",
+          "x": 20,
+          "y": 121,
+          "name": "Visit meta",
+          "fill": "#607267",
+          "textGrowth": "fixed-width",
+          "width": 372,
+          "content": "2026. 08. 24  ·  현장 점검 리포트",
+          "lineHeight": 1.45,
+          "fontFamily": "Noto Sans KR",
+          "fontSize": 12,
+          "fontWeight": "600"
+        },
+        {
+          "type": "frame",
+          "id": "YPmMk",
+          "x": 20,
+          "y": 177,
+          "name": "Status card",
+          "width": 372,
+          "height": 360,
+          "fill": "#FFFFFF",
+          "cornerRadius": 20,
+          "stroke": "#D9E1DA",
+          "strokeWidth": 1,
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "ht8fO",
+              "x": 146,
+              "y": 36,
+              "name": "Status icon",
+              "width": 80,
+              "height": 80,
+              "fill": "#D96B5B",
+              "cornerRadius": 999,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "llXSi",
+                  "name": "Status symbol",
+                  "width": 34,
+                  "height": 34,
+                  "icon": "triangle-alert",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "CbBnk",
+              "x": 24,
+              "y": 140,
+              "name": "Status title",
+              "fill": "#1E4933",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "리포트를 불러오지 못했어요.",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 22,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "eb6D1",
+              "x": 24,
+              "y": 188,
+              "name": "Status copy",
+              "fill": "#1E4933",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "잠시 후 다시 시도해 주세요.",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 16,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "b8zE2c",
+              "x": 24,
+              "y": 246,
+              "name": "Status note",
+              "fill": "#607267",
+              "textGrowth": "fixed-width",
+              "width": 324,
+              "content": "네트워크 상태를 확인한 뒤 다시 요청할 수 있습니다.",
+              "lineHeight": 1.45,
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 13,
+              "fontWeight": "500"
+            },
+            {
+              "type": "frame",
+              "id": "I0ajl8",
+              "x": 24,
+              "y": 300,
+              "name": "Retry button",
+              "width": 324,
+              "height": 46,
+              "fill": "#D96B5B",
+              "cornerRadius": 14,
+              "gap": 8,
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "BOd6r",
+                  "name": "Retry label",
+                  "fill": "#FFFFFF",
+                  "content": "다시 시도",
+                  "fontFamily": "Noto Sans KR",
+                  "fontSize": 14,
+                  "fontWeight": "800"
+                },
+                {
+                  "type": "icon",
+                  "id": "oPQYL",
+                  "name": "Retry icon",
+                  "width": 16,
+                  "height": 16,
+                  "icon": "refresh-cw",
+                  "library": "lucide",
+                  "fill": "#FFFFFF"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "JrGHo",
+          "x": 20,
+          "y": 575,
+          "name": "Status footer",
+          "width": 372,
+          "height": 72,
+          "fill": "#EEF4EA",
+          "cornerRadius": 16,
+          "layout": "vertical",
+          "gap": 4,
+          "padding": [
+            14,
+            16
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "I8cnb",
+              "name": "Footer heading",
+              "fill": "#1E4933",
+              "content": "촬영 근거 기반 리포트",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 12,
+              "fontWeight": "800"
+            },
+            {
+              "type": "text",
+              "id": "G4uyL",
+              "name": "Footer copy",
+              "fill": "#607267",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "AI 결과는 참고용이며 최종 확인은 사용자의 판단으로 진행됩니다.",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 11,
+              "fontWeight": "500"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "n1Y7Zp",
+          "x": 20,
+          "y": 928,
+          "name": "Fixed bottom CTA",
+          "width": 372,
+          "height": 48,
+          "fill": "#F68B38",
+          "cornerRadius": 16,
+          "gap": 8,
+          "justifyContent": "center",
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "UjzIt",
+              "name": "CTA label",
+              "fill": "#FFFFFF",
+              "content": "매물 상세로 돌아가기",
+              "fontFamily": "Noto Sans KR",
+              "fontSize": 14,
+              "fontWeight": "800"
+            },
+            {
+              "type": "icon",
+              "id": "S4UQNB",
+              "name": "CTA arrow",
+              "width": 17,
+              "height": 17,
+              "icon": "arrow-right",
+              "library": "lucide",
+              "fill": "#FFFFFF"
+            }
+          ]
+        }
+      ]
     }
   ],
   "themes": {
