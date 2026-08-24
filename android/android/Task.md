@@ -27,6 +27,7 @@
 
 ## 진행 기록
 
+- 2026-08-24 — Meta AI 안경 실시간 카메라 스트리밍 프리뷰 복원 및 최적화. `com.meta.wearable:mwdat-camera:0.9.0` 의존성 추가, HEVC 하드웨어 비디오 디코더(`HevcDecoder`), VPS/SPS/PPS 파라미터 수집기(`HevcParameterSetCollector`), 전역 세션 공유 풀(`rememberGlassConnectionViewModel`), Center-Crop 비율 맞춤 Matrix Transform 및 고화질(VideoQuality.HIGH)/30fps/2.5Mbps 설정을 적용함. `:app:testDebugUnitTest` 144개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 실제 Meta AI 안경 실기기 연동은 실기기 미검증임.
 - 2026-08-22 — 로그인 완료와 튜토리얼 완료 여부를 앱 `SharedPreferences`에 저장해 재실행 시 로그인은 건너뛰고, 튜토리얼까지 끝난 경우 홈으로 바로 진입하도록 연결함. `initialRouteFor` 단위 테스트를 추가했고 `:app:testDebugUnitTest`, `:app:assembleDebug`, Galaxy SM-G991N(Android 15) `:app:installDebug`를 통과함. 잠금 화면과 `run-as` 권한 제한 때문에 저장 상태별 실기기 화면 분기는 미검증임.
 - 2026-08-22 — 점검 시작 전 체크리스트 화면의 `기본 체크리스트 훑어보기`와 `건너뛰기`도 튜토리얼과 동일한 하단 액션 영역으로 이동함. 본문만 스크롤되고 두 동작은 화면 하단에 고정되도록 구성함.
 - 2026-08-22 — 튜토리얼의 `60초 영상 보기`와 `건너뛰기`를 공통 `AppPageScaffold`의 하단 액션 영역으로 옮겨 화면 하단에 고정함. `:app:assembleDebug`, Galaxy SM-G991N(Android 15) Debug APK 설치를 통과함. 현재 기기는 약관 동의 전 상태라 튜토리얼 화면의 실기기 위치 확인은 미검증임.
