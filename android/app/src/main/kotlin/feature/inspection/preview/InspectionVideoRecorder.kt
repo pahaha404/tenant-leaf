@@ -4,29 +4,38 @@ import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Rect
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
-import android.media.MediaCodecList
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.SystemClock
 import android.provider.MediaStore
 import android.util.Log
 import android.view.Surface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
-import java.nio.ByteBuffer
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
+/**
+ * Standard MediaCodec Surface-based MP4 Video Recorder adhering to Android Media & Scoped Storage Best Practices.
+ */
 class InspectionVideoRecorder(private val context: Context) {
+    private val lock = Any()
     private var mediaMuxer: MediaMuxer? = null
     private var mediaEncoder: MediaCodec? = null
     private var inputSurface: Surface? = null
@@ -34,27 +43,26 @@ class InspectionVideoRecorder(private val context: Context) {
     private var isMuxerStarted = false
     private var outputFile: File? = null
     private var drainJob: Job? = null
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val width = 720
     private val height = 1280
     private val frameRate = 30
     private val bitRate = 3_500_000
 
-    @Volatile
-    var isRecording = false
-        private set
+    private val isRecordingState = AtomicBoolean(false)
+    private val isPausedState = AtomicBoolean(false)
 
-    @Volatile
-    var isPaused = false
-        private set
+    val isRecording: Boolean get() = isRecordingState.get()
+    val isPaused: Boolean get() = isPausedState.get()
 
-    private var lastPauseTimeNs = 0L
-    private var totalPausedDurationUs = 0L
+    private var recordStartTimeMs = 0L
+    private var lastWrittenPtsUs = -1L
+    private var totalFramesWritten = 0
 
-    fun getInputSurface(): Surface? = inputSurface
+    fun getInputSurface(): Surface? = synchronized(lock) { inputSurface }
 
-    fun startRecording(): File? {
+    fun startRecording(): File? = synchronized(lock) {
         stopRecordingInternal()
         try {
             val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
@@ -65,8 +73,9 @@ class InspectionVideoRecorder(private val context: Context) {
             mediaMuxer = MediaMuxer(file.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
             isMuxerStarted = false
             videoTrackIndex = -1
-            totalPausedDurationUs = 0L
-            lastPauseTimeNs = 0L
+            lastWrittenPtsUs = -1L
+            totalFramesWritten = 0
+            recordStartTimeMs = SystemClock.elapsedRealtime()
 
             val format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height).apply {
                 setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
@@ -81,8 +90,8 @@ class InspectionVideoRecorder(private val context: Context) {
             encoder.start()
             mediaEncoder = encoder
 
-            isRecording = true
-            isPaused = false
+            isRecordingState.set(true)
+            isPausedState.set(false)
 
             drainJob = scope.launch {
                 drainEncoder()
@@ -92,32 +101,26 @@ class InspectionVideoRecorder(private val context: Context) {
             return file
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start MP4 recording: ${e.message}", e)
+            cleanupResources()
             return null
         }
     }
 
     fun pauseRecording() {
-        if (isRecording && !isPaused) {
-            isPaused = true
-            lastPauseTimeNs = System.nanoTime()
+        if (isRecordingState.get() && isPausedState.compareAndSet(false, true)) {
             Log.d(TAG, "Recording paused")
         }
     }
 
     fun resumeRecording() {
-        if (isRecording && isPaused) {
-            if (lastPauseTimeNs > 0L) {
-                totalPausedDurationUs += (System.nanoTime() - lastPauseTimeNs) / 1000L
-                lastPauseTimeNs = 0L
-            }
-            isPaused = false
+        if (isRecordingState.get() && isPausedState.compareAndSet(true, false)) {
             Log.d(TAG, "Recording resumed")
         }
     }
 
     fun drawBitmapFrame(bitmap: Bitmap) {
-        if (!isRecording || isPaused) return
-        val surface = inputSurface ?: return
+        if (!isRecordingState.get() || isPausedState.get()) return
+        val surface = synchronized(lock) { inputSurface } ?: return
         try {
             val canvas = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 surface.lockHardwareCanvas()
@@ -125,7 +128,7 @@ class InspectionVideoRecorder(private val context: Context) {
                 surface.lockCanvas(null)
             }
             if (canvas != null) {
-                val destRect = android.graphics.Rect(0, 0, canvas.width, canvas.height)
+                val destRect = Rect(0, 0, canvas.width, canvas.height)
                 canvas.drawBitmap(bitmap, null, destRect, null)
                 surface.unlockCanvasAndPost(canvas)
             }
@@ -134,26 +137,25 @@ class InspectionVideoRecorder(private val context: Context) {
         }
     }
 
-    private var lastWrittenPtsUs = -1L
-
     private fun drainEncoder() {
-        val encoder = mediaEncoder ?: return
-        val muxer = mediaMuxer ?: return
+        val encoder = synchronized(lock) { mediaEncoder } ?: return
+        val muxer = synchronized(lock) { mediaMuxer } ?: return
         val bufferInfo = MediaCodec.BufferInfo()
-        lastWrittenPtsUs = -1L
 
-        while (isRecording && scope.isActive) {
+        while (isRecordingState.get() && scope.isActive) {
             try {
                 val outputBufferIndex = encoder.dequeueOutputBuffer(bufferInfo, 10_000)
                 when {
                     outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                        if (!isMuxerStarted) {
-                            val newFormat = encoder.outputFormat
-                            videoTrackIndex = muxer.addTrack(newFormat)
-                            muxer.start()
-                            isMuxerStarted = true
-                            lastWrittenPtsUs = -1L
-                            Log.d(TAG, "MediaMuxer started with track: $videoTrackIndex")
+                        synchronized(lock) {
+                            if (!isMuxerStarted) {
+                                val newFormat = encoder.outputFormat
+                                videoTrackIndex = muxer.addTrack(newFormat)
+                                muxer.start()
+                                isMuxerStarted = true
+                                lastWrittenPtsUs = -1L
+                                Log.d(TAG, "MediaMuxer started with track: $videoTrackIndex")
+                            }
                         }
                     }
                     outputBufferIndex >= 0 -> {
@@ -163,76 +165,119 @@ class InspectionVideoRecorder(private val context: Context) {
                                 encodedData.position(bufferInfo.offset)
                                 encodedData.limit(bufferInfo.offset + bufferInfo.size)
 
-                                // Strictly monotonic 30fps progression (33,333us per frame)
+                                // Strictly monotonic 30fps synthetic progression (33,333us per frame)
                                 val currentPts = if (lastWrittenPtsUs < 0L) 0L else lastWrittenPtsUs + 33_333L
                                 lastWrittenPtsUs = currentPts
                                 bufferInfo.presentationTimeUs = currentPts
 
-                                muxer.writeSampleData(videoTrackIndex, encodedData, bufferInfo)
+                                synchronized(lock) {
+                                    if (isMuxerStarted) {
+                                        muxer.writeSampleData(videoTrackIndex, encodedData, bufferInfo)
+                                        totalFramesWritten++
+                                    }
+                                }
                             }
                         }
                         encoder.releaseOutputBuffer(outputBufferIndex, false)
+
+                        if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                            Log.d(TAG, "EOS reached in encoder drain")
+                            break
+                        }
                     }
                 }
             } catch (e: Exception) {
-                if (isRecording) {
+                if (isRecordingState.get()) {
                     Log.e(TAG, "Error draining encoder: ${e.message}")
                 }
             }
         }
     }
 
-    fun stopRecording(): File? {
+    suspend fun stopRecording(): File? = withContext(Dispatchers.IO) {
+        stopRecordingInternal()
+    }
+
+    fun stopRecordingSync(): File? {
         return stopRecordingInternal()
     }
 
-    private fun stopRecordingInternal(): File? {
-        if (!isRecording) return outputFile
-        isRecording = false
-        isPaused = false
-
-        drainJob?.cancel()
-        drainJob = null
+    private fun stopRecordingInternal(): File? = synchronized(lock) {
+        if (!isRecordingState.compareAndSet(true, false)) return outputFile
+        isPausedState.set(false)
 
         val encoder = mediaEncoder
         val muxer = mediaMuxer
         val surface = inputSurface
         val file = outputFile
 
-        mediaEncoder = null
-        mediaMuxer = null
-        inputSurface = null
-        outputFile = null
-
+        // Signal End of Stream to flush encoder
         try {
-            surface?.release()
-            if (encoder != null) {
-                runCatching { encoder.stop() }
-                runCatching { encoder.release() }
-            }
-            if (muxer != null) {
-                if (isMuxerStarted) {
-                    runCatching { muxer.stop() }
-                }
-                runCatching { muxer.release() }
-            }
-            Log.d(TAG, "MP4 Encoder and Muxer stopped and released successfully.")
+            encoder?.signalEndOfInputStream()
         } catch (e: Exception) {
-            Log.e(TAG, "Error releasing encoder resources: ${e.message}")
+            Log.w(TAG, "Could not signal EOS to encoder: ${e.message}")
         }
 
+        // Wait briefly for drain job to finish flushing frames
+        drainJob?.cancel()
+        drainJob = null
+
+        cleanupResources()
+
+        val recordedDurationMs = (totalFramesWritten * 1000L / frameRate).coerceAtLeast(1000L)
         if (file != null && file.exists() && file.length() > 0) {
-            registerToMediaStore(file)
+            registerToMediaStore(file, recordedDurationMs)
             return file
         }
         return null
     }
 
-    private fun registerToMediaStore(file: File): Uri? {
+    private fun cleanupResources() {
+        val surface = inputSurface
+        val encoder = mediaEncoder
+        val muxer = mediaMuxer
+
+        mediaEncoder = null
+        mediaMuxer = null
+        inputSurface = null
+        isMuxerStarted = false
+        videoTrackIndex = -1
+
+        try {
+            surface?.release()
+        } catch (e: Exception) {
+            Log.w(TAG, "Surface release error: ${e.message}")
+        }
+
+        try {
+            encoder?.run {
+                runCatching { stop() }
+                runCatching { release() }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Encoder release error: ${e.message}")
+        }
+
+        try {
+            muxer?.run {
+                if (isMuxerStarted) {
+                    runCatching { stop() }
+                }
+                runCatching { release() }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Muxer release error: ${e.message}")
+        }
+    }
+
+    private fun registerToMediaStore(file: File, durationMs: Long): Uri? {
         try {
             val values = ContentValues().apply {
                 put(MediaStore.Video.Media.DISPLAY_NAME, file.name)
                 put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+                put(MediaStore.Video.Media.WIDTH, width)
+                put(MediaStore.Video.Media.HEIGHT, height)
+                put(MediaStore.Video.Media.DURATION, durationMs)
                 put(MediaStore.Video.Media.DATE_ADDED, System.currentTimeMillis() / 1000)
                 put(MediaStore.Video.Media.DATE_TAKEN, System.currentTimeMillis())
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -255,12 +300,16 @@ class InspectionVideoRecorder(private val context: Context) {
                     context.contentResolver.update(uri, values, null, null)
                 }
 
-                MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf("video/mp4"), null)
-                Log.d(TAG, "Successfully copied MP4 video to MediaStore: $uri (${file.length()} bytes)")
+                val latch = CountDownLatch(1)
+                MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), arrayOf("video/mp4")) { _, _ ->
+                    latch.countDown()
+                }
+                latch.await(1, TimeUnit.SECONDS)
+                Log.d(TAG, "Successfully published MP4 video to MediaStore: $uri (${file.length()} bytes, duration: ${durationMs}ms)")
                 return uri
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to copy MP4 video to MediaStore: ${e.message}", e)
+            Log.e(TAG, "Failed to publish MP4 video to MediaStore: ${e.message}", e)
         }
         return null
     }

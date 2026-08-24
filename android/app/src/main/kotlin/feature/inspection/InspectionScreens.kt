@@ -523,6 +523,14 @@ fun LiveInspectionScreen(
     var activeSurface by remember { mutableStateOf<Surface?>(null) }
     val phoneCameraHelper = remember(context) { PhoneCameraPreviewHelper(context) }
 
+    DisposableEffect(Unit) {
+        onDispose {
+            if (recorder.isRecording) {
+                recorder.stopRecordingSync()
+            }
+        }
+    }
+
     DisposableEffect(glassViewModel, cameraSource) {
         if (!recorder.isRecording) {
             recorder.startRecording()
