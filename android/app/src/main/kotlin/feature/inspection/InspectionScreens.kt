@@ -771,14 +771,6 @@ fun LiveInspectionScreen(
                         }
                     }
 
-                    Row(
-                        modifier = Modifier.align(Alignment.TopStart).padding(13.dp).clip(RoundedCornerShape(16.dp)).background(Color.White.copy(alpha = .92f)).padding(horizontal = 10.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text("⌖", color = Green, fontSize = 14.sp)
-                        Spacer(Modifier.width(5.dp))
-                        Text("현재 구역 · ${zone.title}", color = DeepGreen, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
-                    }
                     Text(formatInspectionDuration(durationSeconds), modifier = Modifier.align(Alignment.BottomEnd).padding(13.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Row(
