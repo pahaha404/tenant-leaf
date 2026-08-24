@@ -126,7 +126,7 @@ class GeminiRoomClassifier:
 
     def __init__(
         self,
-        model: str = "gemini-2.5-flash-lite",
+        model: str = "gemini-3.5-flash-lite",
         batch_size: int = 10,
         max_image_size: int = 384,
         retries: int = 3,
