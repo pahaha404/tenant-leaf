@@ -516,13 +516,32 @@ fun LiveInspectionScreen(
     var showFinishDialog by remember { mutableStateOf(false) }
     var isPaused by remember { mutableStateOf(false) }
     var nowElapsed by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
-    LaunchedEffect(startedAt) {
-        while (true) {
+    var accumulatedPausedTime by remember { mutableStateOf(0L) }
+    var lastPauseTimestamp by remember { mutableStateOf(0L) }
+
+    val togglePause = {
+        if (isPaused) {
+            if (lastPauseTimestamp > 0L) {
+                accumulatedPausedTime += (SystemClock.elapsedRealtime() - lastPauseTimestamp)
+                lastPauseTimestamp = 0L
+            }
+            isPaused = false
+            glassViewModel.startPreview()
+        } else {
+            lastPauseTimestamp = SystemClock.elapsedRealtime()
+            isPaused = true
+            glassViewModel.stopPreview()
+        }
+    }
+
+    LaunchedEffect(startedAt, isPaused) {
+        while (!isPaused) {
             nowElapsed = SystemClock.elapsedRealtime()
             delay(1_000)
         }
     }
-    val durationSeconds = ((nowElapsed - startedAt) / 1_000L).coerceAtLeast(0L)
+    val effectiveNow = if (isPaused && lastPauseTimestamp > 0L) lastPauseTimestamp else nowElapsed
+    val durationSeconds = ((effectiveNow - startedAt - accumulatedPausedTime) / 1_000L).coerceAtLeast(0L)
 
     val context = LocalContext.current
 
@@ -540,7 +559,11 @@ fun LiveInspectionScreen(
                 Text("실시간 점검", color = DeepGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.width(12.dp))
                 Row(
-                    modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(if (isPaused) PaleGreen else Color(0xFFFFE7E2)).padding(horizontal = 9.dp, vertical = 5.dp),
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(if (isPaused) PaleGreen else Color(0xFFFFE7E2))
+                        .clickable(onClick = togglePause)
+                        .padding(horizontal = 9.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(Modifier.size(7.dp).clip(RoundedCornerShape(9.dp)).background(if (isPaused) Green else Color(0xFFC9573D)))
@@ -553,7 +576,12 @@ fun LiveInspectionScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Box(
-                    modifier = Modifier.fillMaxWidth().height(156.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xFF2F4437)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(156.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(Color(0xFF2F4437))
+                        .clickable(onClick = togglePause),
                 ) {
                     AndroidView(
                         modifier = Modifier.fillMaxSize(),
@@ -583,7 +611,22 @@ fun LiveInspectionScreen(
                         },
                     )
 
-                    if (!previewState.hasFirstFrame) {
+                    if (isPaused) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.65f)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                Text("⏸️ 스트리밍 및 녹화가 일시 중지됨", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text("탭하여 다시 시작하기", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
+                            }
+                        }
+                    } else if (!previewState.hasFirstFrame) {
                         Column(
                             modifier = Modifier.align(Alignment.Center).padding(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -677,9 +720,7 @@ fun LiveInspectionScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Box(
-                    modifier = Modifier.weight(1f).height(48.dp).clip(RoundedCornerShape(14.dp)).background(Green).clickable {
-                        isPaused = !isPaused
-                    },
+                    modifier = Modifier.weight(1f).height(48.dp).clip(RoundedCornerShape(14.dp)).background(Green).clickable(onClick = togglePause),
                     contentAlignment = Alignment.Center,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
