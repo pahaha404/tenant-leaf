@@ -518,6 +518,7 @@ fun LiveInspectionScreen(
     var nowElapsed by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
     var accumulatedPausedTime by remember { mutableStateOf(0L) }
     var lastPauseTimestamp by remember { mutableStateOf(0L) }
+    val context = LocalContext.current
 
     val togglePause = {
         if (isPaused) {
@@ -527,10 +528,12 @@ fun LiveInspectionScreen(
             }
             isPaused = false
             glassViewModel.startPreview()
+            VoiceGuideManager.speak(context, "촬영을 재개합니다.")
         } else {
             lastPauseTimestamp = SystemClock.elapsedRealtime()
             isPaused = true
             glassViewModel.stopPreview()
+            VoiceGuideManager.speak(context, "촬영을 일시정지합니다.")
         }
     }
 
@@ -542,8 +545,6 @@ fun LiveInspectionScreen(
     }
     val effectiveNow = if (isPaused && lastPauseTimestamp > 0L) lastPauseTimestamp else nowElapsed
     val durationSeconds = ((effectiveNow - startedAt - accumulatedPausedTime) / 1_000L).coerceAtLeast(0L)
-
-    val context = LocalContext.current
 
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
         Column(modifier = Modifier.fillMaxSize()) {
