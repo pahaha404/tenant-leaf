@@ -6,6 +6,10 @@ import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.SystemClock
 import android.speech.tts.TextToSpeech
+import android.graphics.SurfaceTexture
+import android.view.Surface
+import android.view.TextureView
+import com.seipseip.app.feature.inspection.preview.HevcDecoder
 import android.widget.MediaController
 import android.widget.VideoView
 import androidx.activity.compose.BackHandler
@@ -532,7 +536,28 @@ fun LiveInspectionScreen(
                 Box(
                     modifier = Modifier.fillMaxWidth().height(156.dp).clip(RoundedCornerShape(18.dp)).background(Color(0xFF2F4437)),
                 ) {
-                    Text("AI 글래스 카메라 프리뷰", modifier = Modifier.align(Alignment.Center), color = Color.White.copy(alpha = .8f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    var decoder by remember { mutableStateOf<HevcDecoder?>(null) }
+                    AndroidView(
+                        modifier = Modifier.fillMaxSize(),
+                        factory = { context ->
+                            TextureView(context).apply {
+                                surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+                                    override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
+                                        val dec = HevcDecoder().also { decoder = it }
+                                        dec.start(width, height, Surface(surfaceTexture))
+                                    }
+                                    override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture, width: Int, height: Int) {}
+                                    override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture): Boolean {
+                                        decoder?.stop()
+                                        decoder = null
+                                        return true
+                                    }
+                                    override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {}
+                                }
+                            }
+                        },
+                    )
+                    Text("AI 글래스 실시간 카메라 프리뷰", modifier = Modifier.align(Alignment.Center), color = Color.White.copy(alpha = .8f), fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Row(
                         modifier = Modifier.align(Alignment.TopStart).padding(13.dp).clip(RoundedCornerShape(16.dp)).background(Color.White.copy(alpha = .92f)).padding(horizontal = 10.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
