@@ -27,6 +27,8 @@
 
 ## 진행 기록
 
+- 2026-08-24 — 내 정보 화면(`ProfileScreen`, `AppNavGraph`) 로그아웃 기능 및 확인 다이얼로그 추가. 프로필 탭 내 계정 관리 영역에 로그아웃 버튼을 배치하고 확인 다이얼로그 팝업 후 승인 시 `TokenStorage.clearToken()` 및 `LoginPreferences` 초기화, 백스택 클리어 후 로그인 화면(`Route.Login`)으로 안전하게 이동하도록 구현 완료. `:app:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
+- 2026-08-24 — 매물 보증금 및 월세 금액 한국 단위(억/만) 표기 적용(`formatKoreanAmount`, `PropertyScreens`, `PropertyMapOverviewScreen`). 10,000만원 이상일 경우 '1억원', '1억 5,000만원' 등 한국어 부동산 금액 체계에 맞게 억·만 단위를 자동 계산·포맷팅하여 매물 목록 카드, 매물 상세 3단 메트릭 타일, 지도 오버뷰 하단 프리뷰 카드에 가독성을 개선함. `:app:testDebugUnitTest` 및 `:feature:property:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 분석 진행 화면(`AnalysisProgressScreen`, `MediaApiRoute`) 내 "영상 직접 선택" 버튼 제거 및 갤러리 최신 영상 자동 분석·업로드 단일화. 촬영 종료 확인 후 분석 진행 화면 진입 시 사용자의 추가 수동 선택 없이 휴대전화 갤러리의 최근 촬영 비디오를 자동으로 감지하여 3초 구간별 JPEG 추출 및 서버 업로드를 즉각 수행하도록 워크플로우를 단순화함. `:app:testDebugUnitTest`, `:feature:media:testDebugUnitTest`, `:feature:inspection:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 매물 탭 및 매물 상세 탭 당겨서 새로고침(`Pull-to-Refresh`) 기능 구현(`AppPageScaffold`, `PropertyListScreen`, `PropertyDetailScreen`). Material 3 `PullToRefreshBox` 및 `PullToRefreshDefaults.Indicator`를 공통 스캐폴드에 연동하여 화면을 아래로 당겼을 때 상단 인디케이터와 함께 `PropertyListViewModel.refresh()` 및 `PropertyDetailViewModel.load()`가 호출되어 최신 매물 목록과 상세 정보로 즉시 갱신되도록 완성함. `:app:testDebugUnitTest` 및 `:feature:property:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 매물 상세 화면 휴지통 좌측 연필(`Edit`) 아이콘 추가 및 매물 수정 기능 연동(`PropertyDetailScreen`, `PropertyFormScreen`, `Route.PropertyEdit`). 매물 상세 탭 상단 액션바에 연필 아이콘을 배치하여 탭 시 기존 매물 정보를 불러와 즉시 수정(`PropertyPatch` 기반 업데이트)할 수 있도록 화면 및 내비게이션 경로를 완성함. `:app:testDebugUnitTest` 및 `:feature:property:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
