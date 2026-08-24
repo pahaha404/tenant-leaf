@@ -144,7 +144,7 @@ fun PropertyListScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddProperty,
-                containerColor = Orange,
+                containerColor = Green,
                 contentColor = Color.White,
                 shape = CircleShape,
                 modifier = Modifier.size(56.dp),
