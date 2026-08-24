@@ -147,7 +147,7 @@ fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit
                         .clip(RoundedCornerShape(14.dp))
                         .background(Color(0xFFB42318))
                         .clickable {
-                            VoiceGuideManager.warmUp(context)
+                            VoiceGuideManager.speak(context, "3초 뒤 촬영이 시작됩니다.")
                             onContinue()
                         },
                     contentAlignment = Alignment.Center,
