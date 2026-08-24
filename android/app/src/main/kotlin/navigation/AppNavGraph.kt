@@ -1,13 +1,8 @@
 package com.seipseip.app.navigation
 
-import android.Manifest
 import android.app.Activity
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
@@ -16,10 +11,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
-import kotlinx.coroutines.delay
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -78,6 +69,7 @@ import com.seipseip.app.integration.PropertyInfoApiRoute
 import com.seipseip.app.integration.PropertyListApiRoute
 import com.seipseip.app.integration.PropertyMapApiRoute
 import com.seipseip.app.integration.PropertySelectApiRoute
+import com.seipseip.app.integration.ReportApiRoute
 
 object Route {
     const val Loading = "loading"
@@ -115,6 +107,7 @@ object Route {
     const val Observation = "observation/{zone}"
     const val Reports = "reports"
     const val ReportDetail = "report_detail"
+    const val InspectionReport = "inspection_report/{inspectionId}"
     const val Profile = "profile"
     const val Magazine = "magazine"
     const val MagazineDetail = "magazine_detail/{articleId}"
@@ -130,6 +123,7 @@ object Route {
     fun finishConfirm(inspectionId: String, durationSeconds: Long) = "finish_confirm/$inspectionId/$durationSeconds"
     fun inspectionCountdown(inspectionId: String, zone: String) = "inspection_countdown/$inspectionId/$zone"
     fun analysis(inspectionId: String) = "analysis/$inspectionId"
+    fun inspectionReport(inspectionId: String) = "inspection_report/$inspectionId"
     fun observation(zone: String) = "observation/$zone"
     fun magazineDetail(articleId: String) = "magazine_detail/$articleId"
 }
@@ -150,17 +144,9 @@ fun AppNavGraph(
     nickname: String,
     onNicknameChanged: (String) -> Unit,
 ) {
-    var reportProcessing by remember { mutableStateOf(false) }
     val appContext = LocalContext.current
     val sessionPreferences = remember(appContext) {
         appContext.getSharedPreferences(SESSION_PREFERENCES, Context.MODE_PRIVATE)
-    }
-    LaunchedEffect(reportProcessing) {
-        if (reportProcessing) {
-            delay(8_000)
-            reportProcessing = false
-            notifyReportReady(appContext)
-        }
     }
 
     fun goToTab(tab: String) {
@@ -272,7 +258,7 @@ fun AppNavGraph(
         }
         composable(Route.Home) {
             HomeScreen(
-                processing = reportProcessing,
+                processing = false,
                 onOpenProperties = { navController.navigate(Route.PropertyList) },
                 onOpenReports = { navController.navigate(Route.Reports) },
                 onOpenRecentReport = { navController.navigate(Route.ReportDetail) },
@@ -568,7 +554,6 @@ fun AppNavGraph(
                 onBack = navController::popBackStack,
                 durationSeconds = durationSeconds,
                 onEnded = {
-                    reportProcessing = true
                     navController.navigate(Route.analysis(inspectionId))
                 },
             )
@@ -577,12 +562,14 @@ fun AppNavGraph(
             route = Route.Analysis,
             arguments = listOf(navArgument("inspectionId") { type = NavType.StringType }),
         ) {
+            val inspectionId = it.arguments?.getString("inspectionId") ?: return@composable
             MediaUploadApiRoute(
                 onBackToHome = {
                     navController.navigate(Route.Home) {
                         popUpTo(Route.Home) { inclusive = true }
                     }
                 },
+                onOpenReport = { navController.navigate(Route.inspectionReport(inspectionId)) },
             )
         }
         composable(
@@ -620,7 +607,17 @@ fun AppNavGraph(
                 nickname = nickname,
                 onBack = navController::popBackStack,
                 onOpenProperty = { navController.navigate(Route.PropertyList) },
-                uiModel = if (reportProcessing) ReportSamples.generating else ReportSamples.completed,
+                uiModel = ReportSamples.completed,
+            )
+        }
+        composable(
+            route = Route.InspectionReport,
+            arguments = listOf(navArgument("inspectionId") { type = NavType.StringType }),
+        ) {
+            ReportApiRoute(
+                nickname = nickname,
+                onBack = navController::popBackStack,
+                onOpenProperty = { propertyId -> navController.navigate(Route.propertyDetail(propertyId)) },
             )
         }
         composable(Route.Profile) {
@@ -658,21 +655,4 @@ fun AppNavGraph(
             MagazineDetailScreen(articleId = articleId, onBack = navController::popBackStack)
         }
     }
-}
-
-private fun notifyReportReady(context: Context) {
-    val channelId = "report_ready"
-    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        manager.createNotificationChannel(NotificationChannel(channelId, "점검 리포트", NotificationManager.IMPORTANCE_DEFAULT))
-    }
-    if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
-    val notification = NotificationCompat.Builder(context, channelId)
-        .setSmallIcon(android.R.drawable.ic_dialog_info)
-        .setContentTitle("점검 리포트가 완성됐어요")
-        .setContentText("하자 점검 결과와 리포트를 확인해 보세요.")
-        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-        .setAutoCancel(true)
-        .build()
-    NotificationManagerCompat.from(context).notify(1001, notification)
 }

@@ -53,10 +53,10 @@ AI Python은 영상 열기·프레임 추출·이미지 품질 필터링을 수�
 
 `entrance`, `window_frame`은 현재 범위에서 제외한다.
 
-공간의 `unknown`과 하자의 `unknown_defect`는 다른 값이다.
+공간의 `unknown`과 하자의 `other`는 다른 값이다.
 
 - `unknown`: 공간을 확정하지 못함
-- `unknown_defect`: 하자 후보는 있으나 하자 종류를 확정하지 못함
+- `other`: 하자 후보는 있으나 구체적인 하자 종류를 분류하지 못함 (`classId: 12`)
 
 ## 4. AI 입력 폴더 규칙
 
@@ -337,7 +337,7 @@ Python은 별도 HTTP 서버가 아니라 worker가 실행하는 모듈이다. �
 - `image.width`, `image.height`
 - `classId`, `label`, `confidence`
 - 탐지 결과가 없으면 `detections: []`
-- `unknown_defect`는 `classId: null`
+- `other`는 `classId: 12`
 - `evidencePath`, `annotatedPath`를 백엔드가 인증 URL로 변환
 - AI 결과는 하자 확정이 아니라 `needs_review` 관찰
 
@@ -374,7 +374,7 @@ Gemini 일부 또는 전체 요청 실패:
 - [ ] `roomSegments[]` 저장 또는 JSON 보존
 - [ ] `observations[].room`, `roomSegmentId`를 리포트에 연결
 - [ ] evidence·최종 박스 이미지 경로를 인증 URL로 변환
-- [ ] `unknown` 공간과 `unknown_defect` 하자를 별도 값으로 처리
+- [ ] `unknown` 공간과 `other` 하자 유형을 별도 값으로 처리
 - [ ] AI job 상태를 `queued`, `processing`, `completed`, `failed`로 관리
 
 ## 13. 연동 완료 기준

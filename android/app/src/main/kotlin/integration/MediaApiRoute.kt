@@ -19,6 +19,7 @@ import com.seipseip.feature.media.presentation.MediaUploadViewModel
 @Composable
 fun MediaUploadApiRoute(
     onBackToHome: () -> Unit,
+    onOpenReport: () -> Unit,
     viewModel: MediaUploadViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -35,7 +36,7 @@ fun MediaUploadApiRoute(
         requestPermission = { permissionLauncher.launch(permission) },
         useNewest = viewModel::useNewest,
         retry = viewModel::retry,
-        finish = onBackToHome,
+        finish = onOpenReport,
     )
     AnalysisProgressScreen(
         onBackToHome = onBackToHome,
@@ -77,7 +78,7 @@ private fun MediaUploadUiState.toPresentation(
         primaryLabel = "업로드 중",
         primaryAction = {},
     )
-    is MediaUploadUiState.Completed -> MediaPresentation(1f, "JPEG ${count}장 전송이 완료됐어요. 화질 확인 필요 ${qualityReviewCount}장", primaryLabel = "홈으로 이동", primaryAction = finish)
+    is MediaUploadUiState.Completed -> MediaPresentation(1f, "JPEG ${count}장 전송이 완료됐어요. 서버에서 분석 결과를 정리하고 있어요.", primaryLabel = "리포트 진행 상황 보기", primaryAction = finish)
     is MediaUploadUiState.Error -> MediaPresentation(
         progress = if (total == 0) 0f else completed.toFloat() / total,
         message = "사진 준비 또는 전송을 완료하지 못했어요.",

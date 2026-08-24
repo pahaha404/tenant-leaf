@@ -76,21 +76,32 @@ import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SecondaryButton
 import com.seipseip.app.feature.common.StateBadge
 import kotlin.math.max
+import kotlin.math.min
 import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 enum class ReportDetailStatus { GENERATING, COMPLETED, EMPTY, PARTIAL, ERROR }
 
-data class EvidenceBoxUiModel(val left: Float, val top: Float, val right: Float, val bottom: Float)
+data class EvidenceBoxUiModel(
+    val observationId: String,
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float,
+    val displayLabel: String,
+    val displayColor: String,
+    val confidencePercent: Int,
+)
 
 data class ReportEvidenceUiModel(
     val id: String,
     val imageUrl: String? = null,
     @DrawableRes val placeholderRes: Int = R.drawable.guide_bath_mold,
+    val useSamplePlaceholder: Boolean = true,
     val imageWidth: Int = 1080,
     val imageHeight: Int = 1440,
-    val box: EvidenceBoxUiModel? = null,
+    val boxes: List<EvidenceBoxUiModel> = emptyList(),
     val pageLabel: String = "1 / 1",
 )
 
@@ -113,11 +124,13 @@ data class ReportDetailUiModel(
     val completedPhotoCount: Int = 0,
     val totalPhotoCount: Int = 0,
     val failedPhotoCount: Int = 0,
+    val serverReferenceScore: Int? = null,
+    val scoreIsProvisional: Boolean = false,
     val zones: List<ReportZoneUiModel> = emptyList(),
     val errorMessage: String? = null,
 ) {
     val observations: List<ReportObservationUiModel> get() = zones.flatMap(ReportZoneUiModel::observations)
-    val referenceScore: Int get() = reportReferenceScore(observations.size)
+    val referenceScore: Int get() = serverReferenceScore ?: reportReferenceScore(observations.size)
 }
 
 fun reportReferenceScore(observationCount: Int): Int = max(0, 100 - observationCount.coerceAtLeast(0) * 5)
@@ -125,7 +138,18 @@ fun reportReferenceScore(observationCount: Int): Int = max(0, 100 - observationC
 object ReportSamples {
     private val evidence = ReportEvidenceUiModel(
         id = "evidence-bath-01",
-        box = EvidenceBoxUiModel(left = 0.18f, top = 0.22f, right = 0.78f, bottom = 0.52f),
+        boxes = listOf(
+            EvidenceBoxUiModel(
+                observationId = "observation-mold",
+                left = 194f,
+                top = 317f,
+                right = 842f,
+                bottom = 749f,
+                displayLabel = "곰팡이 추정 흔적",
+                displayColor = "#FF8A34",
+                confidencePercent = 76,
+            ),
+        ),
         pageLabel = "1 / 3",
     )
     private val observations = listOf(
@@ -378,7 +402,13 @@ private fun ReportSummaryCard(uiModel: ReportDetailUiModel, title: String) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text("리포트 요약", color = Green, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
             Text(title, color = DeepGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-            Text("참고 점수는 확인 필요 관찰 1건당 5점씩 차감해 계산해요.", color = Secondary, fontSize = 9.sp, lineHeight = 13.sp)
+            Text(
+                if (uiModel.scoreIsProvisional) "일부 사진 분석 실패로 현재 점수는 잠정값이에요."
+                else "참고 점수는 확인 필요 관찰 1건당 5점씩 차감해 계산해요.",
+                color = Secondary,
+                fontSize = 9.sp,
+                lineHeight = 13.sp,
+            )
         }
         Column(horizontalAlignment = Alignment.End) {
             Text("${uiModel.referenceScore}", color = Green, fontSize = 30.sp, fontWeight = FontWeight.Black)
@@ -434,10 +464,7 @@ private fun ObservationCard(observation: ReportObservationUiModel, onClick: () -
 @Composable
 private fun EvidenceThumbnail(observation: ReportObservationUiModel, modifier: Modifier = Modifier) {
     Box(modifier.clip(RoundedCornerShape(12.dp)).background(PaleGreen)) {
-        EvidenceImage(observation, Modifier.fillMaxSize(), ContentScale.Crop)
-        Box(Modifier.align(Alignment.BottomStart).background(Orange).padding(horizontal = 6.dp, vertical = 3.dp)) {
-            Text("${observation.confidencePercent}%", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold)
-        }
+        EvidenceWithBboxes(observation, Modifier.fillMaxSize(), selectedOnly = true, showLabels = false)
     }
 }
 
@@ -452,21 +479,12 @@ fun ReportEvidenceViewer(observation: ReportObservationUiModel, onClose: () -> U
                 Spacer(Modifier.weight(1f))
                 Text(observation.evidence.pageLabel, color = Color.White.copy(alpha = 0.72f), fontSize = 12.sp)
             }
-            BoxWithConstraints(Modifier.fillMaxWidth().weight(1f).background(Color.Black, RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
-                val imageAspect = observation.evidence.imageWidth.toFloat() / observation.evidence.imageHeight.toFloat()
-                val viewportWidth = if (maxWidth <= maxHeight * imageAspect) maxWidth else maxHeight * imageAspect
-                val viewportHeight = if (maxHeight <= maxWidth / imageAspect) maxHeight else maxWidth / imageAspect
-                Box(Modifier.size(viewportWidth, viewportHeight)) {
-                    EvidenceImage(observation, Modifier.fillMaxSize(), ContentScale.FillBounds)
-                    observation.evidence.box?.let { box ->
-                        Box(
-                            Modifier.offset(x = viewportWidth * box.left, y = viewportHeight * box.top)
-                                .size(width = viewportWidth * (box.right - box.left), height = viewportHeight * (box.bottom - box.top))
-                                .border(3.dp, Orange),
-                        )
-                    }
-                }
-            }
+            EvidenceWithBboxes(
+                observation = observation,
+                modifier = Modifier.fillMaxWidth().weight(1f).background(Color.Black, RoundedCornerShape(16.dp)),
+                selectedOnly = false,
+                showLabels = true,
+            )
             Column(Modifier.fillMaxWidth().background(Color(0xFF1C2A22), RoundedCornerShape(16.dp)).padding(15.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.Image, null, tint = Orange, modifier = Modifier.size(20.dp))
@@ -482,6 +500,58 @@ fun ReportEvidenceViewer(observation: ReportObservationUiModel, onClose: () -> U
         }
     }
 }
+
+@Composable
+private fun EvidenceWithBboxes(
+    observation: ReportObservationUiModel,
+    modifier: Modifier,
+    selectedOnly: Boolean,
+    showLabels: Boolean,
+) {
+    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+        val evidence = observation.evidence
+        val imageWidth = evidence.imageWidth.coerceAtLeast(1).toFloat()
+        val imageHeight = evidence.imageHeight.coerceAtLeast(1).toFloat()
+        val scale = min(maxWidth.value / imageWidth, maxHeight.value / imageHeight)
+        val viewportWidth = (imageWidth * scale).dp
+        val viewportHeight = (imageHeight * scale).dp
+        val selected = evidence.boxes.filter { it.observationId == observation.id }
+        val boxes = if (selectedOnly) selected else evidence.boxes.filterNot { it.observationId == observation.id } + selected
+
+        Box(Modifier.size(viewportWidth, viewportHeight)) {
+            EvidenceImage(observation, Modifier.fillMaxSize(), ContentScale.FillBounds)
+            boxes.forEach { box ->
+                val isSelected = box.observationId == observation.id
+                val color = box.displayColor.toColorOr(if (isSelected) Orange else Green)
+                val left = box.left.coerceIn(0f, imageWidth)
+                val top = box.top.coerceIn(0f, imageHeight)
+                val right = box.right.coerceIn(left, imageWidth)
+                val bottom = box.bottom.coerceIn(top, imageHeight)
+                Box(
+                    Modifier.offset(x = (left * scale).dp, y = (top * scale).dp)
+                        .size(width = ((right - left) * scale).dp, height = ((bottom - top) * scale).dp)
+                        .border(if (isSelected) 3.dp else 2.dp, color),
+                )
+                if (showLabels) {
+                    Text(
+                        text = "${box.displayLabel} · ${box.confidencePercent}%",
+                        color = Color.White,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.offset(
+                            x = (left * scale).dp,
+                            y = ((top * scale) - 20f).coerceAtLeast(0f).dp,
+                        ).background(color, RoundedCornerShape(3.dp)).padding(horizontal = 5.dp, vertical = 2.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun String.toColorOr(fallback: Color): Color = runCatching {
+    Color(android.graphics.Color.parseColor(this))
+}.getOrDefault(fallback)
 
 @Composable
 private fun EvidenceImage(
@@ -509,13 +579,20 @@ private fun EvidenceImage(
             modifier = modifier,
             contentScale = contentScale,
         )
-    } else {
+    } else if (observation.evidence.useSamplePlaceholder) {
         Image(
             painter = painterResource(observation.evidence.placeholderRes),
             contentDescription = "${observation.label} 근거 사진",
             modifier = modifier,
             contentScale = contentScale,
         )
+    } else {
+        Box(modifier.background(Color(0xFF202A24)), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Outlined.Image, null, tint = Color.White.copy(alpha = 0.72f))
+                Text("근거 사진을 불러올 수 없어요", color = Color.White.copy(alpha = 0.72f), fontSize = 10.sp)
+            }
+        }
     }
 }
 

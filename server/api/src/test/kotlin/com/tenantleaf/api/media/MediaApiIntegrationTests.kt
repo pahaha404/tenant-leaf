@@ -7,7 +7,11 @@ import com.tenantleaf.api.inspection.InspectionRepository
 import com.tenantleaf.api.property.DemoUserContext
 import com.tenantleaf.api.property.PropertyEntity
 import com.tenantleaf.api.property.PropertyRepository
+import com.tenantleaf.api.report.ObservationEvidenceRepository
+import com.tenantleaf.api.report.ObservationRepository
+import com.tenantleaf.api.report.ReportRepository
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -38,9 +42,16 @@ class MediaApiIntegrationTests(
     @Autowired private val idempotencyRepository: ApiIdempotencyRecordRepository,
     @Autowired private val inspectionRepository: InspectionRepository,
     @Autowired private val propertyRepository: PropertyRepository,
+    @Autowired private val reportRepository: ReportRepository,
+    @Autowired private val observationRepository: ObservationRepository,
+    @Autowired private val evidenceRepository: ObservationEvidenceRepository,
 ) {
     @BeforeEach
+    @AfterEach
     fun cleanDatabase() {
+        evidenceRepository.deleteAll()
+        observationRepository.deleteAll()
+        reportRepository.deleteAll()
         idempotencyRepository.deleteAll()
         analysisJobRepository.deleteAll()
         mediaRepository.deleteAll()
@@ -209,6 +220,9 @@ class MediaApiIntegrationTests(
         fun fakeObjectStorage(): ObjectStorageGateway = object : ObjectStorageGateway {
             override fun createUploadUrl(key: String) =
                 PresignedUpload(URI.create("http://storage.test/$key?signature=test"), OffsetDateTime.now().plusMinutes(15))
+
+            override fun createViewUrl(key: String) =
+                PresignedView(URI.create("http://storage.test/$key?signature=view-test"), OffsetDateTime.now().plusMinutes(15))
 
             override fun inspectJpeg(key: String, maximumBytes: Int) = StoredJpeg(123, 640, 480, "image/jpeg")
         }
