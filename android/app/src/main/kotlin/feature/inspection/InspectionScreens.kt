@@ -23,6 +23,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.seipseip.app.feature.home.GlassConnectionViewModel
 import com.seipseip.app.feature.home.rememberGlassConnectionViewModel
+import com.meta.wearable.dat.camera.types.VideoQuality
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
@@ -546,6 +549,8 @@ fun LiveInspectionScreen(
     val effectiveNow = if (isPaused && lastPauseTimestamp > 0L) lastPauseTimestamp else nowElapsed
     val durationSeconds = ((effectiveNow - startedAt - accumulatedPausedTime) / 1_000L).coerceAtLeast(0L)
 
+    var showQualityMenu by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
@@ -556,9 +561,9 @@ fun LiveInspectionScreen(
                     modifier = Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).background(Color.White).clickable(onClick = onBack),
                     contentAlignment = Alignment.Center,
                 ) { Text("‹", color = DeepGreen, fontSize = 28.sp, fontWeight = FontWeight.Medium) }
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(8.dp))
                 Text("실시간 점검", color = DeepGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(8.dp))
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
@@ -570,6 +575,52 @@ fun LiveInspectionScreen(
                     Box(Modifier.size(7.dp).clip(RoundedCornerShape(9.dp)).background(if (isPaused) Green else Color(0xFFC9573D)))
                     Spacer(Modifier.width(5.dp))
                     Text(if (isPaused) "일시정지" else "녹화 중", color = if (isPaused) Green else Color(0xFFC9573D), fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                }
+                Spacer(Modifier.weight(1f))
+                Box {
+                    val qualityLabel = when (previewState.selectedQuality) {
+                        VideoQuality.HIGH -> "고화질"
+                        VideoQuality.MEDIUM -> "일반"
+                        VideoQuality.LOW -> "절전"
+                    }
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.White)
+                            .clickable { showQualityMenu = true }
+                            .padding(horizontal = 9.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("⚙️ $qualityLabel", color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.width(2.dp))
+                        Text("▾", color = DeepGreen, fontSize = 9.sp)
+                    }
+                    DropdownMenu(
+                        expanded = showQualityMenu,
+                        onDismissRequest = { showQualityMenu = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("고화질 (HIGH - 30fps/최대화질)") },
+                            onClick = {
+                                glassViewModel.setVideoQuality(VideoQuality.HIGH)
+                                showQualityMenu = false
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("일반화질 (MEDIUM - 표준해상도)") },
+                            onClick = {
+                                glassViewModel.setVideoQuality(VideoQuality.MEDIUM)
+                                showQualityMenu = false
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text("절전화질 (LOW - 배터리/데이터 절약)") },
+                            onClick = {
+                                glassViewModel.setVideoQuality(VideoQuality.LOW)
+                                showQualityMenu = false
+                            },
+                        )
+                    }
                 }
             }
             Column(

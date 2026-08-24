@@ -127,6 +127,7 @@ data class GlassPreviewUiState(
     val message: String? = null,
     val videoWidth: Int = 0,
     val videoHeight: Int = 0,
+    val selectedQuality: VideoQuality = VideoQuality.HIGH,
 ) {
     val isStreaming get() = state == StreamState.STREAMING
     val isStarting get() = state == StreamState.STARTING
@@ -135,6 +136,11 @@ data class GlassPreviewUiState(
 class GlassConnectionViewModel(application: Application) : AndroidViewModel(application) {
     val uiState: StateFlow<GlassConnectionUiState> get() = Companion._sharedUiState.asStateFlow()
     val previewUiState: StateFlow<GlassPreviewUiState> get() = Companion._sharedPreviewUiState.asStateFlow()
+
+    fun startPreview() = Companion.startPreview()
+    fun stopPreview() = Companion.stopPreview()
+    fun setPreviewSurface(surface: Surface?) = Companion.setPreviewSurface(surface)
+    fun setVideoQuality(quality: VideoQuality) = Companion.setVideoQuality(quality)
 
     companion object {
         private const val TAG = "TenantLeafDAT"
@@ -230,10 +236,20 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
             camera?.close() ?: clearPreview()
         }
 
+        fun setVideoQuality(quality: VideoQuality) {
+            if (_sharedPreviewUiState.value.selectedQuality == quality) return
+            _sharedPreviewUiState.update { it.copy(selectedQuality = quality) }
+            if (camera != null || stream != null) {
+                stopPreview()
+                startPreview()
+            }
+        }
+
         private fun beginPreview(activeSession: DeviceSession) {
             if (stream != null) return
+            val currentQuality = _sharedPreviewUiState.value.selectedQuality
             activeSession.addCamera(
-                StreamConfiguration(videoQuality = VideoQuality.HIGH, frameRate = 30, compressVideo = true),
+                StreamConfiguration(videoQuality = currentQuality, frameRate = 30, compressVideo = true),
             ).fold(
                 onSuccess = { addedCamera ->
                     camera = addedCamera
@@ -349,10 +365,6 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
             GlassConnectionAction.NONE -> Unit
         }
     }
-
-    fun setPreviewSurface(surface: Surface?) = Companion.setPreviewSurface(surface)
-    fun startPreview() = Companion.startPreview()
-    fun stopPreview() = Companion.stopPreview()
 
     private fun startSession() {
         if (Companion.session != null) return
