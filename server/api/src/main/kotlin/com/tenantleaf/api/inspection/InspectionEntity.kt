@@ -57,6 +57,12 @@ class InspectionEntity(
     @Column(name = "archived_at")
     var archivedAt: OffsetDateTime? = null,
 
+    @Column(name = "media_finalized_at")
+    var mediaFinalizedAt: OffsetDateTime? = null,
+
+    @Column(name = "expected_media_count")
+    var expectedMediaCount: Int? = null,
+
     @Column(name = "created_at", nullable = false)
     val createdAt: OffsetDateTime,
 )
