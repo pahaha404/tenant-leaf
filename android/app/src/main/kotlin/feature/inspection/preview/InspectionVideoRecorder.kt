@@ -134,10 +134,13 @@ class InspectionVideoRecorder(private val context: Context) {
         }
     }
 
+    private var lastWrittenPtsUs = -1L
+
     private fun drainEncoder() {
         val encoder = mediaEncoder ?: return
         val muxer = mediaMuxer ?: return
         val bufferInfo = MediaCodec.BufferInfo()
+        lastWrittenPtsUs = -1L
 
         while (isRecording && scope.isActive) {
             try {
@@ -149,18 +152,21 @@ class InspectionVideoRecorder(private val context: Context) {
                             videoTrackIndex = muxer.addTrack(newFormat)
                             muxer.start()
                             isMuxerStarted = true
+                            lastWrittenPtsUs = -1L
                             Log.d(TAG, "MediaMuxer started with track: $videoTrackIndex")
                         }
                     }
                     outputBufferIndex >= 0 -> {
                         val encodedData = encoder.getOutputBuffer(outputBufferIndex)
-                        if (encodedData != null && isMuxerStarted && !isPaused) {
+                        if (encodedData != null && isMuxerStarted) {
                             if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0 && bufferInfo.size > 0) {
                                 encodedData.position(bufferInfo.offset)
                                 encodedData.limit(bufferInfo.offset + bufferInfo.size)
 
-                                val adjustedPts = (bufferInfo.presentationTimeUs - totalPausedDurationUs).coerceAtLeast(0L)
-                                bufferInfo.presentationTimeUs = adjustedPts
+                                // Strictly monotonic 30fps progression (33,333us per frame)
+                                val currentPts = if (lastWrittenPtsUs < 0L) 0L else lastWrittenPtsUs + 33_333L
+                                lastWrittenPtsUs = currentPts
+                                bufferInfo.presentationTimeUs = currentPts
 
                                 muxer.writeSampleData(videoTrackIndex, encodedData, bufferInfo)
                             }

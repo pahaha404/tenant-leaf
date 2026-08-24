@@ -562,13 +562,21 @@ fun LiveInspectionScreen(
             }
             isPaused = false
             recorder.resumeRecording()
-            glassViewModel.startPreview()
+            if (cameraSource == CameraSource.GLASS) {
+                glassViewModel.startPreview()
+            } else {
+                activeSurface?.let { phoneCameraHelper.startPreview(it) }
+            }
             VoiceGuideManager.speak(context, "촬영을 재개합니다.")
         } else {
             lastPauseTimestamp = SystemClock.elapsedRealtime()
             isPaused = true
             recorder.pauseRecording()
-            glassViewModel.stopPreview()
+            if (cameraSource == CameraSource.GLASS) {
+                glassViewModel.stopPreview()
+            } else {
+                phoneCameraHelper.stopPreview()
+            }
             VoiceGuideManager.speak(context, "촬영을 일시정지합니다.")
         }
     }
