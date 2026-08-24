@@ -24,11 +24,13 @@
 
 ## 서버 설치와 API 키
 
+권장 Python은 3.11 또는 3.12다. 서버 CUDA 또는 CPU 환경에 맞는 PyTorch·torchvision을 먼저 설치한 뒤 프로젝트 의존성을 설치한다. 테스트가 완료된 Gemini SDK 버전은 `google-genai==2.19.0`, 기본 모델은 `gemini-3.5-flash-lite`다.
+
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-Gemini 키는 코드나 Git에 저장하지 않고 서버 환경변수로만 등록한다.
+Gemini 키는 코드나 Git에 저장하지 않고 AI worker 프로세스의 환경변수로만 등록한다. systemd·Docker·queue worker에 별도로 등록하고 변경 후 worker를 재시작한다.
 
 ```powershell
 $env:GEMINI_API_KEY="발급받은_API_KEY"
@@ -37,6 +39,18 @@ $env:GEMINI_API_KEY="발급받은_API_KEY"
 ```bash
 export GEMINI_API_KEY="발급받은_API_KEY"
 ```
+
+AI worker는 `generativelanguage.googleapis.com`에 대한 outbound HTTPS 443 연결이 필요하며 별도의 외부 인바운드 포트는 필요하지 않다. 공간 분류 이미지는 Gemini API로 전송되므로 데이터 정책과 사용자 동의 범위를 확인한다.
+
+설치 확인:
+
+```bash
+python -m pip show google-genai
+python -c "from google import genai; print('google-genai import OK')"
+python -m training.process_image_batch_room_defect --help
+```
+
+`No module named 'google'`은 worker가 다른 가상환경을 쓰거나 SDK가 설치되지 않은 경우다. 모델 호출이 `404 NOT_FOUND`로 실패하면서 2.5 모델명이 보이면 배포 파일을 갱신해 `gemini-3.5-flash-lite`를 사용한다. 전체 오류 대응은 `BACKEND_ROOM_CLASSIFICATION_API_CHANGES.md` 6절을 따른다.
 
 ## 입력 규칙
 
