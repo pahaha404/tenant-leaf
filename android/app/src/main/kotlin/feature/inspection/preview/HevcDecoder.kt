@@ -42,9 +42,9 @@ class HevcDecoder {
     fun start(width: Int, height: Int, outputSurface: Surface) {
         surface = outputSurface
         format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_HEVC, width, height).apply {
-            setInteger(MediaFormat.KEY_FRAME_RATE, 24)
+            setInteger(MediaFormat.KEY_FRAME_RATE, 30)
             setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1)
-            setInteger(MediaFormat.KEY_BIT_RATE, 750_000)
+            setInteger(MediaFormat.KEY_BIT_RATE, 2_500_000)
         }
         runCatching { ensureCodec() }.onFailure { Log.e(TAG, "Decoder creation failed", it) }
     }

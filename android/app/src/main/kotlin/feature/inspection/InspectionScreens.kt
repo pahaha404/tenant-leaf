@@ -6,6 +6,7 @@ import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.SystemClock
 import android.speech.tts.TextToSpeech
+import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.view.Surface
 import android.view.TextureView
@@ -558,15 +559,24 @@ fun LiveInspectionScreen(
                                 surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                                     override fun onSurfaceTextureAvailable(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
                                         glassViewModel.setPreviewSurface(Surface(surfaceTexture))
+                                        applyCenterCropTransform(this@apply, previewState.videoWidth, previewState.videoHeight)
                                     }
-                                    override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture, width: Int, height: Int) {}
+                                    override fun onSurfaceTextureSizeChanged(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
+                                        applyCenterCropTransform(this@apply, previewState.videoWidth, previewState.videoHeight)
+                                    }
                                     override fun onSurfaceTextureDestroyed(surfaceTexture: SurfaceTexture): Boolean {
                                         glassViewModel.setPreviewSurface(null)
                                         return true
                                     }
                                     override fun onSurfaceTextureUpdated(surfaceTexture: SurfaceTexture) {}
                                 }
+                                addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+                                    applyCenterCropTransform(this, previewState.videoWidth, previewState.videoHeight)
+                                }
                             }
+                        },
+                        update = { textureView ->
+                            applyCenterCropTransform(textureView, previewState.videoWidth, previewState.videoHeight)
                         },
                     )
 
@@ -719,8 +729,41 @@ fun LiveInspectionScreen(
                     ) { Text("네, 종료할게요", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold) }
                 }
             }
-        }    }
+        }
+    }
 }
+
+private fun applyCenterCropTransform(textureView: TextureView, videoWidth: Int, videoHeight: Int) {
+    val viewWidth = textureView.width.toFloat()
+    val viewHeight = textureView.height.toFloat()
+    if (viewWidth <= 0f || viewHeight <= 0f) return
+
+    // 비디오 해상도가 아직 0인 경우 기본 3:4 세로 비율(예: 864x1152)을 가정하여 찌그러짐 방지
+    val effectiveWidth = if (videoWidth > 0) videoWidth.toFloat() else 3f
+    val effectiveHeight = if (videoHeight > 0) videoHeight.toFloat() else 4f
+
+    val viewRatio = viewWidth / viewHeight
+    val videoRatio = effectiveWidth / effectiveHeight
+
+    val scaleX: Float
+    val scaleY: Float
+
+    if (videoRatio > viewRatio) {
+        // 비디오가 뷰보다 가로로 긴 경우: 높이를 맞추고 좌우를 잘라냄
+        scaleY = 1f
+        scaleX = (effectiveWidth * (viewHeight / effectiveHeight)) / viewWidth
+    } else {
+        // 비디오가 뷰보다 세로로 긴 경우(Meta Glass 기본): 가로를 꽉 채우고 상하를 자연스럽게 잘라냄
+        scaleX = 1f
+        scaleY = (effectiveHeight * (viewWidth / effectiveWidth)) / viewHeight
+    }
+
+    val matrix = Matrix().apply {
+        setScale(scaleX, scaleY, viewWidth / 2f, viewHeight / 2f)
+    }
+    textureView.setTransform(matrix)
+}
+
 @Composable
 fun FinishConfirmScreen(
     onBack: () -> Unit,

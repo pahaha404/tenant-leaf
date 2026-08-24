@@ -125,6 +125,8 @@ data class GlassPreviewUiState(
     val hasFirstFrame: Boolean = false,
     val needsCameraPermission: Boolean = false,
     val message: String? = null,
+    val videoWidth: Int = 0,
+    val videoHeight: Int = 0,
 ) {
     val isStreaming get() = state == StreamState.STREAMING
     val isStarting get() = state == StreamState.STARTING
@@ -231,7 +233,7 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
         private fun beginPreview(activeSession: DeviceSession) {
             if (stream != null) return
             activeSession.addCamera(
-                StreamConfiguration(videoQuality = VideoQuality.MEDIUM, frameRate = 24, compressVideo = true),
+                StreamConfiguration(videoQuality = VideoQuality.HIGH, frameRate = 30, compressVideo = true),
             ).fold(
                 onSuccess = { addedCamera ->
                     camera = addedCamera
@@ -291,8 +293,14 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
                 }
                 decoder?.decodeFrame(bytes, frame.presentationTimeUs)
             }
-            if (!frame.isCodecConfig && !_sharedPreviewUiState.value.hasFirstFrame) {
-                _sharedPreviewUiState.update { it.copy(hasFirstFrame = true) }
+            if (!frame.isCodecConfig && (!_sharedPreviewUiState.value.hasFirstFrame || _sharedPreviewUiState.value.videoWidth != frame.width || _sharedPreviewUiState.value.videoHeight != frame.height)) {
+                _sharedPreviewUiState.update {
+                    it.copy(
+                        hasFirstFrame = true,
+                        videoWidth = frame.width,
+                        videoHeight = frame.height,
+                    )
+                }
             }
         }
 
