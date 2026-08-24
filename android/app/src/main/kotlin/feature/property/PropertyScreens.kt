@@ -1074,4 +1074,35 @@ private fun PropertyCard(property: PropertyUiModel, selected: Boolean = false, o
     }
 }
 
-private fun formatWon(value: Long): String = "%,d원".format(value)
+internal fun formatWon(value: Long): String {
+    if (value <= 0) return "0원"
+    val eok = value / 100_000_000L
+    val remainderEok = value % 100_000_000L
+    val man = remainderEok / 10_000L
+    val remainderMan = remainderEok % 10_000L
+
+    return when {
+        eok > 0 -> {
+            if (remainderMan == 0L && man % 1000L == 0L && man > 0) {
+                val decimal = eok.toDouble() + man / 10000.0
+                "%.1f억".format(Locale.KOREAN, decimal).replace(".0", "")
+            } else if (man > 0) {
+                if (remainderMan == 0L) {
+                    "${eok}억 %,d만".format(Locale.KOREAN, man)
+                } else {
+                    "${eok}억 %,d만 %,d원".format(Locale.KOREAN, man, remainderMan)
+                }
+            } else {
+                "${eok}억"
+            }
+        }
+        man > 0 -> {
+            if (remainderMan == 0L) {
+                "%,d만".format(Locale.KOREAN, man)
+            } else {
+                "%,d만 %,d원".format(Locale.KOREAN, man, remainderMan)
+            }
+        }
+        else -> "%,d원".format(Locale.KOREAN, value)
+    }
+}
