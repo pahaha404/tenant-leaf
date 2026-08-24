@@ -27,6 +27,9 @@
 
 ## 진행 기록
 
+- 2026-08-24 — 실시간 점검 카메라 스트리밍 제어 기능 추가. 일시정지/재개 시 프리뷰 정지/재개, 타이머 일시정지 및 TTS 음성 피드백 연동, 동적 스트림 화질 수동 선택 칩 및 드롭다운(`HIGH`/`MEDIUM`/`LOW`), Meta AI 안경 ↔ 스마트폰 카메라(`PhoneCameraPreviewHelper`) 수동 소스 전환 버튼을 상단 바에 구현함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 스마트폰 카메라 실제 하드웨어 센서 및 실기기 안경 전환은 실기기 미검증임.
+- 2026-08-24 — 점검 종료 시 음성 안내(TTS) 구현. 촬영 종료 팝업의 `[네, 종료할게요]` 버튼 클릭 시 "촬영을 종료합니다. 해당 영상을 업로드해주세요." 음성이 출력되도록 연결하고, 화면 내비게이션 시에도 음성이 끊기지 않도록 `VoiceGuideManager` 싱글톤을 도입함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 실기기 TTS 발화 음량 및 하드웨어 스피커 출력은 실기기 미검증임.
+- 2026-08-24 — Meta AI 안경 실시간 카메라 스트리밍 프리뷰 복원 및 최적화. `com.meta.wearable:mwdat-camera:0.9.0` 의존성 추가, HEVC 하드웨어 비디오 디코더(`HevcDecoder`), VPS/SPS/PPS 파라미터 수집기(`HevcParameterSetCollector`), 전역 세션 공유 풀(`rememberGlassConnectionViewModel`), Center-Crop 비율 맞춤 Matrix Transform 및 고화질(VideoQuality.HIGH)/30fps/2.5Mbps 설정을 적용함. `:app:testDebugUnitTest` 144개 태스크 전원 통과 (`BUILD SUCCESSFUL`). 실제 Meta AI 안경 실기기 연동은 실기기 미검증임.
 - 2026-08-22 — 로그인 완료와 튜토리얼 완료 여부를 앱 `SharedPreferences`에 저장해 재실행 시 로그인은 건너뛰고, 튜토리얼까지 끝난 경우 홈으로 바로 진입하도록 연결함. `initialRouteFor` 단위 테스트를 추가했고 `:app:testDebugUnitTest`, `:app:assembleDebug`, Galaxy SM-G991N(Android 15) `:app:installDebug`를 통과함. 잠금 화면과 `run-as` 권한 제한 때문에 저장 상태별 실기기 화면 분기는 미검증임.
 - 2026-08-22 — 점검 시작 전 체크리스트 화면의 `기본 체크리스트 훑어보기`와 `건너뛰기`도 튜토리얼과 동일한 하단 액션 영역으로 이동함. 본문만 스크롤되고 두 동작은 화면 하단에 고정되도록 구성함.
 - 2026-08-22 — 튜토리얼의 `60초 영상 보기`와 `건너뛰기`를 공통 `AppPageScaffold`의 하단 액션 영역으로 옮겨 화면 하단에 고정함. `:app:assembleDebug`, Galaxy SM-G991N(Android 15) Debug APK 설치를 통과함. 현재 기기는 약관 동의 전 상태라 튜토리얼 화면의 실기기 위치 확인은 미검증임.
