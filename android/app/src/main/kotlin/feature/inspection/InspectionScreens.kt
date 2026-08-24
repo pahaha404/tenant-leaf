@@ -131,7 +131,37 @@ fun InspectionPrepScreen(
 @Composable
 fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit) {
     val context = LocalContext.current
-    AppPageScaffold(title = "촬영 전 경고", onBack = onBack) {
+    AppPageScaffold(
+        title = "촬영 전 경고",
+        onBack = onBack,
+        bottomAction = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 10.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0xFFB42318))
+                        .clickable {
+                            VoiceGuideManager.warmUp(context)
+                            onContinue()
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        "허가를 확인했고 촬영을 계속합니다",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                }
+            }
+        },
+    ) {
         Card(
             modifier = Modifier.fillMaxWidth().border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(18.dp)),
             shape = RoundedCornerShape(18.dp),
@@ -143,15 +173,6 @@ fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit
                 Text("임대인과 기존 세입자 모두에게 촬영·녹음 허가를 명확히 받으세요. 허가를 받지 못했다면 촬영을 시작하지 마세요.", color = Color(0xFFFFB4AB), fontSize = 12.sp, lineHeight = 19.sp)
                 Text("공개되지 않은 타인 간 대화의 녹음·청취는 통신비밀보호법의 제한을 받을 수 있습니다. 위반 시 상황에 따라 민·형사상 책임이 발생할 수 있습니다.", color = Color(0xFFFFE4E1), fontSize = 11.sp, lineHeight = 17.sp)
             }
-        }
-        Box(
-            modifier = Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFB42318)).clickable {
-                VoiceGuideManager.warmUp(context)
-                onContinue()
-            },
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("허가를 확인했고 촬영을 계속합니다", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
         }
     }
 }
