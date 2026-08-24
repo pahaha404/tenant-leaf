@@ -97,7 +97,19 @@ fun InspectionPrepScreen(
     starting: Boolean = false,
     errorMessage: String? = null,
 ) {
-    AppPageScaffold(title = "점검 준비", onBack = onBack) {
+    AppPageScaffold(
+        title = "점검 준비",
+        onBack = onBack,
+        bottomAction = {
+            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
+                PrimaryButton(
+                    label = if (starting) "임장 생성 중..." else "점검 시작하기",
+                    onClick = onStartInspection,
+                    enabled = !starting,
+                )
+            }
+        },
+    ) {
         Card(
             modifier = Modifier.fillMaxWidth().border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(18.dp)),
             shape = RoundedCornerShape(18.dp),
@@ -114,7 +126,6 @@ fun InspectionPrepScreen(
         InfoCard(title = "촬영 전 확인", description = "휴대전화 카메라와 마이크 권한을 허용해 주세요.", accent = PaleGreen)
         InfoCard(title = "세입세잎 Glass 연결", description = "연결하지 않아도 휴대전화 카메라로 점검을 진행할 수 있어요.")
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
-        PrimaryButton(if (starting) "임장 생성 중..." else "점검 시작하기", onStartInspection, enabled = !starting)
     }
 }
 @Composable
