@@ -569,7 +569,7 @@ fun LiveInspectionScreen(
                 ) {
                     Box(Modifier.size(7.dp).clip(RoundedCornerShape(9.dp)).background(if (isPaused) Green else Color(0xFFC9573D)))
                     Spacer(Modifier.width(5.dp))
-                    Text(if (isPaused) "일시중지" else "녹화 중", color = if (isPaused) Green else Color(0xFFC9573D), fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(if (isPaused) "일시정지" else "녹화 중", color = if (isPaused) Green else Color(0xFFC9573D), fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
             Column(
@@ -727,12 +727,12 @@ fun LiveInspectionScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = if (isPaused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause,
-                            contentDescription = if (isPaused) "촬영 재개" else "일시중지",
+                            contentDescription = if (isPaused) "촬영 재개" else "일시정지",
                             tint = Color.White,
                             modifier = Modifier.size(20.dp),
                         )
                         Spacer(Modifier.width(7.dp))
-                        Text(if (isPaused) "촬영 재개" else "일시중지", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(if (isPaused) "촬영 재개" else "일시정지", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
                     }
                 }
                 Box(
