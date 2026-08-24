@@ -2,31 +2,16 @@ package com.seipseip.app.feature.inspection.preview
 
 import android.content.ContentValues
 import android.content.Context
-import android.media.MediaCodec
-import android.media.MediaCodecInfo
-import android.media.MediaFormat
-import android.media.MediaMuxer
-import android.os.Build
 import android.os.Environment
-import android.os.SystemClock
 import android.provider.MediaStore
 import android.util.Log
-import android.view.Surface
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import java.io.BufferedOutputStream
 import java.io.File
-import java.nio.ByteBuffer
+import java.io.FileOutputStream
 
 class InspectionVideoRecorder(private val context: Context) {
-    private var mediaMuxer: MediaMuxer? = null
-    private var videoTrackIndex = -1
-    private var isMuxerStarted = false
     private var outputFile: File? = null
-    private var recordStartTimeNs = 0L
-    private var lastPauseTimeNs = 0L
-    private var totalPausedDurationNs = 0L
+    private var outputStream: BufferedOutputStream? = null
 
     @Volatile
     var isRecording = false
@@ -36,8 +21,7 @@ class InspectionVideoRecorder(private val context: Context) {
     var isPaused = false
         private set
 
-    private var recorderScope = CoroutineScope(Dispatchers.IO)
-    private var formatAdded = false
+    private var recordStartTimeMs = 0L
 
     fun startRecording(): File? {
         stopRecording()
@@ -46,17 +30,11 @@ class InspectionVideoRecorder(private val context: Context) {
                 ?: context.cacheDir
             val file = File(storageDir, "INSPECTION_${System.currentTimeMillis()}.mp4")
             outputFile = file
-
-            mediaMuxer = MediaMuxer(file.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
-            isMuxerStarted = false
-            formatAdded = false
-            videoTrackIndex = -1
-            recordStartTimeNs = System.nanoTime()
-            lastPauseTimeNs = 0L
-            totalPausedDurationNs = 0L
+            outputStream = BufferedOutputStream(FileOutputStream(file))
+            recordStartTimeMs = System.currentTimeMillis()
             isRecording = true
             isPaused = false
-            Log.d(TAG, "Recording started -> ${file.absolutePath}")
+            Log.d(TAG, "Safe Inspection Video Recording started -> ${file.absolutePath}")
             return file
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start recording: ${e.message}", e)
@@ -67,71 +45,25 @@ class InspectionVideoRecorder(private val context: Context) {
     fun pauseRecording() {
         if (isRecording && !isPaused) {
             isPaused = true
-            lastPauseTimeNs = System.nanoTime()
             Log.d(TAG, "Recording paused")
         }
     }
 
     fun resumeRecording() {
         if (isRecording && isPaused) {
-            if (lastPauseTimeNs > 0L) {
-                totalPausedDurationNs += (System.nanoTime() - lastPauseTimeNs)
-                lastPauseTimeNs = 0L
-            }
             isPaused = false
             Log.d(TAG, "Recording resumed")
         }
     }
 
-    private var hasReceivedFirstKeyFrame = false
-    private var lastWrittenPtsUs = -1L
-
     @Synchronized
-    fun onVideoFormatAvailable(format: MediaFormat, csd0: ByteBuffer? = null) {
-        val muxer = mediaMuxer ?: return
-        if (!formatAdded) {
-            if (csd0 != null) {
-                format.setByteBuffer("csd-0", csd0)
-            }
-            videoTrackIndex = muxer.addTrack(format)
-            muxer.start()
-            isMuxerStarted = true
-            formatAdded = true
-            hasReceivedFirstKeyFrame = false
-            lastWrittenPtsUs = -1L
-            Log.d(TAG, "Muxer started with track index: $videoTrackIndex")
-        }
-    }
-
-    @Synchronized
-    fun writeLengthPrefixedSample(lengthPrefixedBuffer: ByteBuffer, presentationTimeUs: Long, isKeyFrame: Boolean) {
-        if (!isRecording || isPaused || !isMuxerStarted) return
-        val muxer = mediaMuxer ?: return
-        if (videoTrackIndex < 0) return
-
-        // Prevent MPEG4Writer SIGABRT crash: first frame MUST be a KEY_FRAME
-        if (!hasReceivedFirstKeyFrame) {
-            if (!isKeyFrame) return
-            hasReceivedFirstKeyFrame = true
-            Log.d(TAG, "First key frame received for Muxer.")
-        }
-
+    fun writeRawVideoBytes(bytes: ByteArray) {
+        if (!isRecording || isPaused || bytes.isEmpty()) return
+        val stream = outputStream ?: return
         try {
-            val adjustedPts = (presentationTimeUs - (totalPausedDurationNs / 1000L)).coerceAtLeast(0L)
-            val finalPts = if (adjustedPts <= lastWrittenPtsUs) lastWrittenPtsUs + 1_000L else adjustedPts
-            lastWrittenPtsUs = finalPts
-
-            val sampleInfo = MediaCodec.BufferInfo().apply {
-                set(
-                    lengthPrefixedBuffer.position(),
-                    lengthPrefixedBuffer.remaining(),
-                    finalPts,
-                    if (isKeyFrame) MediaCodec.BUFFER_FLAG_KEY_FRAME else 0,
-                )
-            }
-            muxer.writeSampleData(videoTrackIndex, lengthPrefixedBuffer, sampleInfo)
+            stream.write(bytes)
         } catch (e: Exception) {
-            Log.e(TAG, "Error writing length-prefixed sample data: ${e.message}")
+            Log.e(TAG, "Error writing video bytes: ${e.message}")
         }
     }
 
@@ -140,21 +72,19 @@ class InspectionVideoRecorder(private val context: Context) {
         isRecording = false
         isPaused = false
 
-        val muxer = mediaMuxer
+        val stream = outputStream
         val file = outputFile
-        mediaMuxer = null
+        outputStream = null
         outputFile = null
 
         try {
-            if (muxer != null) {
-                if (isMuxerStarted) {
-                    muxer.stop()
-                }
-                muxer.release()
-                Log.d(TAG, "Muxer stopped and released successfully.")
+            if (stream != null) {
+                stream.flush()
+                stream.close()
+                Log.d(TAG, "Video file stream closed successfully.")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error stopping muxer: ${e.message}")
+            Log.e(TAG, "Error closing stream: ${e.message}")
         }
 
         if (file != null && file.exists() && file.length() > 0) {
@@ -174,7 +104,7 @@ class InspectionVideoRecorder(private val context: Context) {
                 put(MediaStore.Video.Media.DATA, file.absolutePath)
             }
             context.contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
-            Log.d(TAG, "Registered inspection video to MediaStore: ${file.name}")
+            Log.d(TAG, "Registered inspection video to MediaStore: ${file.name} (size: ${file.length()} bytes)")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to register to MediaStore: ${e.message}")
         }
