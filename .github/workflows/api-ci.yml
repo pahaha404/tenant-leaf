@@ -6,6 +6,8 @@ on:
       - develop
       - main
     paths:
+      - android/core/**
+      - android/feature/media/**
       - server/api/**
       - server/shared-types/openapi/**
       - server/infra/docker/**
@@ -16,6 +18,8 @@ on:
       - develop
       - main
     paths:
+      - android/core/**
+      - android/feature/media/**
       - server/api/**
       - server/shared-types/openapi/**
       - server/infra/docker/**
@@ -31,6 +35,34 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  android-contract:
+    name: Generate and compile Android contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+          cache-dependency-path: |
+            android/*.gradle.kts
+            android/*/build.gradle.kts
+            android/gradle/wrapper/gradle-wrapper.properties
+            server/shared-types/openapi/openapi.yaml
+
+      - name: Make Android Gradle Wrapper executable
+        run: chmod +x android/gradlew
+
+      - name: Validate, generate and compile Android media contract
+        working-directory: android
+        run: ./gradlew :core:openApiValidate :core:openApiGenerate :feature:media:compileDebugKotlin --no-daemon
+
   test:
     name: Build and test API
     runs-on: ubuntu-latest

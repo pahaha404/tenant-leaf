@@ -26,6 +26,13 @@
 ## 진행 기록
 
 - 2026-08-25 — 온보딩 시작 화면(`Welcome`) 3단 슬라이드에 세입세잎 전용 온보딩 일러스트(`onboarding_1`, `onboarding_2`, `onboarding_3`) 적용. `HorizontalPager` 전체화면 렌더링 및 하단 인디케이터·'서비스 시작하기' 액션 버튼 연동 완료. `:app:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
+- 2026-08-24 — 매물 등록 화면에서 키보드 `다음`을 누르면 매물 이름→상세 주소→보증금→월세 순서로 포커스가 이동하도록 하고, 포커스 입력칸을 자동 스크롤해 키보드에 가리지 않도록 처리함. 앱 전체 페이지에도 IME 여백을 적용함. `:app:compileDebugKotlin` 및 Galaxy SM-S911N(Android 16) `:app:installDebug`를 통과함.
+- 2026-08-24 — 로컬 서버는 실행 중이었지만 휴대전화의 `adb reverse` 포트 전달이 사라져 앱이 `127.0.0.1:8080`에 연결하지 못한 것을 확인함. 실제 기기 `8080`·`9000` 전달을 복구하고, Debug 빌드가 오프라인 에뮬레이터 대신 연결된 실제 기기 serial을 골라 포트 전달하도록 수정함. 기기 포트 연결 검사 성공.
+
+- 2026-08-24 — 점검 MP4의 AAC 오디오와 STT용 WAV가 마이크를 따로 점유하던 구조를 하나의 `InspectionVideoRecorder` PCM 흐름으로 통합함. 영상 AAC와 STT용 WAV에 같은 PCM을 동시에 저장하도록 바꿔, 동영상 소리 누락과 마이크 경쟁을 제거함. Android OpenAPI 재생성·`:app:compileDebugKotlin`·Galaxy SM-S911N(Android 16) `:app:installDebug`를 통과함. 실제 촬영 후 갤러리 음성 재생·STT 결과는 사용자 현장 확인이 남아 있음.
+- 2026-08-24 — JPEG 업로드 계약에 필수 `zone`을 복구하고 Android는 AI/사용자 확정 전 `UNKNOWN`으로 전송하도록 수정함. OpenAPI 원본·생성 Android 모델·서버 저장·중복 확인을 함께 맞췄으며, 로컬 API를 새 코드로 재시작함. Android OpenAPI 검증·생성 및 `:app:compileDebugKotlin`, 서버 OpenAPI 검증·Kotlin 컴파일을 통과함. Gradle 테스트 실행은 기존 테스트 런처의 `ClassNotFoundException`으로 별도 실패했음.
+
+- 2026-08-24 — 임장 라이브 진입과 함께 `VoiceRecorder`가 16kHz PCM 음성을 앱 내부 `files/voice-records/<임장 ID>/`에 자동 저장하고, 점검 종료 후 WAV 재생 파일을 만든 뒤 Android 시스템 STT로 텍스트화를 시작하도록 변경함. 종료 확인 화면에는 재생, STT 원문, 두 문장 요약 카드를 추가함. 서버 업로드·AI 제공자 호출은 추가하지 않았고, 실제 녹음·STT·재생 및 안경 촬영과의 동시 사용은 아직 실기기 검증 전이므로 미완료로 유지함.
 - 2026-08-24 — 리포트 선택 화면의 고정 샘플 3개를 제거하고 실제 매물 목록과 매물별 최신 리포트 API를 조회하도록 연결함. 완료·부분 완료·생성 중·실패·없음 상태와 실제 완료 리포트 수를 표시하고, 선택 시 해당 `inspectionId`의 실제 상세 리포트 화면으로 이동함. 로컬 API에서 완료 리포트와 `inspectionId` 반환을 확인했으나 Gradle 9.5 배포본 다운로드가 실행 환경 네트워크 정책으로 차단되어 단위 테스트·앱 빌드는 미검증 상태임.
 - 2026-08-24 — Android 팀 공용 디버그 서명 키(`debug.keystore`) 설정 적용(`signingConfigs.debug`). 개발자별 PC의 `debug.keystore` 불일치로 인한 카카오 맵 SDK 인증 실패(타일 미렌더링)를 방지하기 위해 프로젝트 공용 `debug.keystore`를 추가하고 `build.gradle.kts`에 `signingConfigs.debug`를 지정함. `:app:assembleDebug`, `:app:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 리포트 진행률 분모를 서버 `totalMediaCount`에 연결하고 처리 수를 성공+최종 실패 사진 수로 계산하도록 수정함. `WAITING_FOR_ANALYSIS`는 `사진을 분석하고 있어요`, 실제 `GENERATING`은 `리포트를 만들고 있어요`로 분리했으며, 원격 Gradle 플러그인 접근 제한으로 앱 빌드·실기기 확인은 미검증 상태임.
@@ -82,3 +89,21 @@
 - 2026-08-21 — Kakao 지도 SDK 2.15.1과 Compose `SurfaceView` 호환 레이아웃을 적용함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 실제 지도 타일 표시, 중앙 핀 고정, 드래그 후 주소 갱신을 확인함.
 - 2026-08-21 — 반복 진입 시 지도 타일이 간헐적으로 사라지는 문제를 막기 위해 지도 화면을 전용 `LocationPickerActivity`로 분리하고 SDK의 `resume`·`pause` 생명주기를 연결함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 최초 진입, 재진입 3회, 백그라운드 복귀 후 실제 지도 타일 표시를 확인함.
 - 2026-08-21 — 주소 검색 화면 제목을 "점검할 집의 주소를 입력하세요"로 변경함. 검색창의 고정 높이와 빈 안내 영역이 입력 글자를 자르던 문제를 제거하고 `:app:testDebugUnitTest`, `:app:assembleDebug`와 Galaxy SM-G991N(Android 15)에서 입력값 및 검색 결과 표시를 확인함.
+
+- 2026-08-24 — 점검 준비 화면에서 촬영 허가 경고 카드를 제거하고, 별도 `InspectionPermissionWarningScreen`에 밝은 주황 안내 카드·3개 직접 확인 체크·모두 확인해야 활성화되는 하단 `허가를 확인했고 촬영을 계속합니다` 버튼을 적용함. `:app:compileDebugKotlin`, Galaxy SM-S911N(Android 16) `:app:installDebug`를 통과함. 새 화면의 실제 터치·시각 확인은 설치된 기기에서 추가 확인이 필요함.
+
+- 2026-08-24 — 임장 생성 시 매물 ID와 음성 기록을 기기 내부에 연결하고, 녹음 WAV 경로·STT 원문·짧은 요약을 매물별 최근 기록으로 보존하도록 `VoiceRecordArchive`를 추가함. 매물 상세에 `점검 음성 기록` 카드와 `음성 녹음 재생`·`음성 요약 보기` 버튼을 추가했으며, `:app:compileDebugKotlin`, Galaxy SM-S911N(Android 16) `:app:installDebug`를 통과함. 실제 녹음 후 STT 결과와 매물 상세 재생은 새 점검 1회로 실기기 확인이 필요함.
+
+- 2026-08-24 — 앱 아이콘을 디자인 원본 `design/assets/generated/brand-character.png` 그대로 `res/drawable`에 복사하고 `AndroidManifest.xml`의 기본·원형 아이콘으로 연결함. 촬영 종료 확인 화면에서는 `촬영 구역 상세`와 구역별 목록을 제거하고, 안내 문구를 `분석 결과는 확인이 필요한 내용이에요. 사진을 확인하고 직접 결정하세요!`로 수정함. 원본과 앱 리소스의 SHA-256 일치, `:app:assembleDebug`, Galaxy SM-S911N(Android 16) `:app:installDebug`를 통과함.
+
+- 2026-08-24 — 2초짜리 Compose 시작 화면을 유지하되 집 아이콘을 원본 캐릭터 이미지로 교체하고 260dp로 확대함. 아래 `세입세잎`과 `초보 세입자를 위한 SAFE GUIDE` 문구를 함께 표시함. `:app:assembleDebug`, Galaxy SM-S911N(Android 16) `:app:installDebug`를 통과하고 실제 기기 시작 화면에서 캐릭터와 문구를 확인함.
+
+- 2026-08-24 — 매물 상세의 `음성 요약 보기`를 팝업이 아닌 `점검 음성 요약` 페이지 이동으로 변경함. 요약을 먼저 보이고 `전체 STT 보기`를 눌러야 원문을 펼치며, STT 저장 완료 뒤 매물 카드와 요약 화면이 최신 결과를 다시 읽도록 보완함. 변환 결과가 없는 경우 저장된 PCM/WAV로 재시도할 수 있음. `:app:assembleDebug`, Galaxy SM-S911N(Android 16) `:app:installDebug`를 통과함. 실제 음성으로 요약·원문이 채워지는지의 재확인은 새 점검에서 필요함.
+
+- 2026-08-24 — Android 12 이상 시스템 시작 화면이 앱 아이콘을 별도로 그려 2단계처럼 보이던 문제를 `core-splashscreen` 시작 테마로 통합함. 시스템 단계는 2번 화면과 같은 배경·투명 아이콘으로 처리하고, 실제 브랜딩 문구와 캐릭터는 기존 Compose 로딩 화면에서만 표시함. `:app:assembleDebug`, Galaxy SM-S911N(Android 16) `:app:installDebug`를 통과함.
+
+- 2026-08-24 — 이전 버전에서 생성돼 매물 연결 정보가 없던 로컬 WAV는 음성 요약 화면을 처음 열 때 현재 매물의 최근 미연결 녹음으로 한 번 연결하고 Android STT 변환을 자동 재시도하도록 보완함. 기존 연결이 있는 녹음은 건드리지 않음. `:app:assembleDebug`, Galaxy SM-S911N(Android 16) `:app:installDebug`를 통과했으며, 실제 STT 인식 결과는 사용자가 음성 요약 화면을 다시 열어 확인해야 함.
+
+- 2026-08-24 — 기존 녹음 가져오기와 STT 재시도 처리를 음성 요약 화면뿐 아니라 매물 상세의 `점검 음성 기록` 카드가 열릴 때도 실행하도록 수정함. 매물 상세에서는 확인 중 문구를 먼저 표시하고, 최신 미연결 WAV를 찾은 뒤 재생·요약 버튼을 표시함. `:app:assembleDebug`, Galaxy SM-S911N(Android 16) `:app:installDebug`를 통과함.
+
+- 2026-08-24 — Galaxy STT 로그에서 PCM 파일을 한 번에 전달할 때 `Audio buffer overflow`가 발생하는 것을 확인함. Android STT 입력을 파일 직접 전달에서 pipe 기반 50ms PCM 스트리밍으로 변경하고, 45초 안에 결과·오류가 없으면 변환 상태를 종료하도록 보완함. `:app:assembleDebug`, Galaxy SM-S911N(Android 16) `:app:installDebug`를 통과함. 새 STT 결과의 실제 표시 검증은 기기에서 다시 시도해야 함.

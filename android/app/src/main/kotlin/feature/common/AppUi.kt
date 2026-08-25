@@ -90,6 +90,7 @@ fun AppPageScaffold(
                     .fillMaxSize()
                     .background(Color(0xFFFCFBF8))
                     .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
+                    .imePadding()
                     .padding(horizontal = 20.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {

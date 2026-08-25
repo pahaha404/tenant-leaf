@@ -87,6 +87,10 @@
 - 2026-08-24 — Android 리포트 선택 화면을 샘플 데이터에서 실제 매물·리포트 API 기반 목록으로 전환하고 선택한 임장의 실제 상세 리포트로 이동하도록 연결했다. 로컬 API 응답은 확인했으나 Gradle 9.5 배포본 다운로드가 실행 환경에서 차단되어 빌드·단위 테스트 검증 전까지 관련 완료 체크는 유지한다.
 - 2026-08-24 — Android 팀 공용 디버그 서명 키(`debug.keystore`) 설정(`signingConfigs.debug`)을 적용함. 팀원 각자의 PC 키 해시 등록 번거로움을 제거하고 `local.properties` 공유만으로 카카오 맵 SDK가 모든 기기에서 즉시 정상 렌더링되도록 구성함. `:app:assembleDebug`, `:app:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — Android 내 정보 화면 로그아웃 기능(다이얼로그 확인 및 토큰/환경설정 초기화, 로그인 이동)과 매물 보증금·월세 금액의 한국 단위(억/만) 자동 포맷팅(`formatKoreanAmount`)을 적용함. `:app:testDebugUnitTest`, `:feature:property:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
+- 2026-08-24 — 로컬 Android Debug 서버 연결이 끊긴 원인이 서버 중지가 아니라 USB `adb reverse` 포트 전달 누락임을 확인해 복구함. 오프라인 에뮬레이터가 있어도 연결된 실제 기기를 골라 `8080`·`9000` 포트를 전달하도록 빌드 설정을 보완함.
+
+- 2026-08-24 — JPEG 업로드 요청의 `zone` 필수 계약이 OpenAPI 원본에서 누락돼 Android 요청과 서버 생성 모델이 어긋난 문제를 수정함. Android는 구역 확정 전 `UNKNOWN`을 보내고, 서버는 같은 값을 저장·재시도 비교에 포함함. OpenAPI 검증·Android/서버 Kotlin 컴파일을 확인했으며, 테스트 런처의 기존 `ClassNotFoundException`은 별도 해결이 필요함.
+
 - 2026-08-24 — Android 점검 플로우 및 매물 관리 UI/UX 대규모 고도화(`feature/uiux-better`). 매물 지도 오버뷰 핀 연동 및 당겨서 새로고침(Pull-to-Refresh), 휴지통 기반 다중 선택 일괄 삭제, 매물 상세 연필 아이콘 수정 모드, 점검 준비/경고 화면 하단 CTA 버튼 고정, TTS 음성 엔진 앱 기동 사전 예열을 통한 0ms 즉각 발화, 안경 미연결 시 스마트폰 카메라 자동 전환 및 실시간 점검 화면 카드 정리, 분석 진행 탭 내 수동 선택 제거 및 갤러리 영상 100% 자동 추출·업로드 파이프라인 단일화를 구현함. `:app:testDebugUnitTest`, `:feature:property:testDebugUnitTest`, `:feature:media:testDebugUnitTest`, `:feature:inspection:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — Android 리포트 UI를 완료·근거 사진·빈 결과·부분 완료·오류·생성 중 6개 상태로 구현하고 기존 리포트 생성 진행 플래그에 연결함. AI 결과는 `확인 필요 관찰`로 표현하고, 근거 사진의 정규화 bbox·신뢰도·구역을 전체화면에서 확인하도록 구성함.
 - 2026-08-24 — Android 구역 관찰 화면의 하단 고정 CTA와 AI 관찰 비확정 안내 카드를 개선함. 54dp `매물 상세로 돌아가기` 버튼, 시스템 내비게이션 패딩, `#FFF0E4` 안내 카드, 아이콘+배지 상태 표현을 적용하고 Android `:app:testDebugUnitTest` 및 정적 진단을 통과함. 실기기 화면 위치와 실제 백스택 복귀는 미검증임.
@@ -103,3 +107,21 @@
 - 2026-08-21 — Kakao 지도 SDK를 2.15.1로 갱신하고 Compose `clip`이 SDK `SurfaceView`를 가리던 문제를 제거함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 실제 지도 타일 표시, 중앙 핀 고정, 지도 드래그와 주소 갱신을 확인함.
 - 2026-08-21 — Kakao 지도를 전용 `LocationPickerActivity`로 분리하고 SDK의 `resume`·`pause` 생명주기를 연결함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과하고 Galaxy SM-G991N(Android 15)에서 최초 진입, 재진입 3회, 백그라운드 복귀 후 실제 지도 타일 표시를 확인함.
 - 2026-08-21 — 주소 검색 화면 제목을 "점검할 집의 주소를 입력하세요"로 변경하고 고정 높이에 잘리던 검색 입력값을 정상 표시하도록 수정함. Android 단위 테스트·Debug 빌드와 Galaxy SM-G991N(Android 15)에서 입력값 및 검색 결과 표시를 확인함.
+
+- 2026-08-24 — 로컬 JPEG 사진 저장소 MinIO를 Docker 없이 사용자 로컬 도구 경로에서 실행하고 `http://127.0.0.1:9000/minio/health/live` HTTP 200, API의 JPEG 업로드 URL 발급 성공, 실제 Galaxy SM-S911N의 `adb reverse` 경유 9000 포트 연결을 확인함. 이 환경은 로컬 데모용이며 원본 영상은 계속 휴대전화에만 보관함.
+
+- 2026-08-24 — 점검 음성 기록은 서버에 업로드하지 않고 휴대전화 내부에서만 매물별 최근 기록으로 연결하도록 구현함. 매물 상세에서 WAV 재생과 STT 핵심 내용·원문 확인이 가능하며, 실제 대화는 촬영 전 동의 절차를 마친 경우에만 기록한다. Android Debug Kotlin 컴파일과 Galaxy SM-S911N 설치를 통과했고, 실제 STT 결과 재생은 현장 점검으로 추가 확인이 필요함.
+
+- 2026-08-24 — 촬영 종료 확인 화면의 구역별 촬영 상세 목록을 제거하고, 결과 안내 문구를 사용자가 사진을 확인한 뒤 직접 결정하도록 바꿈. 세입세잎 캐릭터 원본 PNG를 Android 기본·원형 앱 아이콘으로 적용했으며, Debug APK 빌드와 Galaxy SM-S911N(Android 16) 설치를 통과함.
+
+- 2026-08-24 — 앱 실행 뒤 보이는 시작 화면에서 집 아이콘을 세입세잎 캐릭터로 교체하고 크게 표시함. `세입세잎`과 `초보 세입자를 위한 SAFE GUIDE` 문구를 함께 유지했으며, Debug APK 빌드·Galaxy SM-S911N(Android 16) 설치와 실제 시작 화면 표시를 확인함.
+
+- 2026-08-24 — 매물별 음성 요약은 별도 페이지에서 핵심 내용을 먼저 보여주고, 사용자가 `전체 STT 보기`를 눌렀을 때만 원문을 표시하도록 변경함. 비어 있는 STT 결과는 기존 녹음 파일로 다시 변환할 수 있으며, 최신 변환 결과가 매물 상세에 즉시 반영되도록 저장 상태를 연결함. Debug APK 빌드와 Galaxy SM-S911N(Android 16) 설치를 통과했고 실제 새 점검 STT 결과 검증은 남아 있음.
+
+- 2026-08-24 — Android 시스템 시작 화면의 별도 아이콘 표시를 투명 아이콘과 브랜딩 화면과 같은 배경으로 통합해, 앱 실행 시 캐릭터·제목·부제가 있는 Compose 로딩 화면만 눈에 띄도록 수정함. Debug APK 빌드와 Galaxy SM-S911N(Android 16) 설치를 통과함.
+
+- 2026-08-24 — 매물 연결 정보 없이 남아 있던 기존 기기 내 음성 녹음은 음성 요약 화면에서 최근 미연결 WAV를 현재 매물에 연결한 뒤 Android STT를 자동 재시도하도록 보완함. 원본 음성과 텍스트는 계속 휴대전화 안에만 보관하며, Debug APK 빌드·Galaxy SM-S911N(Android 16) 설치를 통과함.
+
+- 2026-08-24 — 기존 기기 내 음성 녹음 연결·STT 재시도는 매물 상세 카드 진입 시점에도 자동 실행하도록 보완함. Debug APK 빌드와 Galaxy SM-S911N(Android 16) 설치를 통과했으며, 실제 음성 인식 결과는 해당 매물 상세를 다시 연 뒤 확인이 필요함.
+
+- 2026-08-24 — Galaxy 기본 STT의 PCM 입력 버퍼 초과를 확인해, 녹음 파일을 한 번에 보내지 않고 실제 녹음 속도에 맞춰 전달하도록 변경함. 45초 타임아웃도 추가했으며, Debug APK 빌드와 Galaxy SM-S911N(Android 16) 설치를 통과함. 실제 STT 원문 표시 검증은 다음 재시도에서 필요함.
