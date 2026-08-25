@@ -1082,7 +1082,13 @@ fun PropertySelectScreen(
             }
         },
     ) {
-        SectionTitle("어느 매물을 점검할까요?", "점검 기록은 선택한 매물에 저장돼요.")
+        Column(
+            modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text("어느 매물을 점검할까요?", color = DeepGreen, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+            Text("점검 기록은 선택한 매물에 저장돼요.", color = Secondary, fontSize = 12.5.sp)
+        }
         if (loading) Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
         if (properties.isEmpty() && !loading) {
             InfoCard(

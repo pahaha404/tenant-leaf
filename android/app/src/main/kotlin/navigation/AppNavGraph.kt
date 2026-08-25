@@ -283,7 +283,7 @@ fun AppNavGraph(
         composable(Route.Home) {
             HomeScreen(
                 processing = false,
-                onOpenProperties = { navController.navigate(Route.PropertyList) },
+                onAddProperty = { navController.navigate(Route.PropertyForm) },
                 onOpenReports = { navController.navigate(Route.Reports) },
                 onOpenRecentReport = { navController.navigate(Route.Reports) },
                 onOpenMagazine = { navController.navigate(Route.Magazine) },
@@ -310,7 +310,7 @@ fun AppNavGraph(
         }
         composable(Route.HomeProcessing) {
             HomeProcessingScreen(
-                onOpenProperties = { navController.navigate(Route.PropertyList) },
+                onAddProperty = { navController.navigate(Route.PropertyForm) },
                 onOpenReports = { navController.navigate(Route.Reports) },
                 onOpenMagazine = { navController.navigate(Route.Magazine) },
                 onTabSelected = { tab ->

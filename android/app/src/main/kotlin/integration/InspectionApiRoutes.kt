@@ -60,9 +60,11 @@ fun LiveInspectionApiRoute(
     onFinish: (Long) -> Unit,
     viewModel: InspectionDetailViewModel = hiltViewModel(),
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             if (event is InspectionDetailEvent.StatusChanged && event.status == InspectionStatus.CANCELLED) {
+                com.seipseip.app.feature.inspection.voice.VoiceRecordSession.discard()
                 onCancelled()
             }
         }
@@ -72,9 +74,10 @@ fun LiveInspectionApiRoute(
         zoneId = zoneId,
         startedAt = startedAt,
         onBack = {
-            com.seipseip.app.feature.inspection.voice.VoiceRecordSession.discard()
             viewModel.cancel()
         },
+        canceling = state.updating,
+        cancelErrorMessage = state.content.errorMessage(),
         onOpenGuide = onOpenGuide,
         onNextZone = onNextZone,
         onFinish = onFinish,

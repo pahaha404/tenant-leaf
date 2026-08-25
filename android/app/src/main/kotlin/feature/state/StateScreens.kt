@@ -68,14 +68,14 @@ fun LoadingScreen(onFinished: () -> Unit) {
 
 @Composable
 fun HomeProcessingScreen(
-    onOpenProperties: () -> Unit,
+    onAddProperty: () -> Unit,
     onOpenReports: () -> Unit,
     onOpenMagazine: () -> Unit,
     onTabSelected: (String) -> Unit,
 ) {
     TenantLeafHomeLayout(
         selectedTab = AppTab.Home,
-        onOpenProperties = onOpenProperties,
+        onAddProperty = onAddProperty,
         onOpenReports = onOpenReports,
         onOpenMagazine = onOpenMagazine,
         onTabSelected = onTabSelected,
