@@ -1536,6 +1536,7 @@ fun AnalysisProgressScreen(
     primaryActionLabel: String,
     onPrimaryAction: () -> Unit,
 ) {
+    val uploadCompleted = progress >= 1f && errorMessage == null
     AppPageScaffold(
         title = "분석 진행",
         onBack = onBackToHome,
@@ -1548,7 +1549,11 @@ fun AnalysisProgressScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                SectionTitle("촬영 내용을 분석하고 있어요", "촬영한 영상에서 분석할 사진을 준비하는 중이에요.")
+                SectionTitle(
+                    if (uploadCompleted) "사진 전송을 완료했어요" else "촬영 내용을 분석하고 있어요",
+                    if (uploadCompleted) "리포트에서 AI 분석 진행 상태를 확인할 수 있어요."
+                    else "촬영한 영상에서 분석할 사진을 준비하는 중이에요.",
+                )
                 LinearProgressIndicator(
                     progress = { progress.coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxWidth(),
@@ -1569,8 +1574,15 @@ fun AnalysisProgressScreen(
                 )
                 Spacer(Modifier.height(20.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CircularProgressIndicator(modifier = Modifier.size(28.dp), color = Green, strokeWidth = 3.dp)
-                    Text("촬영 내용을 준비하고 있어요", color = DeepGreen, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                    if (!uploadCompleted) {
+                        CircularProgressIndicator(modifier = Modifier.size(28.dp), color = Green, strokeWidth = 3.dp)
+                    }
+                    Text(
+                        if (uploadCompleted) "사진 전송을 완료했어요" else "촬영 내용을 준비하고 있어요",
+                        color = DeepGreen,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
                 }
                 Spacer(Modifier.height(14.dp))
                 Text(statusMessage, color = Secondary, fontSize = 14.sp, lineHeight = 20.sp)

@@ -100,7 +100,6 @@ import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SecondaryButton
 import com.seipseip.app.feature.common.StateBadge
 import java.net.URL
-import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -170,15 +169,12 @@ data class ReportDetailUiModel(
     val completedPhotoCount: Int = 0,
     val totalPhotoCount: Int = 0,
     val failedPhotoCount: Int = 0,
-    val serverReferenceScore: Int? = null,
-    val scoreIsProvisional: Boolean = false,
     val representativePhotos: List<ReportRepresentativePhotoUiModel> = emptyList(),
     val zones: List<ReportZoneUiModel> = emptyList(),
     val errorMessage: String? = null,
 ) {
     val observations: List<ReportObservationUiModel> get() = zones.flatMap(ReportZoneUiModel::observations)
     val processedPhotoCount: Int get() = completedPhotoCount + failedPhotoCount
-    val referenceScore: Int get() = serverReferenceScore ?: reportReferenceScore(observations.size)
 }
 
 enum class ReportListStatus { NONE, PROCESSING, COMPLETED, PARTIAL, FAILED }
@@ -191,10 +187,7 @@ data class ReportListItemUiModel(
     val detail: String,
     val status: ReportListStatus,
     val dateLabel: String = "",
-    val referenceScore: Int? = null,
 )
-
-fun reportReferenceScore(observationCount: Int): Int = max(0, 100 - observationCount.coerceAtLeast(0) * 5)
 
 @Composable
 fun ReportListScreen(
@@ -430,7 +423,7 @@ private fun CompletedReport(
 ) {
     Text("AI 사진 분석과 ${nickname}님의 촬영 기록을 바탕으로 정리했어요.", color = Secondary, fontSize = 12.sp, lineHeight = 18.sp)
     RepresentativePhotoGallery(uiModel.representativePhotos, onPhotoClick)
-    ReportSummaryCard(uiModel, "확인 필요 관찰 ${uiModel.observations.size}건을 찾았어요")
+    ReportSummaryCard("확인 필요 관찰 ${uiModel.observations.size}건을 찾았어요")
     ReportMetrics(uiModel)
     ObservationSections(uiModel.zones, onEvidenceClick)
     AiDisclaimer()
@@ -446,7 +439,7 @@ private fun PartialReport(
     InfoNotice("일부 사진을 분석하지 못했어요. 완료된 ${uiModel.completedPhotoCount}장의 결과만 먼저 보여드려요.", PaleOrange, Orange)
     Text("AI 사진 분석과 ${nickname}님의 촬영 기록을 바탕으로 정리했어요.", color = Secondary, fontSize = 12.sp)
     RepresentativePhotoGallery(uiModel.representativePhotos, onPhotoClick)
-    ReportSummaryCard(uiModel, "확인 가능한 관찰 ${uiModel.observations.size}건이 있어요")
+    ReportSummaryCard("확인 가능한 관찰 ${uiModel.observations.size}건이 있어요")
     ReportMetrics(uiModel)
     ObservationSections(uiModel.zones, onEvidenceClick)
     AiDisclaimer()
@@ -465,7 +458,7 @@ private fun EmptyReport(
         Text("현재 촬영 근거에서 확인 필요 관찰이\n생성되지 않았어요.", color = Secondary, fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Center)
     }
     RepresentativePhotoGallery(uiModel.representativePhotos, onPhotoClick)
-    ReportSummaryCard(uiModel, "확인 필요 관찰이 생성되지 않았어요")
+    ReportSummaryCard("확인 필요 관찰이 생성되지 않았어요")
     ReportMetrics(uiModel)
     InfoNotice("이 결과는 하자가 없음을 보장하지 않아요. 촬영되지 않은 부분과 작은 흔적은 직접 확인해 주세요.", PaleOrange, Orange)
 }
@@ -487,21 +480,19 @@ private fun ErrorReport(uiModel: ReportDetailUiModel) {
 }
 
 @Composable
-private fun ReportSummaryCard(uiModel: ReportDetailUiModel, title: String) {
-    Row(Modifier.fillMaxWidth().background(PaleGreen, RoundedCornerShape(18.dp)).padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Text("리포트 요약", color = Green, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
-            Text(title, color = DeepGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-            Text(
-                if (uiModel.scoreIsProvisional) "일부 사진 분석 실패로 현재 점수는 잠정값이에요."
-                else "참고 점수는 확인 필요 관찰 1건당 5점씩 차감해 계산해요.",
-                color = Secondary, fontSize = 9.sp, lineHeight = 13.sp,
-            )
-        }
-        Column(horizontalAlignment = Alignment.End) {
-            Text("${uiModel.referenceScore}", color = Green, fontSize = 30.sp, fontWeight = FontWeight.Black)
-            Text("/ 100 참고 점수", color = Secondary, fontSize = 9.sp)
-        }
+private fun ReportSummaryCard(title: String) {
+    Column(
+        Modifier.fillMaxWidth().background(PaleGreen, RoundedCornerShape(18.dp)).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        Text("리포트 요약", color = Green, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+        Text(title, color = DeepGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+        Text(
+            "AI 관찰은 사진 근거를 정리한 결과이며 직접 확인이 필요해요.",
+            color = Secondary,
+            fontSize = 10.sp,
+            lineHeight = 14.sp,
+        )
     }
 }
 
@@ -969,7 +960,6 @@ private object ReportPreviewData {
         inspectionDate = "2026.08.25",
         completedPhotoCount = 21,
         totalPhotoCount = 21,
-        serverReferenceScore = 95,
         zones = listOf(ReportZoneUiModel("구역 확인 필요", listOf(observation))),
     )
 }

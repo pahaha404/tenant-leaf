@@ -54,9 +54,6 @@ class ReportGenerationCoordinator(
             successfulMediaCount = 0,
             failedMediaCount = 0,
             observationCount = 0,
-            referenceScore = null,
-            scorePolicyVersion = SCORE_POLICY_VERSION,
-            scoreIsProvisional = false,
             failureCode = null,
             templateVersion = TEMPLATE_VERSION,
             generatedAt = null,
@@ -85,8 +82,6 @@ class ReportGenerationCoordinator(
         report.successfulMediaCount = successCount
         report.failedMediaCount = failedCount
         report.observationCount = observationCount
-        report.scoreIsProvisional = successCount > 0 && failedCount > 0
-        report.referenceScore = if (successCount == 0) null else calculateReferenceScore(observationCount)
         report.failureCode = if (successCount == 0) "NO_ANALYZABLE_MEDIA" else null
         report.status = when {
             successCount == 0 -> ReportState.FAILED
@@ -167,12 +162,8 @@ class ReportGenerationCoordinator(
 
     companion object {
         const val TEMPLATE_VERSION = "observation-ko-v1"
-        const val SCORE_POLICY_VERSION = "minus-5-per-observation-v1"
     }
 }
-
-internal fun calculateReferenceScore(observationCount: Int): Int =
-    (100 - observationCount.coerceAtLeast(0) * 5).coerceAtLeast(0)
 
 data class ObservationDefinition(
     val type: String,

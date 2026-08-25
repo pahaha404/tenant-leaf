@@ -227,8 +227,6 @@ private fun ReportDetail.toUiModel(propertyAddress: String?): ReportDetailUiMode
         completedPhotoCount = successfulMediaCount,
         totalPhotoCount = totalMediaCount,
         failedPhotoCount = failedMediaCount,
-        serverReferenceScore = referenceScore,
-        scoreIsProvisional = scoreIsProvisional,
         representativePhotos = representativePhotos.map { photo ->
             ReportRepresentativePhotoUiModel(
                 id = photo.mediaId.toString(),

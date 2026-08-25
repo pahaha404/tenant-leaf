@@ -116,7 +116,6 @@ class ReportGenerationIntegrationTests(
         assertNotNull(report)
         assertEquals(ReportState.COMPLETED, report.status)
         assertEquals(1, report.observationCount)
-        assertEquals(95, report.referenceScore)
         val observation = observationRepository.findAllByInspectionIdAndStatusNot(inspectionId, ObservationState.DISMISSED).single()
         val evidence = evidenceRepository.findAllByIdObservationIdIn(listOf(observation.id)).single()
         assertEquals("MOLD_CHECK_NEEDED", observation.type)
