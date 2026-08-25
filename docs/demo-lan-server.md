@@ -35,10 +35,10 @@ New-NetFirewallRule -DisplayName 'Tenant Leaf MinIO demo' -Direction Inbound -Ac
 
 ### 방법 A: Android Studio에서 팀원 각자가 설치
 
-각 팀원은 GitHub에서 이 기능이 포함된 `develop`을 받은 뒤, 자기 PC의 `android/local.properties` 맨 아래에 두 줄을 추가한다. 이 파일은 Git에 올라가지 않으므로 각자 다른 값을 써도 충돌하지 않는다.
+각 팀원은 GitHub에서 이 기능이 포함된 `feature/demo-lan-server`를 받은 뒤, 자기 PC의 `android/local.properties` 맨 아래에 두 줄을 추가한다. PR이 `develop`에 머지된 뒤에는 `develop`을 받는다. 이 파일은 Git에 올라가지 않으므로 각자 다른 값을 써도 충돌하지 않는다.
 
 ```properties
-TENANT_LEAF_DEBUG_API_BASE_URL=http://192.168.2.125:8080/api/v1/
+TENANT_LEAF_DEBUG_API_BASE_URL=http://<발표 노트북 Wi-Fi IP>:8080/api/v1/
 TENANT_LEAF_DEMO_USER=judge-a
 ```
 
