@@ -1,10 +1,17 @@
 openapi: 3.0.3
 info:
   title: Tenant Leaf API
+feature/api-observation-generation
   version: 2.4.0-draft.1
   x-contract-status: review-draft
   description: |
     세입세잎 Android 앱과 Kotlin API 서버가 공유하는 MVP HTTP API 계약의 2.4 검토 초안입니다.
+
+  version: 2.2.0-draft.1
+  x-contract-status: review-draft
+  description: |
+    세입세잎 Android 앱과 Kotlin API 서버가 공유하는 MVP HTTP API 계약의 2.2 검토 초안입니다.
+ main
     현장 점검은 체크리스트 대신 구역·관찰·근거 JPEG를 중심으로 처리합니다.
     원본 영상은 휴대전화 갤러리에만 보관하고 서버에는 업로드하지 않습니다.
     AI 결과는 실제 하자나 안전 상태를 확정하지 않는 확인 필요 관찰 후보입니다.
@@ -1259,6 +1266,7 @@ components:
         - TROWEL_MARK_CHECK_NEEDED
         - OTHER_CHECK_NEEDED
 
+feature/api-observation-generation
     ImageDimensions:
       type: object
       required: [width, height]
@@ -1304,6 +1312,11 @@ components:
     ObservationEvidence:
       type: object
       required: [mediaId, primary, available, sourceVideoOffsetMs, image, coordinateSystem, detections]
+
+    ObservationEvidence:
+      type: object
+      required: [mediaId, primary, available, sourceVideoOffsetMs]
+ main
       properties:
         mediaId:
           type: string
@@ -1318,6 +1331,7 @@ components:
           type: integer
           format: int64
           minimum: 0
+ feature/api-observation-generation
         image:
           $ref: "#/components/schemas/ImageDimensions"
         coordinateSystem:
@@ -1328,6 +1342,12 @@ components:
           description: 같은 근거 JPEG에서 사용자 표시 임계값을 통과한 관찰 bbox입니다. 현재 관찰의 observationId와 일치하는 항목을 기본 강조합니다.
           items:
             $ref: "#/components/schemas/EvidenceDetection"
+
+        bbox:
+          allOf:
+            - $ref: "#/components/schemas/Bbox"
+          nullable: true
+main
         viewUrl:
           type: string
           format: uri
@@ -1468,6 +1488,7 @@ components:
         - propertyId
         - inspectionId
         - status
+ feature/api-observation-generation
         - totalMediaCount
         - successfulMediaCount
         - failedMediaCount
@@ -1475,6 +1496,11 @@ components:
         - propertyDisplayName
         - inspectionEndedAt
         - scoreIsProvisional
+
+        - successfulMediaCount
+        - failedMediaCount
+        - observationCount
+ main
         - templateVersion
         - createdAt
         - updatedAt
@@ -1490,10 +1516,13 @@ components:
           format: uuid
         status:
           $ref: "#/components/schemas/ReportStatus"
+ feature/api-observation-generation
         totalMediaCount:
           type: integer
           minimum: 0
           description: 미디어 집합 확정 시 서버가 기록한 전체 분석 대상 JPEG 수입니다.
+
+ main
         successfulMediaCount:
           type: integer
           minimum: 0
@@ -1504,6 +1533,7 @@ components:
           type: integer
           minimum: 0
           description: DISMISSED 관찰을 제외한 기본 리포트 관찰 수입니다.
+ feature/api-observation-generation
         propertyDisplayName:
           type: string
           minLength: 1
@@ -1522,6 +1552,8 @@ components:
         scoreIsProvisional:
           type: boolean
           description: 일부 사진 분석 실패로 점수가 잠정값이면 true입니다.
+
+ main
         failureCode:
           allOf:
             - $ref: "#/components/schemas/ReportFailureCode"
