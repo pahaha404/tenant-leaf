@@ -55,29 +55,37 @@ internal fun Welcome(back: () -> Unit, next: () -> Unit) {
     val scope = rememberCoroutineScope()
     val page = pagerState.currentPage
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF6F4EF)),
+            .background(Color(0xFFF6F4EF))
+            .statusBarsPadding()
+            .navigationBarsPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
         ) { index ->
-            Image(
-                painter = painterResource(id = onboardingSlides[index]),
-                contentDescription = "온보딩 화면 ${index + 1}",
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-            )
+                contentAlignment = Alignment.Center,
+            ) {
+                Image(
+                    painter = painterResource(id = onboardingSlides[index]),
+                    contentDescription = "온보딩 화면 ${index + 1}",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
+                )
+            }
         }
 
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 20.dp),
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Row(
