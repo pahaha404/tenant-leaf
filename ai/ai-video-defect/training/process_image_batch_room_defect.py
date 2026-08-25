@@ -130,6 +130,11 @@ def process_image_batch(args: argparse.Namespace) -> dict[str, Any]:
     defect_args = argparse.Namespace(
         input=input_path,
         job_id=args.job_id,
+        # The nested two-stage runner still exposes its legacy single-media
+        # metadata fields. Batch correlation is performed with each manifest
+        # imageId below, so use the inspection job id only as the parent value.
+        media_id=args.job_id,
+        model_version="two_stage_negative_rot4",
         output=defect_output,
         binary=args.binary,
         multiclass=args.multiclass,
@@ -183,6 +188,7 @@ def process_image_batch(args: argparse.Namespace) -> dict[str, Any]:
 
     payload = {
         "jobId": args.job_id,
+        "modelVersion": defects["modelVersion"],
         "status": "completed",
         "input": {
             "path": display_path(input_path, root),

@@ -84,6 +84,8 @@
 
 ## 진행 기록
 
+- 2026-08-25 — 서버 AI Worker를 임장 단위 Gemini·YOLO 배치 분석으로 전환했다. 미디어 확정 후 영상 시점 순으로 구역 분류와 하자 후보 2차 검증을 수행하고 사진별 구역·BBOX를 저장해 기존 자동 리포트 생성으로 이어지도록 구현했으며 Python 문법 검사와 계약·런타임 단위 테스트 9건을 통과했다. 실제 Gemini·MinIO·PostgreSQL 통합 검증 전까지 AI 분석 결과 형식 및 통합 알파 항목은 미완료로 유지한다.
+
 - 2026-08-24 — Android 리포트 선택 화면을 샘플 데이터에서 실제 매물·리포트 API 기반 목록으로 전환하고 선택한 임장의 실제 상세 리포트로 이동하도록 연결했다. 로컬 API 응답은 확인했으나 Gradle 9.5 배포본 다운로드가 실행 환경에서 차단되어 빌드·단위 테스트 검증 전까지 관련 완료 체크는 유지한다.
 - 2026-08-24 — Android 팀 공용 디버그 서명 키(`debug.keystore`) 설정(`signingConfigs.debug`)을 적용함. 팀원 각자의 PC 키 해시 등록 번거로움을 제거하고 `local.properties` 공유만으로 카카오 맵 SDK가 모든 기기에서 즉시 정상 렌더링되도록 구성함. `:app:assembleDebug`, `:app:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — Android 내 정보 화면 로그아웃 기능(다이얼로그 확인 및 토큰/환경설정 초기화, 로그인 이동)과 매물 보증금·월세 금액의 한국 단위(억/만) 자동 포맷팅(`formatKoreanAmount`)을 적용함. `:app:testDebugUnitTest`, `:feature:property:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).

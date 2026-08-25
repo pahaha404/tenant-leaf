@@ -3,6 +3,7 @@ package com.seipseip.core.network
 import com.seipseip.core.BuildConfig
 import com.seipseip.core.network.generated.api.InspectionsApi
 import com.seipseip.core.network.generated.api.MediaApi
+import com.seipseip.core.network.generated.api.ObservationsApi
 import com.seipseip.core.network.generated.api.PropertiesApi
 import com.seipseip.core.network.generated.api.ReportsApi
 import com.squareup.moshi.Moshi
@@ -61,6 +62,10 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideMediaApi(retrofit: Retrofit): MediaApi = retrofit.create(MediaApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideObservationsApi(retrofit: Retrofit): ObservationsApi = retrofit.create(ObservationsApi::class.java)
 
     @Provides
     @Singleton

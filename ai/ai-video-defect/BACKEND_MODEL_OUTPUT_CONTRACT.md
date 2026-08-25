@@ -246,6 +246,7 @@ AI가 반환하는 값은 서버 내부 파일 경로다. 백엔드는 원본 �
 ```json
 {
   "jobId": "job-001",
+  "modelVersion": "two_stage_negative_rot4",
   "status": "completed",
   "processing": {
     "mode": "backend_sampled_images_room_gemini_yolo",
