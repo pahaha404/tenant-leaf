@@ -24,6 +24,10 @@
 
 ## 진행 기록
 
+- 2026-08-25 — 완료 리포트의 대표 사진 응답에 Gemini 구역·불확실 여부·모델 버전을 추가하고, 확실한 주방·거실/방·화장실별로 6초 이상 떨어진 사진을 최대 3장씩, 전체 최대 12장 선별하도록 변경했다. 공간 분류가 없거나 전부 불확실한 기존 리포트는 시작·중간·마지막 사진 fallback을 유지한다. 선별 규칙 단위 테스트와 계약 검사를 추가했으나 Kotlin `2.3.21` 플러그인을 오프라인 환경에서 해석하지 못해 Gradle 테스트는 미완료 상태다.
+
+- 2026-08-25 — 완료 리포트 응답에 관찰 결과와 독립적인 `representativePhotos`를 추가했다. 분석 완료 JPEG를 촬영 순서와 신뢰 가능한 공간 구간을 기준으로 최대 8장 선별하고, 공간 분류가 불확실하면 방문 시작·중간·마지막 사진으로 대체한다. OpenAPI·공통 계약·서버 선별 규칙 테스트를 함께 보완했으나 Kotlin `2.3.21` 플러그인을 오프라인 환경에서 해석하지 못해 서버 Gradle 테스트는 미완료 상태다.
+
 - 2026-08-25 — AI Worker를 사진 한 장 선점 방식에서 `media_finalized_at`이 확정된 임장 단위 배치 방식으로 변경했다. 같은 임장의 `QUEUED` JPEG를 `source_video_offset_ms` 순으로 내려받아 manifest를 만들고, `process_image_batch_room_defect`를 Gemini 구역 분류·Gemini 하자 검증 옵션으로 실행하도록 연결했다. 통합 결과에서 `bathroom/kitchen/living_room/unknown`을 서버 구역으로 변환해 `ai_zone`, `zone_uncertain`, `zone_model_version`과 살아남은 BBOX를 사진별 저장하도록 구현했다. 변경 Python 파일 문법 검사와 Worker 계약·런타임 단위 테스트 9건은 통과했으며, 실제 Gemini·MinIO·PostgreSQL 배치 smoke test는 미검증 상태이므로 관련 체크 항목은 `[ ]`로 유지한다.
 
 - 2026-08-25 — AI 공간 분류 범위를 실제 Gemini 분류 계약과 동일하게 `KITCHEN`, `LIVING_ROOM`, `BATHROOM`, `UNKNOWN` 네 값으로 정리했다. 도메인 규칙·공통 API·OpenAPI·서버 enum·계약 테스트를 수정하고, 기존 `ENTRANCE_COMMON`·`WINDOW_VENTILATION` 데이터를 `UNKNOWN`으로 바꾸는 Flyway V10 마이그레이션을 추가했다. 변경 파일 정적 검사는 통과했으나 Gradle 플러그인 원격 해석 제한으로 서버 전체 테스트는 미검증 상태다.

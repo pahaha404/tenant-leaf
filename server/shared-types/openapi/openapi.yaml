@@ -1544,19 +1544,63 @@ components:
           type: string
           format: date-time
 
+    ReportRepresentativePhoto:
+      type: object
+      required: [mediaId, zone, zoneUncertain, sourceVideoOffsetMs, image, viewUrl, viewUrlExpiresAt]
+      description: >-
+        Gemini 공간 분류 결과를 바탕으로 주방·거실/방·화장실별로 선별한 대표 JPEG입니다.
+        Android 촬영 단계의 흔들림·중복 제거를 통과한 사진 중 같은 공간에서 시간상 지나치게
+        가까운 사진을 제외해 공간별 여러 장을 제공할 수 있습니다. UNKNOWN은 공간 확인 필요로 표시합니다.
+      properties:
+        mediaId:
+          type: string
+          format: uuid
+        zone:
+          $ref: "#/components/schemas/Zone"
+        zoneUncertain:
+          type: boolean
+          description: true이면 공간명을 확정 표현하지 않고 '공간 확인 필요'로 표시합니다.
+        zoneModelVersion:
+          type: string
+          nullable: true
+          description: Gemini 공간 분류 모델 버전입니다. 사용자 화면에는 직접 노출하지 않습니다.
+        sourceVideoOffsetMs:
+          type: integer
+          format: int64
+          minimum: 0
+          description: 원본 영상 시작 기준 JPEG 시점입니다.
+        image:
+          $ref: "#/components/schemas/ImageDimensions"
+        viewUrl:
+          type: string
+          format: uri
+          description: 인증·소유권 확인 후 발급되는 만료형 JPEG 조회 URL입니다.
+        viewUrlExpiresAt:
+          type: string
+          format: date-time
+
     ReportDetail:
       allOf:
         - $ref: "#/components/schemas/ReportSummary"
         - type: object
-          required: [observations]
+          required: [representativePhotos, observations]
           properties:
             emptyObservationMessage:
               type: string
               nullable: true
               description: 관찰 0건 성공 시 '현재 촬영 근거에서 확인 필요 관찰이 생성되지 않았습니다.'를 제공합니다.
+            representativePhotos:
+              type: array
+              description: >-
+                분석 완료 JPEG 중 Gemini 공간별 대표 사진으로 선별한 목록입니다. 관찰 결과와 독립적이므로
+                관찰이 0건이어도 제공할 수 있으며 같은 공간에서 여러 장을 반환할 수 있습니다.
+              items:
+                $ref: "#/components/schemas/ReportRepresentativePhoto"
             observations:
               type: array
-              description: DISMISSED 관찰은 제외하며 각 항목의 근거 mediaId로 문장을 추적할 수 있습니다.
+              description: >-
+                DISMISSED 관찰은 제외하며 각 항목의 근거 mediaId로 문장을 추적할 수 있습니다.
+                Android는 구역명으로 묶지 않고 대표 근거의 sourceVideoOffsetMs 순서로 표시합니다.
               items:
                 $ref: "#/components/schemas/Observation"
 
