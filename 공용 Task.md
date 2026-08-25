@@ -84,6 +84,7 @@
 
 ## 진행 기록
 
+- 2026-08-24 — Android 리포트 선택 화면을 샘플 데이터에서 실제 매물·리포트 API 기반 목록으로 전환하고 선택한 임장의 실제 상세 리포트로 이동하도록 연결했다. 로컬 API 응답은 확인했으나 Gradle 9.5 배포본 다운로드가 실행 환경에서 차단되어 빌드·단위 테스트 검증 전까지 관련 완료 체크는 유지한다.
 - 2026-08-24 — Android 팀 공용 디버그 서명 키(`debug.keystore`) 설정(`signingConfigs.debug`)을 적용함. 팀원 각자의 PC 키 해시 등록 번거로움을 제거하고 `local.properties` 공유만으로 카카오 맵 SDK가 모든 기기에서 즉시 정상 렌더링되도록 구성함. `:app:assembleDebug`, `:app:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — Android 내 정보 화면 로그아웃 기능(다이얼로그 확인 및 토큰/환경설정 초기화, 로그인 이동)과 매물 보증금·월세 금액의 한국 단위(억/만) 자동 포맷팅(`formatKoreanAmount`)을 적용함. `:app:testDebugUnitTest`, `:feature:property:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 로컬 Android Debug 서버 연결이 끊긴 원인이 서버 중지가 아니라 USB `adb reverse` 포트 전달 누락임을 확인해 복구함. 오프라인 에뮬레이터가 있어도 연결된 실제 기기를 골라 `8080`·`9000` 포트를 전달하도록 빌드 설정을 보완함.
