@@ -78,6 +78,7 @@ dependencies {
     implementation(composeBom)
     androidTestImplementation(composeBom)
     implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.activity:activity-compose:1.9.2")
     implementation("androidx.navigation:navigation-compose:2.8.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.6")
@@ -101,16 +102,24 @@ dependencies {
 kapt { correctErrorTypes = true }
 
 val adbExecutable = androidComponents.sdkComponents.adb
-val hasConnectedDevice = providers.exec {
-    commandLine(adbExecutable.get().asFile, "get-state")
+val connectedDeviceSerial = providers.exec {
+    commandLine(adbExecutable.get().asFile, "devices")
     isIgnoreExitValue = true
-}.standardOutput.asText.map { it.trim() == "device" }
+}.standardOutput.asText.map { output ->
+    output.lineSequence()
+        .map(String::trim)
+        .firstOrNull { it.endsWith("\tdevice") }
+        ?.substringBefore('\t')
+        .orEmpty()
+}
 
 fun registerReversePortTask(name: String, port: Int) = tasks.register<Exec>(name) {
     group = "tenant-leaf"
     description = "Forwards device port $port to the local development machine."
-    onlyIf("an Android device is connected") { hasConnectedDevice.get() }
-    commandLine(adbExecutable.get().asFile, "reverse", "tcp:$port", "tcp:$port")
+    onlyIf("an Android device is connected") { connectedDeviceSerial.get().isNotBlank() }
+    doFirst {
+        commandLine(adbExecutable.get().asFile, "-s", connectedDeviceSerial.get(), "reverse", "tcp:$port", "tcp:$port")
+    }
 }
 
 val reverseDebugApiPort = registerReversePortTask("reverseDebugApiPort", 8080)

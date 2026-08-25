@@ -15,7 +15,9 @@
     <application
         android:name=".TenantLeafApplication"
         android:allowBackup="false"
+        android:icon="@drawable/ic_launcher_seipseip"
         android:label="세입세잎"
+        android:roundIcon="@drawable/ic_launcher_seipseip"
         android:theme="@style/Theme.Seipseip">
         <meta-data android:name="com.meta.wearable.mwdat.APPLICATION_ID" android:value="${mwdat_application_id}" />
         <meta-data android:name="com.meta.wearable.mwdat.CLIENT_TOKEN" android:value="${mwdat_client_token}" />
@@ -29,6 +31,7 @@
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize"
             android:screenOrientation="portrait"
+            android:theme="@style/Theme.Seipseip.Starting"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

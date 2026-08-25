@@ -1019,6 +1019,7 @@ components:
       type: object
       required:
         - clientMediaId
+        - zone
         - contentType
         - fileSize
         - width
@@ -1033,6 +1034,8 @@ components:
           type: string
           format: uuid
           description: 같은 논리 사진의 재시도에도 유지하는 Android 생성 UUID입니다.
+        zone:
+          $ref: "#/components/schemas/Zone"
         contentType:
           type: string
           enum: [image/jpeg]

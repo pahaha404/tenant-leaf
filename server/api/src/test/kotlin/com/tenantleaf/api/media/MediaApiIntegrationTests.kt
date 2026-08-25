@@ -93,6 +93,7 @@ class MediaApiIntegrationTests(
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.uploadStatus").value("UPLOADED"))
+            .andExpect(jsonPath("$.zone").value("UNKNOWN"))
             .andExpect(jsonPath("$.analysisStatus").value("QUEUED"))
 
         kotlin.test.assertEquals(1, analysisJobRepository.count())
@@ -190,7 +191,7 @@ class MediaApiIntegrationTests(
     }
 
     private fun requestBody(clientMediaId: UUID, sourceVideoId: UUID) =
-        """{"items":[{"clientMediaId":"$clientMediaId","contentType":"image/jpeg","fileSize":123,"width":640,"height":480,"sourceVideoId":"$sourceVideoId","sourceVideoOffsetMs":3000,"frameOrigin":"POST_RECORDING_EXTRACTION","captureSource":"META_GLASS","capturedAt":"2026-08-19T10:00:00+09:00"}]}"""
+        """{"items":[{"clientMediaId":"$clientMediaId","zone":"UNKNOWN","contentType":"image/jpeg","fileSize":123,"width":640,"height":480,"sourceVideoId":"$sourceVideoId","sourceVideoOffsetMs":3000,"frameOrigin":"POST_RECORDING_EXTRACTION","captureSource":"META_GLASS","capturedAt":"2026-08-19T10:00:00+09:00"}]}"""
 
     private fun createEndedInspection() = createInspection(InspectionLifecycleStatus.ENDED)
 
