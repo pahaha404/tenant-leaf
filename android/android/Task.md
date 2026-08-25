@@ -25,6 +25,10 @@
 
 ## 진행 기록
 
+- 2026-08-25 — 구역 명칭 간소화(현관·공용 ➔ 현관). `UiCatalog`, 실시간 점검(`LiveInspectionScreen`), 리포트(`ReportApiRoute`) 등 UI 전반에서 '현관·공용'으로 표기되던 명칭을 '현관'으로 간결하게 변경 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
+
+- 2026-08-25 — 실시간 점검 화면(`LiveInspectionScreen`) UI/UX Best Practices 고도화. 1) 카메라 프리뷰 시인성 극대화(높이 230dp 확대, REC 펄스 애니메이션 뱃지, 실시간 경과 시간 및 소스 뱃지 오버레이), 2) 가로 스크롤 구역(Zone) 퀵 스위처 칩 바를 탑재하여 이동 동선에 맞춰 원하는 구역 가이드로 즉각 전환 지원, 3) 체크리스트를 번호 인덱스 기반 촬영 리마인더 카드로 재정돈, 4) 뒤로가기 터치 및 시스템 백 제스처 시 이탈 방지 안전 확인 다이얼로그(`showExitDialog`, `BackHandler`) 연동, 5) 하단 엄지 조작 영역의 일시정지/재개 및 점검 종료 액션바 인터랙션을 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
+- 2026-08-25 — 실시간 점검 화면(`LiveInspectionScreen`) 확인 안내 항목 스타일 통일. 현관·공용 및 각 구역 확인 안내 체크리스트에서 첫 번째 항목에 적용되어 있던 연초록(`PaleGreen`) 배경 및 채워진 원(`●`) 강조 스타일을 제거하고, 모든 항목이 기본 배경(`Color(0xFFF8F8F6)`) 및 빈 원(`○`)으로 동일하게 표시되도록 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-25 — 온보딩 시작 화면(`Welcome`) 3단 슬라이드에 세입세잎 전용 온보딩 일러스트(`onboarding_1`, `onboarding_2`, `onboarding_3`) 적용. `HorizontalPager` 전체화면 렌더링 및 하단 인디케이터·'서비스 시작하기' 액션 버튼 연동 완료. `:app:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-24 — 매물 등록 화면에서 키보드 `다음`을 누르면 매물 이름→상세 주소→보증금→월세 순서로 포커스가 이동하도록 하고, 포커스 입력칸을 자동 스크롤해 키보드에 가리지 않도록 처리함. 앱 전체 페이지에도 IME 여백을 적용함. `:app:compileDebugKotlin` 및 Galaxy SM-S911N(Android 16) `:app:installDebug`를 통과함.
 - 2026-08-24 — 로컬 서버는 실행 중이었지만 휴대전화의 `adb reverse` 포트 전달이 사라져 앱이 `127.0.0.1:8080`에 연결하지 못한 것을 확인함. 실제 기기 `8080`·`9000` 전달을 복구하고, Debug 빌드가 오프라인 에뮬레이터 대신 연결된 실제 기기 serial을 골라 포트 전달하도록 수정함. 기기 포트 연결 검사 성공.
