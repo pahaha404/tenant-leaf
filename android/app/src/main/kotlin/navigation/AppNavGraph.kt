@@ -53,9 +53,6 @@ import com.seipseip.app.feature.property.location.AddressPickerScreen
 import com.seipseip.app.feature.property.location.LocationPickerActivity
 import com.seipseip.app.feature.property.PropertyListScreen
 import com.seipseip.app.feature.property.PropertySelectScreen
-import com.seipseip.app.feature.report.ReportDetailScreen
-import com.seipseip.app.feature.report.ReportSamples
-import com.seipseip.app.feature.report.ReportListScreen
 import com.seipseip.app.feature.state.EmptyPropertyScreen
 import com.seipseip.app.feature.state.HomeProcessingScreen
 import com.seipseip.app.feature.state.LoadingScreen
@@ -70,6 +67,7 @@ import com.seipseip.app.integration.PropertyListApiRoute
 import com.seipseip.app.integration.PropertyMapApiRoute
 import com.seipseip.app.integration.PropertySelectApiRoute
 import com.seipseip.app.integration.ReportApiRoute
+import com.seipseip.app.integration.ReportListApiRoute
 
 object Route {
     const val Loading = "loading"
@@ -106,7 +104,6 @@ object Route {
     const val Analysis = "analysis/{inspectionId}"
     const val Observation = "observation/{zone}"
     const val Reports = "reports"
-    const val ReportDetail = "report_detail"
     const val InspectionReport = "inspection_report/{inspectionId}"
     const val Profile = "profile"
     const val Magazine = "magazine"
@@ -261,7 +258,7 @@ fun AppNavGraph(
                 processing = false,
                 onOpenProperties = { navController.navigate(Route.PropertyList) },
                 onOpenReports = { navController.navigate(Route.Reports) },
-                onOpenRecentReport = { navController.navigate(Route.ReportDetail) },
+                onOpenRecentReport = { navController.navigate(Route.Reports) },
                 onOpenMagazine = { navController.navigate(Route.Magazine) },
                 onOpenMagazineArticle = { articleId -> navController.navigate(Route.magazineDetail(articleId)) },
                 onStartInspection = { navController.navigate(Route.PropertySelect) },
@@ -388,7 +385,7 @@ fun AppNavGraph(
             PropertyDetailApiRoute(
                 onBack = navController::popBackStack,
                 onStartInspection = { navController.navigate(Route.inspectionPrep(it)) },
-                onOpenReport = { navController.navigate(Route.ReportDetail) },
+                onOpenReport = { navController.navigate(Route.Reports) },
                 onOpenBasicInfo = { property -> property?.id?.let { navController.navigate(Route.propertyInfo(it)) } },
                 onEditProperty = { propertyId -> navController.navigate(Route.propertyEdit(propertyId)) },
                 onTabSelected = { tab ->
@@ -588,8 +585,8 @@ fun AppNavGraph(
             )
         }
         composable(Route.Reports) {
-            ReportListScreen(
-                onOpenReport = { navController.navigate(Route.ReportDetail) },
+            ReportListApiRoute(
+                onOpenReport = { inspectionId -> navController.navigate(Route.inspectionReport(inspectionId)) },
                 onTabSelected = { tab ->
                     goToTab(
                         when (tab) {
@@ -600,14 +597,6 @@ fun AppNavGraph(
                         },
                     )
                 },
-            )
-        }
-        composable(Route.ReportDetail) {
-            ReportDetailScreen(
-                nickname = nickname,
-                onBack = navController::popBackStack,
-                onOpenProperty = { navController.navigate(Route.PropertyList) },
-                uiModel = ReportSamples.completed,
             )
         }
         composable(
