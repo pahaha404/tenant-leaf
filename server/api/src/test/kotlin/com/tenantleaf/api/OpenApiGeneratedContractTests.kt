@@ -170,6 +170,8 @@ class OpenApiGeneratedContractTests {
 		assertTrue(specification.contains("PIXEL_XYXY"))
 		assertTrue(specification.contains("scoreIsProvisional"))
 		assertTrue(specification.contains("totalMediaCount"))
+		assertTrue(specification.contains("ReportRepresentativePhoto"))
+		assertTrue(specification.contains("representativePhotos"))
 		assertTrue(specification.contains("maxItems: 20"))
 		assertTrue(specification.contains("maximum: 2097152"))
 		assertFalse(specification.contains("maximum: 1048576"))

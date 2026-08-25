@@ -13,6 +13,7 @@ import com.tenantleaf.api.generated.model.ObservationType
 import com.tenantleaf.api.generated.model.ReportDetail
 import com.tenantleaf.api.generated.model.ReportFailureCode
 import com.tenantleaf.api.generated.model.ReportPage
+import com.tenantleaf.api.generated.model.ReportRepresentativePhoto
 import com.tenantleaf.api.generated.model.ReportStatus
 import com.tenantleaf.api.generated.model.ReportSummary
 import com.tenantleaf.api.generated.model.UpdateObservationStatusRequest
@@ -20,6 +21,10 @@ import com.tenantleaf.api.generated.model.Zone
 import com.tenantleaf.api.inspection.InspectionNotFoundException
 import com.tenantleaf.api.inspection.InspectionRepository
 import com.tenantleaf.api.media.MediaRepository
+import com.tenantleaf.api.media.MediaAnalysisState
+import com.tenantleaf.api.media.MediaEntity
+import com.tenantleaf.api.media.MediaUploadState
+import com.tenantleaf.api.media.MediaZone
 import com.tenantleaf.api.media.ObjectStorageGateway
 import com.tenantleaf.api.property.DemoUserContext
 import com.tenantleaf.api.property.PropertyNotFoundException
@@ -52,11 +57,13 @@ class ReportService(
             ?: throw PropertyNotFoundException()
         val observations = observationRepository
             .findAllByInspectionIdAndStatusNot(inspectionId, ObservationState.DISMISSED)
+        val media = mediaRepository.findAllByInspectionIdAndDeletedAtIsNull(inspectionId)
         return report.toDetail(
             propertyName = property.name,
             inspectionEndedAt = inspection.endedAt ?: inspection.startedAt,
             totalMediaCount = inspection.expectedMediaCount
                 ?: (report.successfulMediaCount + report.failedMediaCount),
+            representativePhotos = mapRepresentativePhotos(media),
             observations = mapObservations(observations),
         )
     }
@@ -196,6 +203,7 @@ class ReportService(
         propertyName: String,
         inspectionEndedAt: OffsetDateTime,
         totalMediaCount: Int,
+        representativePhotos: List<ReportRepresentativePhoto>,
         observations: List<Observation>,
     ) = ReportDetail(
         id = id,
@@ -217,8 +225,21 @@ class ReportService(
         createdAt = createdAt,
         updatedAt = updatedAt,
         emptyObservationMessage = if (status == ReportState.COMPLETED && observations.isEmpty()) EMPTY_MESSAGE else null,
+        representativePhotos = representativePhotos,
         observations = observations,
     )
+
+    private fun mapRepresentativePhotos(media: List<MediaEntity>): List<ReportRepresentativePhoto> =
+        selectReportRepresentativeMedia(media).map { item ->
+            val signed = storage.createViewUrl(item.storageKey)
+            ReportRepresentativePhoto(
+                mediaId = item.id,
+                sourceVideoOffsetMs = item.sourceVideoOffsetMs,
+                image = ImageDimensions(item.width, item.height),
+                viewUrl = signed.url,
+                viewUrlExpiresAt = signed.expiresAt,
+            )
+        }
 
     private fun ReportEntity.toSummary(
         propertyName: String,
@@ -257,4 +278,50 @@ class ReportService(
     companion object {
         const val EMPTY_MESSAGE = "현재 촬영 근거에서 확인 필요 관찰이 생성되지 않았습니다."
     }
+}
+
+internal fun selectReportRepresentativeMedia(media: List<MediaEntity>, limit: Int = 8): List<MediaEntity> {
+    val completed = media
+        .filter { it.uploadStatus == MediaUploadState.UPLOADED && it.analysisStatus == MediaAnalysisState.COMPLETED }
+        .sortedWith(compareBy<MediaEntity> { it.sourceVideoOffsetMs }.thenBy { it.id })
+    if (completed.isEmpty() || limit <= 0) return emptyList()
+
+    val runs = mutableListOf<List<MediaEntity>>()
+    var currentZone: MediaZone? = null
+    var currentRun = mutableListOf<MediaEntity>()
+
+    fun flushRun() {
+        if (currentRun.isNotEmpty()) runs += currentRun.toList()
+        currentRun = mutableListOf()
+        currentZone = null
+    }
+
+    completed.forEach { item ->
+        val zone = (item.userCorrectedZone ?: item.aiZone)
+            ?.takeIf { it != MediaZone.UNKNOWN && item.zoneUncertain != true }
+        if (zone == null) {
+            flushRun()
+        } else if (zone != currentZone) {
+            flushRun()
+            currentZone = zone
+            currentRun += item
+        } else {
+            currentRun += item
+        }
+    }
+    flushRun()
+
+    val classifiedRepresentatives = runs.mapNotNull { run ->
+        run.maxWithOrNull(
+            compareBy<MediaEntity> { it.zoneConfidence ?: -1.0 }
+                .thenBy { -it.sourceVideoOffsetMs },
+        )
+    }.sortedBy { it.sourceVideoOffsetMs }
+
+    if (classifiedRepresentatives.isNotEmpty()) return classifiedRepresentatives.take(limit)
+    if (completed.size <= 3) return completed.take(limit)
+
+    return listOf(completed.first(), completed[(completed.lastIndex) / 2], completed.last())
+        .distinctBy { it.id }
+        .take(limit)
 }
