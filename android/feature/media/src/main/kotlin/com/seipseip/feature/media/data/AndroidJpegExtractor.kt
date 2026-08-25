@@ -77,27 +77,16 @@ class AndroidJpegExtractor @Inject constructor(
     }
 
     private fun edgeScore(bitmap: Bitmap): Double {
-        val width = bitmap.width
-        val height = bitmap.height
-        val pixels = IntArray(width * height)
-        bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-
-        val stepX = max(1, width / SCORE_SAMPLE_WIDTH)
-        val stepY = max(1, height / SCORE_SAMPLE_HEIGHT)
+        val stepX = max(1, bitmap.width / SCORE_SAMPLE_WIDTH)
+        val stepY = max(1, bitmap.height / SCORE_SAMPLE_HEIGHT)
         var total = 0.0
         var count = 0
         var y = stepY
-        while (y < height) {
-            val yOffset = y * width
-            val prevYOffset = (y - stepY) * width
+        while (y < bitmap.height) {
             var x = stepX
-            while (x < width) {
-                val currentPixel = pixels[yOffset + x]
-                val leftPixel = pixels[yOffset + (x - stepX)]
-                val topPixel = pixels[prevYOffset + x]
-
-                total += abs(luminance(currentPixel) - luminance(leftPixel))
-                total += abs(luminance(currentPixel) - luminance(topPixel))
+            while (x < bitmap.width) {
+                total += abs(luminance(bitmap.getPixel(x, y)) - luminance(bitmap.getPixel(x - stepX, y)))
+                total += abs(luminance(bitmap.getPixel(x, y)) - luminance(bitmap.getPixel(x, y - stepY)))
                 count += 2
                 x += stepX
             }

@@ -17,7 +17,6 @@ local.properties
 .env.*
 !.env.example
 *.keystore
-!android/app/debug.keystore
 *.jks
 google-services.json
 

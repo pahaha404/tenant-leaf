@@ -58,7 +58,4 @@ class PropertyEntity(
 
     @Column(name = "updated_at", nullable = false)
     var updatedAt: OffsetDateTime,
-
-    @Column(name = "deleted_at")
-    var deletedAt: OffsetDateTime? = null,
 )

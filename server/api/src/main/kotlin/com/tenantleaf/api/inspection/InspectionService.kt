@@ -82,7 +82,7 @@ class InspectionService(
     }
 
     private fun requireOwnedProperty(propertyId: UUID, ownerId: UUID) {
-        propertyRepository.findByIdAndOwnerIdAndDeletedAtIsNull(propertyId, ownerId) ?: throw PropertyNotFoundException()
+        propertyRepository.findByIdAndOwnerId(propertyId, ownerId) ?: throw PropertyNotFoundException()
     }
 
     private fun ownedInspection(inspectionId: UUID): InspectionEntity =
@@ -99,7 +99,5 @@ class InspectionService(
         endedAt = endedAt,
         cancelledAt = cancelledAt,
         archivedAt = archivedAt,
-        mediaFinalizedAt = mediaFinalizedAt,
-        expectedMediaCount = expectedMediaCount,
     )
 }

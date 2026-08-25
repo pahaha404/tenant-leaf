@@ -59,8 +59,6 @@
 
 ## 완료 기록
 
-- 2026-08-24 — 분석 완료 JPEG에서 임계값 이상 원시 탐지를 관찰로 투영하고 자동 리포트를 생성·조회하는 서버/Android 통합 코드를 구현했다. 픽셀 `xyxy` 다중 bbox와 선택 관찰 강조, 서명 근거 사진 조회, 부분 완료·빈 결과·오류 상태를 연결했으나 Gradle 플러그인 해석 제한으로 빌드·통합 검증 전까지 관련 완료 체크는 유지하지 않는다.
-
 - 2026-08-20 — 서버와 DB의 로컬/실배포 설정을 분리했다. Android debug/release API 주소 계약을 유지하고, 서버 `prod` 프로필은 운영 DB·객체 저장소 환경변수를 필수로 요구하도록 구성했다. 서버 `clean test`는 통과했으며 실제 배포 환경 연결은 미검증이다.
 
 - 2026-08-10 — `docs/team/pm/01_2026-08-10_MVP-계획.md` 작성 완료. MVP 범위, 사용자 흐름, UI/UX, 일정, 완료 조건을 기록함.
@@ -84,14 +82,6 @@
 
 ## 진행 기록
 
-- 2026-08-25 — 서버 AI Worker를 임장 단위 Gemini·YOLO 배치 분석으로 전환했다. 미디어 확정 후 영상 시점 순으로 구역 분류와 하자 후보 2차 검증을 수행하고 사진별 구역·BBOX를 저장해 기존 자동 리포트 생성으로 이어지도록 구현했으며 Python 문법 검사와 계약·런타임 단위 테스트 9건을 통과했다. 실제 Gemini·MinIO·PostgreSQL 통합 검증 전까지 AI 분석 결과 형식 및 통합 알파 항목은 미완료로 유지한다.
-
-- 2026-08-24 — Android 리포트 선택 화면을 샘플 데이터에서 실제 매물·리포트 API 기반 목록으로 전환하고 선택한 임장의 실제 상세 리포트로 이동하도록 연결했다. 로컬 API 응답은 확인했으나 Gradle 9.5 배포본 다운로드가 실행 환경에서 차단되어 빌드·단위 테스트 검증 전까지 관련 완료 체크는 유지한다.
-- 2026-08-24 — Android 팀 공용 디버그 서명 키(`debug.keystore`) 설정(`signingConfigs.debug`)을 적용함. 팀원 각자의 PC 키 해시 등록 번거로움을 제거하고 `local.properties` 공유만으로 카카오 맵 SDK가 모든 기기에서 즉시 정상 렌더링되도록 구성함. `:app:assembleDebug`, `:app:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
-- 2026-08-24 — Android 내 정보 화면 로그아웃 기능(다이얼로그 확인 및 토큰/환경설정 초기화, 로그인 이동)과 매물 보증금·월세 금액의 한국 단위(억/만) 자동 포맷팅(`formatKoreanAmount`)을 적용함. `:app:testDebugUnitTest`, `:feature:property:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
-- 2026-08-24 — Android 점검 플로우 및 매물 관리 UI/UX 대규모 고도화(`feature/uiux-better`). 매물 지도 오버뷰 핀 연동 및 당겨서 새로고침(Pull-to-Refresh), 휴지통 기반 다중 선택 일괄 삭제, 매물 상세 연필 아이콘 수정 모드, 점검 준비/경고 화면 하단 CTA 버튼 고정, TTS 음성 엔진 앱 기동 사전 예열을 통한 0ms 즉각 발화, 안경 미연결 시 스마트폰 카메라 자동 전환 및 실시간 점검 화면 카드 정리, 분석 진행 탭 내 수동 선택 제거 및 갤러리 영상 100% 자동 추출·업로드 파이프라인 단일화를 구현함. `:app:testDebugUnitTest`, `:feature:property:testDebugUnitTest`, `:feature:media:testDebugUnitTest`, `:feature:inspection:testDebugUnitTest` 전원 통과 (`BUILD SUCCESSFUL`).
-- 2026-08-24 — Android 리포트 UI를 완료·근거 사진·빈 결과·부분 완료·오류·생성 중 6개 상태로 구현하고 기존 리포트 생성 진행 플래그에 연결함. AI 결과는 `확인 필요 관찰`로 표현하고, 근거 사진의 정규화 bbox·신뢰도·구역을 전체화면에서 확인하도록 구성함.
-- 2026-08-24 — Android 구역 관찰 화면의 하단 고정 CTA와 AI 관찰 비확정 안내 카드를 개선함. 54dp `매물 상세로 돌아가기` 버튼, 시스템 내비게이션 패딩, `#FFF0E4` 안내 카드, 아이콘+배지 상태 표현을 적용하고 Android `:app:testDebugUnitTest` 및 정적 진단을 통과함. 실기기 화면 위치와 실제 백스택 복귀는 미검증임.
 - 2026-08-22 — Android 앱이 로그인 완료와 튜토리얼 완료 상태를 `SharedPreferences`에 저장해 재실행 시 로그인과 앱 소개 흐름을 건너뛸 수 있게 연결함. `:app:testDebugUnitTest`, `:app:assembleDebug`, Galaxy SM-G991N(Android 15) `:app:installDebug`를 통과했지만, 잠금 화면과 `run-as` 제한으로 저장 상태별 실기기 분기 화면은 아직 확인하지 못함.
 - 2026-08-22 — Android 점검 시작 전 체크리스트 화면의 주요 버튼과 건너뛰기를 하단 액션 영역에 고정해 튜토리얼 화면과 동일한 정렬로 맞춤.
 - 2026-08-22 — Android 튜토리얼 화면의 영상 보기·건너뛰기 동작을 공통 하단 액션 영역으로 옮겨 하단 정렬함. Debug 빌드와 Galaxy SM-G991N(Android 15) 설치를 통과했으나, 약관 동의 전 상태이므로 변경된 튜토리얼 화면의 실기기 위치는 아직 확인하지 않음.

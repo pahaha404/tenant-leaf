@@ -18,9 +18,8 @@ AI Python 모듈
   ├─ 전체 이미지 Binary YOLO 추론
   ├─ 전체 이미지 다중 클래스 YOLO 추론
   ├─ 두 모델 결과 병합
-  ├─ 전체 이미지 후보 박스 Gemini 보조 검증
-  ├─ 확신도 0.90 이상의 `not_defect` 제외 및 최종 박스 이미지 생성
-  └─ 공간·하자·박스 이미지 통합 JSON 생성
+  ├─ 이미지별 탐지 결과와 observation crop 생성
+  └─ 공간·하자·crop 통합 JSON 생성
        ↓
 백엔드
   └─ AI 결과 저장 및 사용자 리포트 연결
@@ -34,8 +33,8 @@ AI Python 모듈
 - `ultralytics==8.4.117`
 - PyTorch 및 torchvision
 - 서버 GPU를 사용할 경우 서버 CUDA와 호환되는 PyTorch 빌드
-- `opencv-python-headless` — 이미지 읽기와 박스 이미지 생성
-- `Pillow` — 이미지 검증, 한글 라벨 및 클래스별 색상 박스 생성
+- `opencv-python-headless` — 이미지 읽기와 crop 생성
+- `Pillow` — 이미지 검증 및 처리
 - `numpy` — 이미지 배열 처리
 - `google-genai==2.19.0` — Gemini 공간 분류 API
 
@@ -74,23 +73,15 @@ python -c "from google import genai; print('google-genai import OK')"
 python -m training.process_image_batch_room_defect --help
 ```
 
-API 연결 없이 YOLO·박스 이미지·JSON 흐름만 점검할 때는 실행 명령에 `--room-provider disabled --defect-verifier disabled`를 추가한다. 상세 설치·오류 대응은 `BACKEND_ROOM_CLASSIFICATION_API_CHANGES.md`의 6절을 따른다.
+API 연결 없이 YOLO·crop·JSON 흐름만 점검할 때는 실행 명령에 `--room-provider disabled`를 추가한다. 상세 설치·오류 대응은 `BACKEND_ROOM_CLASSIFICATION_API_CHANGES.md`의 6절을 따른다.
 
 Linux 서버:
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y fonts-noto-cjk
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-```
-
-박스 이미지의 한글 라벨에는 한글 폰트가 필요하다. 기본 탐색 경로에서 폰트를 찾지 못하는 서버는 폰트 파일의 절대 경로를 worker 환경변수로 지정한다.
-
-```bash
-export DEFECT_LABEL_FONT="/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"
 ```
 
 설치하지 않아도 되는 항목:
@@ -117,7 +108,6 @@ ai-video-defect/
 ├── training/
 │   ├── __init__.py
 │   ├── gemini_room_classifier.py
-│   ├── gemini_defect_verifier.py
 │   ├── process_image_batch_room_defect.py
 │   ├── process_images_two_stage.py
 │   └── predict_dacon_two_stage.py
@@ -167,7 +157,7 @@ training/visualize_dacon_two_stage.py  # 결과 박스 시각화가 필요할 �
 - 공간 분류·안정화·YOLO 통합 실행: `training/process_image_batch_room_defect.py`
 - Gemini 공간 분류: `training/gemini_room_classifier.py`
 - 이미지 폴더 2중 추론 실험: `training/predict_dacon_two_stage.py`
-- 서비스 이미지 처리·Gemini 검증·박스 이미지·JSON: `training/process_images_two_stage.py`
+- 서비스 이미지 처리·crop·JSON: `training/process_images_two_stage.py`
 - 과거 영상 테스트 보존: `training/process_video_two_stage.py`
 - 활성 모델: `models/active/two_stage_negative_rot4/`
 
@@ -180,16 +170,15 @@ python -m training.process_image_batch_room_defect `
   --output reports/property-001-image-test
 ```
 
-통합 모듈은 입력된 모든 이미지를 파일명 순서로 처리한다. 하자 crop은 만들지 않고 전체 이미지에 후보 박스를 표시해 Gemini로 검증한 뒤 최종 박스 이미지를 생성한다. 샘플링·이미지 선별·중복 제거는 백엔드가 AI 모듈에 전달하기 전에 처리한다.
+통합 모듈은 입력된 모든 이미지를 파일명 순서로 처리한다. 대표 하자 crop은 bbox 기준 사방 15% 여백을 포함해 생성한다. 샘플링·이미지 선별·중복 제거는 백엔드가 AI 모듈에 전달하기 전에 처리한다.
 
 출력 구조:
 
 ```text
 /server/output/{jobId}/
   result.json
-  annotated/
-    candidates/  # Gemini 검증 전 전체 후보 박스 이미지
-    final/       # 확신도 0.90 이상의 not_defect 제거 후 최종 박스 이미지
+  evidence/   # 하자가 탐지된 원본 이미지
+  crops/      # 리포트에 사용할 하자 영역 crop
 ```
 
 ## 5. 백엔드 전달 출력 기준
@@ -202,8 +191,7 @@ python -m training.process_image_batch_room_defect `
 - 탐지 결과 배열 이름은 `detections`다.
 - 각 결과의 박스는 `box.left`, `box.top`, `box.right`, `box.bottom` 구조다.
 - 결과가 없으면 `detections: []`을 반환한다.
-- 구체적인 유형을 분류하지 못한 하자 후보는 `classId: 12`, `label: "other"`로 반환한다.
-- 사용자 표시에는 `displayLabel` 한글 이름과 `displayColor` 클래스별 색상을 사용한다.
+- `unknown_defect`는 `classId: null`, `label: "unknown_defect"`로 반환할 수 있다.
 
 ```json
 {
@@ -215,8 +203,6 @@ python -m training.process_image_batch_room_defect `
     {
       "classId": 1,
       "label": "mold",
-      "displayLabel": "곰팡이",
-      "displayColor": "#2E7D32",
       "confidence": 0.87,
       "box": {
         "left": 120,
@@ -231,7 +217,7 @@ python -m training.process_image_batch_room_defect `
 
 이미지 처리에서는 입력 이미지마다 위 형식을 생성한다. `imageId`, `filename`, `jobId` 같은 작업 메타데이터는 이미지 결과의 별도 필드로 관리하고, 위 이미지 탐지 응답 형식 자체는 변경하지 않는다.
 
-기존 `training/predict_dacon_two_stage.py`의 `predictions.json`은 이미지 실험용 결과다. 서비스 진입점 `training/process_image_batch_room_defect.py`의 최종 `result.json`은 공간 분류·공간 구간·Gemini 검증 후 이미지별 탐지·최종 박스 이미지를 결합한다.
+기존 `training/predict_dacon_two_stage.py`의 `predictions.json`은 이미지 실험용 결과다. 서비스 진입점 `training/process_image_batch_room_defect.py`의 최종 `result.json`은 공간 분류·공간 구간·이미지별 탐지·관찰 crop을 결합한다. 내부 `defect_analysis/result.json`은 기존 `image + detections` 형식을 유지한다.
 
 리포트에 사용할 `observations[]` 항목에는 다음 필드가 추가된다.
 
@@ -242,13 +228,17 @@ python -m training.process_image_batch_room_defect `
   "confidence": 0.87,
   "representativeFrameId": 42,
   "timestampSec": 21.0,
-  "evidencePath": "/server/input/job-001/images/000042.jpg",
-  "annotatedPath": "/server/output/job-001/annotated/final/000042.jpg",
+  "evidencePath": "/server/output/job-001/evidence/frame_00000042_21.000s.jpg",
+  "cropPath": "/server/output/job-001/crops/obs-0001_mold.jpg",
+  "cropImage": {
+    "width": 620,
+    "height": 390
+  },
   "reviewStatus": "needs_review"
 }
 ```
 
-`evidencePath`는 원본 이미지 근거이고, `annotatedPath`는 Gemini 검증 후 남은 하자 박스를 그린 리포트용 이미지다. 두 경로는 AI 서버 내부 경로이므로 백엔드는 저장소 URL로 변환해 사용자에게 제공한다.
+`evidencePath`는 원본 이미지 근거이고, `cropPath`는 하자 영역을 15% 여백과 함께 자른 리포트용 이미지다. 두 경로는 AI 서버 내부 경로이므로 백엔드는 저장소 URL로 변환해 사용자에게 제공한다.
 
 ## 6. 백엔드에서 구현할 API
 
@@ -327,16 +317,16 @@ GET /api/v1/image-jobs/{jobId}/result
 - AI 결과의 `images[]`를 저장·조회한다.
 - 각 이미지 결과는 기존 백엔드 계약인 `image + detections[].box` 형식을 유지한다.
 - `observations[]`는 이미지별 하자 관찰 결과로 리포트 생성에 사용한다.
-- `evidencePath`와 `annotatedPath`는 인증된 이미지 조회 URL로 변환해 반환한다.
+- `evidencePath`와 `cropPath`는 인증된 이미지 조회 URL로 변환해 반환한다.
 
-### 6-5. 근거 이미지 및 최종 박스 이미지 조회
+### 6-5. 근거 이미지 및 하자 crop 조회
 
 ```http
 GET /api/v1/image-jobs/{jobId}/evidence/{imageId}
-GET /api/v1/image-jobs/{jobId}/annotated/{imageId}
+GET /api/v1/image-jobs/{jobId}/crops/{observationGroupId}
 ```
 
-백엔드는 원본 이미지와 최종 박스 이미지를 인증된 사용자에게만 반환한다. 리포트에는 `annotatedUrl`을 기본 사진으로 사용하고, 사용자가 원본 근거를 확인할 수 있도록 `evidenceUrl`도 함께 제공한다.
+백엔드는 AI가 저장한 원본 이미지와 하자 crop을 인증된 사용자에게만 반환한다. 리포트에는 `cropUrl`을 기본 사진으로 사용하고, 사용자가 원본 근거를 확인할 수 있도록 `evidenceUrl`도 함께 제공한다.
 
 ### 6-6. 리포트 연결
 
@@ -345,7 +335,7 @@ POST /api/v1/inspection-sessions/{sessionId}/report
 GET  /api/v1/reports/{reportId}
 ```
 
-백엔드는 `observations[]`를 리포트의 확인 필요 관찰·촬영 근거 사진·계약 전 확인 항목에 연결한다. `annotatedPath`는 리포트용 박스 사진으로, `evidencePath`는 원본 촬영 근거로 저장한다. `rejectedDetections[]`는 사용자 리포트에 노출하지 않는다. 리포트 초안 생성·확정본 저장·목록/상세 조회·공유는 백엔드가 담당한다. AI 결과를 계약 확정이나 하자 확정으로 표현하지 않는다.
+백엔드는 `observations[]`를 리포트의 확인 필요 관찰·촬영 근거 사진·계약 전 확인 항목에 연결한다. `cropPath`는 리포트용 하자 사진으로, `evidencePath`는 원본 촬영 근거로 저장한다. 리포트 초안 생성·확정본 저장·목록/상세 조회·공유는 백엔드가 담당한다. AI 결과를 계약 확정이나 하자 확정으로 표현하지 않는다.
 
 ## 7. 백엔드 API 구현 체크리스트
 
@@ -356,10 +346,10 @@ GET  /api/v1/reports/{reportId}
 - [ ] `queued → processing → completed/failed` 상태 갱신
 - [ ] `result.json` 저장 및 결과 조회 API
 - [ ] `images[].image`와 `detections` 저장
-- [ ] `observations[]`와 최종 박스 이미지를 리포트 초안에 연결
-- [ ] `evidencePath`, `annotatedPath`를 저장소에 업로드하고 URL로 변환
-- [ ] 원본 이미지 및 최종 박스 이미지 인증 조회 API
-- [ ] 리포트에서 최종 박스 사진과 원본 근거 사진 연결
+- [ ] `observations[]`와 crop을 리포트 초안에 연결
+- [ ] `evidencePath`, `cropPath`를 저장소에 업로드하고 URL로 변환
+- [ ] 원본 이미지 및 하자 crop 인증 조회 API
+- [ ] 리포트에서 crop 사진과 원본 근거 사진 연결
 - [ ] 실패 시 오류 메시지 저장 및 재시도/실패 응답
 - [ ] AI 결과를 사용자별·매물별로 분리 조회
 
@@ -372,7 +362,7 @@ LangGraph는 현재 서버 설치 및 배포 대상에 포함하지 않는다. �
 1. `ai-video-defect/` 서버 배포
 2. 백엔드 이미지 샘플링 결과와 AI worker 연결
 3. 실제 이미지 묶음 공간 분류·2중 YOLO 추론·JSON 생성 테스트
-4. 원본 이미지·최종 박스 이미지·리포트 연결 테스트
+4. 원본 이미지·하자 crop·리포트 연결 테스트
 5. 실패 상태와 재실행 흐름 확인
 
 위 배포 테스트가 완료된 뒤 LangGraph 도입을 검토한다. 도입 시에는 모델 자체를 대체하지 않고 다음과 같은 AI 작업 흐름의 상태와 분기를 관리하는 용도로 사용한다.

@@ -3,8 +3,6 @@ package com.tenantleaf.api.media
 import com.tenantleaf.api.generated.api.MediaApi
 import com.tenantleaf.api.generated.model.CreateMediaUploadBatchRequest
 import com.tenantleaf.api.generated.model.CreateMediaUploadBatchResponse
-import com.tenantleaf.api.generated.model.FinalizeInspectionMediaRequest
-import com.tenantleaf.api.generated.model.FinalizeInspectionMediaResponse
 import com.tenantleaf.api.generated.model.Media
 import com.tenantleaf.api.generated.model.MediaPage
 import com.tenantleaf.api.generated.model.MediaUploadInstruction
@@ -32,11 +30,4 @@ class MediaController(private val service: MediaService) : MediaApi {
 
     override fun listInspectionMedia(inspectionId: UUID, page: Int, size: Int): ResponseEntity<MediaPage> =
         ResponseEntity.ok(service.list(inspectionId, page, size))
-
-    override fun finalizeInspectionMedia(
-        inspectionId: UUID,
-        idempotencyKey: UUID,
-        finalizeInspectionMediaRequest: FinalizeInspectionMediaRequest,
-    ): ResponseEntity<FinalizeInspectionMediaResponse> =
-        ResponseEntity.ok(service.finalizeMedia(inspectionId, idempotencyKey, finalizeInspectionMediaRequest))
 }

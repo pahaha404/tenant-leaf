@@ -19,9 +19,6 @@ spring:
 # credentials explicit so MinIO client beans can be created in CI before the
 # fake ObjectStorageGateway supplied by media tests takes effect.
 app:
-  report:
-    # Repository integration tests invoke the coordinator explicitly when needed.
-    reconcile-initial-delay-ms: 3600000
   object-storage:
     access-key: tenant_leaf_test
     secret-key: tenant_leaf_test_secret

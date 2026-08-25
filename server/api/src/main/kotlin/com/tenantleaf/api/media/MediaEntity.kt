@@ -10,7 +10,7 @@ import jakarta.persistence.UniqueConstraint
 import java.time.OffsetDateTime
 import java.util.UUID
 
-enum class MediaZone { KITCHEN, LIVING_ROOM, BATHROOM, UNKNOWN }
+enum class MediaZone { ENTRANCE_COMMON, KITCHEN, WINDOW_VENTILATION, LIVING_ROOM, BATHROOM, UNKNOWN }
 enum class MediaCaptureSource { META_GLASS, ANDROID_CAMERA }
 enum class MediaUploadState { PENDING, UPLOADING, UPLOADED, FAILED }
 enum class MediaAnalysisState { NOT_REQUESTED, QUEUED, ANALYZING, COMPLETED, FAILED }
@@ -25,13 +25,7 @@ class MediaEntity(
     @Column(name = "inspection_id", nullable = false) val inspectionId: UUID,
     @Column(name = "owner_id", nullable = false) val ownerId: UUID,
     @Column(name = "client_media_id", nullable = false) val clientMediaId: UUID,
-    @Enumerated(EnumType.STRING) @Column(length = 32) val zone: MediaZone? = null,
-    @Enumerated(EnumType.STRING) @Column(name = "ai_zone", length = 32) var aiZone: MediaZone? = null,
-    @Column(name = "zone_confidence") var zoneConfidence: Double? = null,
-    @Column(name = "zone_uncertain") var zoneUncertain: Boolean? = null,
-    @Column(name = "zone_model_version", length = 128) var zoneModelVersion: String? = null,
-    @Enumerated(EnumType.STRING) @Column(name = "user_corrected_zone", length = 32) var userCorrectedZone: MediaZone? = null,
-    @Column(name = "corrected_at") var correctedAt: OffsetDateTime? = null,
+    @Enumerated(EnumType.STRING) @Column(nullable = false, length = 32) val zone: MediaZone,
     @Column(name = "media_type", nullable = false, length = 16) val mediaType: String = "PHOTO",
     @Column(name = "content_type", nullable = false, length = 32) val contentType: String = "image/jpeg",
     @Column(name = "declared_file_size", nullable = false) val declaredFileSize: Long,

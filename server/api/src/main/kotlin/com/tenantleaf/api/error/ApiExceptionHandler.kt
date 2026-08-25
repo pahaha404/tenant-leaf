@@ -10,15 +10,11 @@ import com.tenantleaf.api.media.IdempotencyKeyConflictException
 import com.tenantleaf.api.media.MediaNotFoundException
 import com.tenantleaf.api.media.MediaFileTooLargeException
 import com.tenantleaf.api.media.MediaStateException
-import com.tenantleaf.api.media.MediaSetCountMismatchException
-import com.tenantleaf.api.media.MediaSetFinalizedException
 import com.tenantleaf.api.media.MediaValidationException
 import com.tenantleaf.api.media.ObjectStorageUnavailableException
 import com.tenantleaf.api.media.UnsupportedMediaTypeException
 import com.tenantleaf.api.property.PropertyNotFoundException
 import com.tenantleaf.api.property.PropertyValidationException
-import com.tenantleaf.api.report.ObservationNotFoundException
-import com.tenantleaf.api.report.ReportNotFoundException
 import jakarta.validation.ConstraintViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -42,14 +38,6 @@ class ApiExceptionHandler {
     fun handleMediaNotFound(): ResponseEntity<ErrorResponse> =
         response(HttpStatus.NOT_FOUND, "MEDIA_NOT_FOUND", "요청한 미디어를 찾을 수 없습니다.")
 
-    @ExceptionHandler(ObservationNotFoundException::class)
-    fun handleObservationNotFound(): ResponseEntity<ErrorResponse> =
-        response(HttpStatus.NOT_FOUND, "OBSERVATION_NOT_FOUND", "요청한 확인 필요 관찰을 찾을 수 없습니다.")
-
-    @ExceptionHandler(ReportNotFoundException::class)
-    fun handleReportNotFound(): ResponseEntity<ErrorResponse> =
-        response(HttpStatus.NOT_FOUND, "REPORT_NOT_FOUND", "아직 생성된 리포트가 없습니다.")
-
     @ExceptionHandler(InspectionStateTransitionException::class)
     fun handleInspectionStateTransition(): ResponseEntity<ErrorResponse> =
         response(HttpStatus.CONFLICT, "INVALID_STATE_TRANSITION", "현재 임장 상태에서는 요청을 수행할 수 없습니다.")
@@ -61,14 +49,6 @@ class ApiExceptionHandler {
     @ExceptionHandler(MediaStateException::class)
     fun handleMediaState(): ResponseEntity<ErrorResponse> =
         response(HttpStatus.CONFLICT, "INVALID_STATE_TRANSITION", "현재 미디어 상태에서는 요청을 수행할 수 없습니다.")
-
-    @ExceptionHandler(MediaSetFinalizedException::class)
-    fun handleMediaSetFinalized(): ResponseEntity<ErrorResponse> =
-        response(HttpStatus.CONFLICT, "MEDIA_SET_FINALIZED", "이미 분석 대상 사진 등록이 확정되었습니다.")
-
-    @ExceptionHandler(MediaSetCountMismatchException::class)
-    fun handleMediaSetCountMismatch(): ResponseEntity<ErrorResponse> =
-        response(HttpStatus.CONFLICT, "MEDIA_SET_COUNT_MISMATCH", "등록된 사진 수와 확정 요청의 사진 수가 다릅니다.")
 
     @ExceptionHandler(ClientMediaIdConflictException::class)
     fun handleClientMediaIdConflict(): ResponseEntity<ErrorResponse> =

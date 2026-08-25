@@ -4,6 +4,8 @@ import com.tenantleaf.api.generated.model.CreatePropertyRequest
 import com.tenantleaf.api.generated.model.Property
 import com.tenantleaf.api.generated.model.PropertyPage
 import com.tenantleaf.api.generated.model.UpdatePropertyRequest
+import com.tenantleaf.api.inspection.InspectionRepository
+import com.tenantleaf.api.inspection.PropertyHasInspectionsException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
@@ -16,6 +18,7 @@ import java.util.UUID
 @Service
 class PropertyService(
     private val repository: PropertyRepository,
+    private val inspectionRepository: InspectionRepository,
     private val userContext: DemoUserContext,
     private val clock: Clock = Clock.systemUTC(),
 ) {
@@ -44,7 +47,7 @@ class PropertyService(
     @Transactional(readOnly = true)
     fun list(page: Int, size: Int): PropertyPage {
         val pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")))
-        val result = repository.findAllByOwnerIdAndDeletedAtIsNull(userContext.requireUserId(), pageable)
+        val result = repository.findAllByOwnerId(userContext.requireUserId(), pageable)
         return PropertyPage(
             page = result.number,
             propertySize = result.size,
@@ -90,14 +93,14 @@ class PropertyService(
     @Transactional
     fun delete(propertyId: UUID) {
         val property = ownedProperty(propertyId)
-        val now = OffsetDateTime.now(clock)
-        property.deletedAt = now
-        property.updatedAt = now
-        repository.save(property)
+        if (inspectionRepository.existsByPropertyIdAndOwnerId(propertyId, property.ownerId)) {
+            throw PropertyHasInspectionsException()
+        }
+        repository.delete(property)
     }
 
     private fun ownedProperty(propertyId: UUID): PropertyEntity =
-        repository.findByIdAndOwnerIdAndDeletedAtIsNull(propertyId, userContext.requireUserId())
+        repository.findByIdAndOwnerId(propertyId, userContext.requireUserId())
             ?: throw PropertyNotFoundException()
 
     private fun requiredText(value: String?, field: String): String {

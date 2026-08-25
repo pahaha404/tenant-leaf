@@ -16,7 +16,7 @@
   → Gemini API 공간 분류
   → 연속 이미지 다수결로 공간 구간 안정화
   → Binary YOLO + 다중 클래스 YOLO 하자 추론
-  → 공간·하자·최종 박스 이미지 통합 JSON 생성
+  → 공간·하자·근거 crop 통합 JSON 생성
   → 백엔드 저장 및 사용자 리포트 연결
 ```
 
@@ -29,15 +29,6 @@
 ```bash
 python -m pip install -r requirements.txt
 ```
-
-Linux 서버에서 최종 박스 이미지에 한글 하자명을 표시하려면 한글 폰트도 설치한다.
-
-```bash
-sudo apt-get update
-sudo apt-get install -y fonts-noto-cjk
-```
-
-기본 경로가 아닌 폰트를 사용할 때는 worker에 `DEFECT_LABEL_FONT=/절대/경로/폰트파일`을 설정한다.
 
 Gemini 키는 코드나 Git에 저장하지 않고 AI worker 프로세스의 환경변수로만 등록한다. systemd·Docker·queue worker에 별도로 등록하고 변경 후 worker를 재시작한다.
 
@@ -109,7 +100,7 @@ Gemini 연결 전 전체 구조만 확인하려면 다음 옵션을 추가한다
 --room-provider disabled
 ```
 
-이 경우 공간은 모두 `unknown`이지만 기존 2단계 YOLO와 박스 이미지·JSON 생성은 실행된다.
+이 경우 공간은 모두 `unknown`이지만 기존 2단계 YOLO와 crop·JSON 생성은 실행된다.
 
 ## 출력
 
@@ -119,9 +110,7 @@ output/property-001/
 └── defect_analysis/
     ├── result.json
     ├── evidence/
-    └── annotated/
-        ├── candidates/
-        └── final/
+    └── crops/
 ```
 
 최종 `result.json`에는 다음 항목이 포함된다.
@@ -129,7 +118,7 @@ output/property-001/
 - `roomClassification`: API 모델, 호출 횟수, 오류
 - `roomSegments`: 연속 이미지 기반 공간 구간
 - `images`: 이미지 크기, 공간 결과, 하자 박스
-- `observations`: 공간 정보가 결합된 최종 하자와 박스 이미지
+- `observations`: 공간 정보가 결합된 하자와 근거 crop
 
 Gemini 호출이 최종 실패한 이미지는 임의 공간으로 분류하지 않고 `unknown`으로 처리하며 오류를 `roomClassification.errors`에 남긴다.
 
@@ -141,7 +130,7 @@ Gemini 호출이 최종 실패한 이미지는 임의 공간으로 분류하지 
 - 프레임 샘플링과 이미지 품질 선별
 - 시간순 파일명과 선택적 manifest 생성
 - Python worker 실행과 작업 상태 관리
-- 결과 및 박스 이미지 경로를 인증 URL로 변환
+- 결과 및 crop 경로를 인증 URL로 변환
 - 공간별 하자 결과를 사용자 리포트에 연결
 
 AI Python 담당:
@@ -149,7 +138,7 @@ AI Python 담당:
 - 전달된 이미지 전체의 Gemini 공간 분류
 - 연속 결과 안정화 및 공간 구간 생성
 - 기존 Binary·다중 클래스 YOLO 추론
-- Gemini 보조 검증, 최종 박스 이미지와 통합 JSON 생성
+- 하자 crop과 통합 JSON 생성
 
 ## 기능 테스트 체크리스트
 
@@ -159,5 +148,5 @@ AI Python 담당:
 - [ ] `images[].room.raw`와 `stable` 결과 확인
 - [ ] 공간 전환 구간과 `roomSegments` 육안 검수
 - [ ] 모든 하자 observation에 `room`과 `roomSegmentId` 포함 확인
-- [ ] 근거 원본과 최종 박스 이미지를 백엔드 URL로 변환
+- [ ] 근거 원본과 하자 crop을 백엔드 URL로 변환
 - [ ] Gemini 오류 시 `unknown` fallback과 오류 기록 확인

@@ -22,7 +22,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        com.seipseip.app.feature.inspection.VoiceGuideManager.warmUp(this)
         setContent {
             TenantLeafApp()
         }

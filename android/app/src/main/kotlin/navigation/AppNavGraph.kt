@@ -1,8 +1,13 @@
 package com.seipseip.app.navigation
 
+import android.Manifest
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
@@ -11,6 +16,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
+import kotlinx.coroutines.delay
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -53,6 +62,8 @@ import com.seipseip.app.feature.property.location.AddressPickerScreen
 import com.seipseip.app.feature.property.location.LocationPickerActivity
 import com.seipseip.app.feature.property.PropertyListScreen
 import com.seipseip.app.feature.property.PropertySelectScreen
+import com.seipseip.app.feature.report.ReportDetailScreen
+import com.seipseip.app.feature.report.ReportListScreen
 import com.seipseip.app.feature.state.EmptyPropertyScreen
 import com.seipseip.app.feature.state.HomeProcessingScreen
 import com.seipseip.app.feature.state.LoadingScreen
@@ -64,10 +75,7 @@ import com.seipseip.app.integration.PropertyDetailApiRoute
 import com.seipseip.app.integration.PropertyFormApiRoute
 import com.seipseip.app.integration.PropertyInfoApiRoute
 import com.seipseip.app.integration.PropertyListApiRoute
-import com.seipseip.app.integration.PropertyMapApiRoute
 import com.seipseip.app.integration.PropertySelectApiRoute
-import com.seipseip.app.integration.ReportApiRoute
-import com.seipseip.app.integration.ReportListApiRoute
 
 object Route {
     const val Loading = "loading"
@@ -84,11 +92,9 @@ object Route {
     const val HomeProcessing = "home_processing"
     const val ChecklistOverview = "checklist_overview"
     const val PropertyList = "properties"
-    const val PropertyMap = "property_map"
     const val PropertyForm = "property_form"
     const val AddressPicker = "address_picker"
     const val PropertyDetail = "property_detail/{propertyId}"
-    const val PropertyEdit = "property_edit/{propertyId}"
     const val PropertyInfo = "property_info/{propertyId}"
     const val PropertySelect = "property_select"
     const val PropertyEmpty = "property_empty"
@@ -104,7 +110,7 @@ object Route {
     const val Analysis = "analysis/{inspectionId}"
     const val Observation = "observation/{zone}"
     const val Reports = "reports"
-    const val InspectionReport = "inspection_report/{inspectionId}"
+    const val ReportDetail = "report_detail"
     const val Profile = "profile"
     const val Magazine = "magazine"
     const val MagazineDetail = "magazine_detail/{articleId}"
@@ -112,7 +118,6 @@ object Route {
     fun guideZone(zone: String) = "guide/$zone"
     fun guideDetail(zone: String, item: Int) = "guide_detail/$zone/$item"
     fun propertyDetail(propertyId: String) = "property_detail/$propertyId"
-    fun propertyEdit(propertyId: String) = "property_edit/$propertyId"
     fun propertyInfo(propertyId: String) = "property_info/$propertyId"
     fun inspectionPrep(propertyId: String) = "inspection_prep/$propertyId"
     fun inspectionPermission(inspectionId: String) = "inspection_permission_warning/$inspectionId"
@@ -120,7 +125,6 @@ object Route {
     fun finishConfirm(inspectionId: String, durationSeconds: Long) = "finish_confirm/$inspectionId/$durationSeconds"
     fun inspectionCountdown(inspectionId: String, zone: String) = "inspection_countdown/$inspectionId/$zone"
     fun analysis(inspectionId: String) = "analysis/$inspectionId"
-    fun inspectionReport(inspectionId: String) = "inspection_report/$inspectionId"
     fun observation(zone: String) = "observation/$zone"
     fun magazineDetail(articleId: String) = "magazine_detail/$articleId"
 }
@@ -141,9 +145,17 @@ fun AppNavGraph(
     nickname: String,
     onNicknameChanged: (String) -> Unit,
 ) {
+    var reportProcessing by remember { mutableStateOf(false) }
     val appContext = LocalContext.current
     val sessionPreferences = remember(appContext) {
         appContext.getSharedPreferences(SESSION_PREFERENCES, Context.MODE_PRIVATE)
+    }
+    LaunchedEffect(reportProcessing) {
+        if (reportProcessing) {
+            delay(8_000)
+            reportProcessing = false
+            notifyReportReady(appContext)
+        }
     }
 
     fun goToTab(tab: String) {
@@ -255,10 +267,10 @@ fun AppNavGraph(
         }
         composable(Route.Home) {
             HomeScreen(
-                processing = false,
+                processing = reportProcessing,
                 onOpenProperties = { navController.navigate(Route.PropertyList) },
                 onOpenReports = { navController.navigate(Route.Reports) },
-                onOpenRecentReport = { navController.navigate(Route.Reports) },
+                onOpenRecentReport = { navController.navigate(Route.ReportDetail) },
                 onOpenMagazine = { navController.navigate(Route.Magazine) },
                 onOpenMagazineArticle = { articleId -> navController.navigate(Route.magazineDetail(articleId)) },
                 onStartInspection = { navController.navigate(Route.PropertySelect) },
@@ -302,7 +314,6 @@ fun AppNavGraph(
             PropertyListApiRoute(
                 onAddProperty = { navController.navigate(Route.PropertyForm) },
                 onOpenProperty = { navController.navigate(Route.propertyDetail(it)) },
-                onOpenMapOverview = { navController.navigate(Route.PropertyMap) },
                 onTabSelected = { tab ->
                     goToTab(
                         when (tab) {
@@ -313,13 +324,6 @@ fun AppNavGraph(
                         },
                     )
                 },
-            )
-        }
-        composable(Route.PropertyMap) {
-            PropertyMapApiRoute(
-                onBack = navController::popBackStack,
-                onOpenProperty = { navController.navigate(Route.propertyDetail(it)) },
-                onAddProperty = { navController.navigate(Route.PropertyForm) },
             )
         }
         composable(Route.PropertyForm) { entry ->
@@ -354,40 +358,14 @@ fun AppNavGraph(
             )
         }
         composable(
-            route = Route.PropertyEdit,
-            arguments = listOf(navArgument("propertyId") { type = NavType.StringType }),
-        ) { entry ->
-            val context = LocalContext.current
-            val selectedAddress by entry.savedStateHandle.getStateFlow("addressSummary", "").collectAsState()
-            val locationPicker = rememberLauncherForActivityResult(
-                ActivityResultContracts.StartActivityForResult(),
-            ) { result ->
-                if (result.resultCode == Activity.RESULT_OK) {
-                    result.data?.getStringExtra(LocationPickerActivity.EXTRA_ADDRESS)?.let { address ->
-                        entry.savedStateHandle["addressSummary"] = address
-                    }
-                }
-            }
-            PropertyFormApiRoute(
-                onBack = navController::popBackStack,
-                onSaved = { _ -> navController.popBackStack() },
-                onOpenAddressPicker = { navController.navigate(Route.AddressPicker) },
-                onOpenLocationPicker = {
-                    locationPicker.launch(Intent(context, LocationPickerActivity::class.java))
-                },
-                selectedAddress = selectedAddress,
-            )
-        }
-        composable(
             route = Route.PropertyDetail,
             arguments = listOf(navArgument("propertyId") { type = NavType.StringType }),
         ) {
             PropertyDetailApiRoute(
                 onBack = navController::popBackStack,
                 onStartInspection = { navController.navigate(Route.inspectionPrep(it)) },
-                onOpenReport = { navController.navigate(Route.Reports) },
+                onOpenReport = { navController.navigate(Route.ReportDetail) },
                 onOpenBasicInfo = { property -> property?.id?.let { navController.navigate(Route.propertyInfo(it)) } },
-                onEditProperty = { propertyId -> navController.navigate(Route.propertyEdit(propertyId)) },
                 onTabSelected = { tab ->
                     goToTab(
                         when (tab) {
@@ -551,6 +529,7 @@ fun AppNavGraph(
                 onBack = navController::popBackStack,
                 durationSeconds = durationSeconds,
                 onEnded = {
+                    reportProcessing = true
                     navController.navigate(Route.analysis(inspectionId))
                 },
             )
@@ -559,14 +538,12 @@ fun AppNavGraph(
             route = Route.Analysis,
             arguments = listOf(navArgument("inspectionId") { type = NavType.StringType }),
         ) {
-            val inspectionId = it.arguments?.getString("inspectionId") ?: return@composable
             MediaUploadApiRoute(
                 onBackToHome = {
                     navController.navigate(Route.Home) {
                         popUpTo(Route.Home) { inclusive = true }
                     }
                 },
-                onOpenReport = { navController.navigate(Route.inspectionReport(inspectionId)) },
             )
         }
         composable(
@@ -577,16 +554,13 @@ fun AppNavGraph(
             ObservationScreen(
                 zoneId = zone,
                 onBack = navController::popBackStack,
-                onReturnToProperty = {
-                    if (!navController.popBackStack(Route.PropertyDetail, inclusive = false)) {
-                        navController.navigate(Route.PropertyList)
-                    }
-                },
+                onNextZone = { nextZone -> navController.navigate(Route.observation(nextZone)) },
+                onOpenReport = { navController.navigate(Route.ReportDetail) },
             )
         }
         composable(Route.Reports) {
-            ReportListApiRoute(
-                onOpenReport = { inspectionId -> navController.navigate(Route.inspectionReport(inspectionId)) },
+            ReportListScreen(
+                onOpenReport = { navController.navigate(Route.ReportDetail) },
                 onTabSelected = { tab ->
                     goToTab(
                         when (tab) {
@@ -599,25 +573,16 @@ fun AppNavGraph(
                 },
             )
         }
-        composable(
-            route = Route.InspectionReport,
-            arguments = listOf(navArgument("inspectionId") { type = NavType.StringType }),
-        ) {
-            ReportApiRoute(
+        composable(Route.ReportDetail) {
+            ReportDetailScreen(
                 nickname = nickname,
                 onBack = navController::popBackStack,
-                onOpenProperty = { propertyId -> navController.navigate(Route.propertyDetail(propertyId)) },
+                onOpenProperty = { navController.navigate(Route.PropertyList) },
             )
         }
         composable(Route.Profile) {
             ProfileScreen(
                 nickname = nickname,
-                onLogout = {
-                    sessionPreferences.edit().putBoolean(KEY_LOGGED_IN, false).apply()
-                    navController.navigate(Route.Login) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                },
                 onTabSelected = { tab ->
                     goToTab(
                         when (tab) {
@@ -644,4 +609,21 @@ fun AppNavGraph(
             MagazineDetailScreen(articleId = articleId, onBack = navController::popBackStack)
         }
     }
+}
+
+private fun notifyReportReady(context: Context) {
+    val channelId = "report_ready"
+    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        manager.createNotificationChannel(NotificationChannel(channelId, "점검 리포트", NotificationManager.IMPORTANCE_DEFAULT))
+    }
+    if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
+    val notification = NotificationCompat.Builder(context, channelId)
+        .setSmallIcon(android.R.drawable.ic_dialog_info)
+        .setContentTitle("점검 리포트가 완성됐어요")
+        .setContentText("하자 점검 결과와 리포트를 확인해 보세요.")
+        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .setAutoCancel(true)
+        .build()
+    NotificationManagerCompat.from(context).notify(1001, notification)
 }

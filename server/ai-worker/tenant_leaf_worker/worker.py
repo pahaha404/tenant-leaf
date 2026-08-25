@@ -22,7 +22,7 @@ from minio import Minio
 from PIL import Image
 from psycopg.conninfo import make_conninfo
 
-from tenant_leaf_worker.contracts import BatchImageResult, DetectionResult, parse_batch_result
+from tenant_leaf_worker.contracts import DetectionResult, parse_result
 
 
 MAX_JPEG_BYTES = 2_097_152
@@ -37,10 +37,6 @@ class Settings:
     minio_bucket: str
     ai_module_root: Path
     poll_seconds: float
-    model_timeout_seconds: int
-    gemini_model: str
-    gemini_defect_model: str
-    gemini_reject_confidence: float
 
     @classmethod
     def from_environment(cls) -> "Settings":
@@ -63,19 +59,11 @@ class Settings:
                 os.getenv("AI_MODEL_MODULE_ROOT", str(repository_root / "ai" / "ai-video-defect")),
             ).resolve(),
             poll_seconds=float(os.getenv("AI_WORKER_POLL_SECONDS", "2")),
-            model_timeout_seconds=int(os.getenv("AI_WORKER_MODEL_TIMEOUT_SECONDS", "1800")),
-            gemini_model=os.getenv("AI_WORKER_GEMINI_MODEL", "gemini-3.5-flash-lite"),
-            gemini_defect_model=os.getenv(
-                "AI_WORKER_GEMINI_DEFECT_MODEL", "gemini-3.5-flash-lite"
-            ),
-            gemini_reject_confidence=float(
-                os.getenv("AI_WORKER_GEMINI_REJECT_CONFIDENCE", "0.90")
-            ),
         )
 
 
 @dataclass(frozen=True)
-class ClaimedMedia:
+class ClaimedJob:
     job_id: UUID
     media_id: UUID
     owner_id: UUID
@@ -83,36 +71,20 @@ class ClaimedMedia:
     storage_key: str
     width: int
     height: int
-    source_video_offset_ms: int
-
-
-@dataclass(frozen=True)
-class ClaimedBatch:
-    inspection_id: UUID
-    owner_id: UUID
-    media: tuple[ClaimedMedia, ...]
 
 
 class MediaAnalysisWorker:
     def __init__(self, settings: Settings):
         self.settings = settings
         required_model_files = (
-            settings.ai_module_root / "training" / "process_image_batch_room_defect.py",
-            settings.ai_module_root / "training" / "gemini_room_classifier.py",
-            settings.ai_module_root / "training" / "gemini_defect_verifier.py",
+            settings.ai_module_root / "training" / "process_images_two_stage.py",
             settings.ai_module_root / "models" / "active" / "two_stage_negative_rot4" / "binary" / "best.pt",
             settings.ai_module_root / "models" / "active" / "two_stage_negative_rot4" / "multiclass" / "best.pt",
         )
         if not all(path.is_file() for path in required_model_files):
-            raise RuntimeError("AI batch model code or weights are not deployed")
-        if not os.getenv("GEMINI_API_KEY"):
-            raise RuntimeError("GEMINI_API_KEY is required for room and defect analysis")
+            raise RuntimeError("AI model code or weights are not deployed")
         if settings.poll_seconds <= 0:
             raise ValueError("AI_WORKER_POLL_SECONDS must be greater than zero")
-        if settings.model_timeout_seconds <= 0:
-            raise ValueError("AI_WORKER_MODEL_TIMEOUT_SECONDS must be greater than zero")
-        if not 0 <= settings.gemini_reject_confidence <= 1:
-            raise ValueError("AI_WORKER_GEMINI_REJECT_CONFIDENCE must be between zero and one")
         parsed = urlparse(settings.minio_endpoint)
         if parsed.scheme not in {"http", "https"} or not parsed.netloc:
             raise ValueError("OBJECT_STORAGE_ENDPOINT must be an http(s) URL")
@@ -124,143 +96,70 @@ class MediaAnalysisWorker:
         )
 
     def run_once(self) -> bool:
-        batch = self._claim_batch()
-        if batch is None:
+        job = self._claim()
+        if job is None:
             return False
-        print(
-            f"AI batch claimed inspection={batch.inspection_id} "
-            f"media_count={len(batch.media)}",
-            flush=True,
-        )
         try:
-            with tempfile.TemporaryDirectory(prefix=f"tenant-leaf-{batch.inspection_id}-") as temp:
+            with tempfile.TemporaryDirectory(prefix=f"tenant-leaf-{job.job_id}-") as temp:
                 temp_root = Path(temp)
-                input_path = temp_root / "input"
+                input_path = temp_root / f"{job.media_id}.jpg"
                 output_path = temp_root / "output"
-                manifest_path = temp_root / "manifest.json"
-                input_path.mkdir()
-                self._download_batch(batch, input_path, manifest_path)
-                result = self._run_model(batch, input_path, manifest_path, output_path)
-                model_version, images = parse_batch_result(
-                    result,
-                    {item.media_id for item in batch.media},
-                )
-                self._complete_batch(batch, model_version, images)
-                print(
-                    f"AI batch completed inspection={batch.inspection_id} "
-                    f"media_count={len(batch.media)} model_version={model_version}",
-                    flush=True,
-                )
+                self.storage.fget_object(self.settings.minio_bucket, job.storage_key, str(input_path))
+                self._validate_jpeg(input_path, job.width, job.height)
+                result = self._run_model(job, input_path, output_path)
+                model_version, detections = parse_result(result, job.media_id)
+                crop_keys = self._upload_crops(job, detections)
+                self._complete(job, model_version, detections, crop_keys)
         except Exception as error:  # worker boundary: record sanitized failure, then continue polling
-            error_code = type(error).__name__
-            error_message = self._sanitize_error(str(error))
-            print(
-                f"AI batch failed inspection={batch.inspection_id} "
-                f"media_count={len(batch.media)} code={error_code} message={error_message}",
-                file=sys.stderr,
-                flush=True,
-            )
-            self._fail_batch(batch, error_code, error_message)
+            self._fail(job, type(error).__name__, str(error))
         return True
 
-    def _claim_batch(self) -> ClaimedBatch | None:
+    def _claim(self) -> ClaimedJob | None:
         with psycopg.connect(self.settings.database_dsn) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT i.id
-                    FROM inspections i
-                    WHERE i.media_finalized_at IS NOT NULL
-                      AND EXISTS (
-                          SELECT 1
-                          FROM media_analysis_jobs j
-                          JOIN media m ON m.id = j.media_id
-                          WHERE m.inspection_id = i.id
-                            AND j.status = 'QUEUED'
-                            AND j.available_at <= NOW()
-                            AND m.upload_status = 'UPLOADED'
-                            AND m.deleted_at IS NULL
-                      )
-                    ORDER BY (
-                        SELECT MIN(j.created_at)
+                    WITH candidate AS (
+                        SELECT j.id
                         FROM media_analysis_jobs j
                         JOIN media m ON m.id = j.media_id
-                        WHERE m.inspection_id = i.id
-                          AND j.status = 'QUEUED'
+                        WHERE j.status = 'QUEUED'
+                          AND j.available_at <= NOW()
+                          AND m.upload_status = 'UPLOADED'
+                          AND m.deleted_at IS NULL
+                        ORDER BY j.created_at
+                        FOR UPDATE OF j SKIP LOCKED
+                        LIMIT 1
                     )
-                    FOR UPDATE OF i SKIP LOCKED
-                    LIMIT 1
-                    """,
-                )
-                inspection_row = cursor.fetchone()
-                if inspection_row is None:
-                    return None
-                inspection_id = inspection_row[0]
-
-                cursor.execute(
-                    """
                     UPDATE media_analysis_jobs j
                     SET status = 'ANALYZING',
                         attempt_count = attempt_count + 1,
                         started_at = NOW(),
-                        completed_at = NULL,
                         updated_at = NOW(),
                         failure_code = NULL,
-                        failure_message = NULL,
-                        model_version = NULL
-                    FROM media m
-                    WHERE j.media_id = m.id
-                      AND m.inspection_id = %s
-                      AND j.status = 'QUEUED'
-                      AND j.available_at <= NOW()
-                      AND m.upload_status = 'UPLOADED'
-                      AND m.deleted_at IS NULL
-                    RETURNING j.id, j.media_id, m.owner_id, m.inspection_id,
-                              m.storage_key, m.width, m.height, m.source_video_offset_ms
+                        failure_message = NULL
+                    FROM candidate
+                    WHERE j.id = candidate.id
+                    RETURNING j.id, j.media_id
                     """,
-                    (inspection_id,),
                 )
-                rows = cursor.fetchall()
-                if not rows:
+                row = cursor.fetchone()
+                if row is None:
                     return None
-                claimed = tuple(sorted(
-                    (ClaimedMedia(*row) for row in rows),
-                    key=lambda item: (item.source_video_offset_ms, str(item.media_id)),
-                ))
-                owner_ids = {item.owner_id for item in claimed}
-                if len(owner_ids) != 1:
-                    raise RuntimeError("An inspection batch contains multiple owners")
-                for item in claimed:
-                    cursor.execute(
-                        "UPDATE media SET analysis_status = 'ANALYZING', updated_at = NOW() WHERE id = %s",
-                        (item.media_id,),
-                    )
-                self._refresh_inspection(cursor, inspection_id)
-                return ClaimedBatch(inspection_id, claimed[0].owner_id, claimed)
-
-    def _download_batch(
-        self,
-        batch: ClaimedBatch,
-        input_path: Path,
-        manifest_path: Path,
-    ) -> None:
-        manifest_images = []
-        for sequence_index, item in enumerate(batch.media):
-            filename = f"{sequence_index + 1:06d}.jpg"
-            local_path = input_path / filename
-            self.storage.fget_object(self.settings.minio_bucket, item.storage_key, str(local_path))
-            self._validate_jpeg(local_path, item.width, item.height)
-            manifest_images.append({
-                "filename": filename,
-                "imageId": str(item.media_id),
-                "sequenceIndex": sequence_index,
-                "sourceVideoOffsetMs": item.source_video_offset_ms,
-                "timestampSec": item.source_video_offset_ms / 1000.0,
-            })
-        manifest_path.write_text(
-            json.dumps({"inspectionId": str(batch.inspection_id), "images": manifest_images}, indent=2),
-            encoding="utf-8",
-        )
+                job_id, media_id = row
+                cursor.execute(
+                    """
+                    UPDATE media SET analysis_status = 'ANALYZING', updated_at = NOW()
+                    WHERE id = %s
+                    RETURNING owner_id, inspection_id, storage_key, width, height
+                    """,
+                    (media_id,),
+                )
+                media = cursor.fetchone()
+                if media is None:
+                    raise RuntimeError("Queued media no longer exists")
+                owner_id, inspection_id, storage_key, width, height = media
+                return ClaimedJob(job_id, media_id, owner_id, inspection_id, storage_key, width, height)
 
     def _validate_jpeg(self, path: Path, expected_width: int, expected_height: int) -> None:
         size = path.stat().st_size
@@ -274,35 +173,19 @@ class MediaAnalysisWorker:
             if image.width != expected_width or image.height != expected_height:
                 raise ValueError("Stored JPEG dimensions do not match media metadata")
 
-    def _run_model(
-        self,
-        batch: ClaimedBatch,
-        input_path: Path,
-        manifest_path: Path,
-        output_path: Path,
-    ) -> dict:
+    def _run_model(self, job: ClaimedJob, input_path: Path, output_path: Path) -> dict:
         command = [
             sys.executable,
             "-m",
-            "training.process_image_batch_room_defect",
+            "training.process_images_two_stage",
             "--input",
             str(input_path),
-            "--manifest",
-            str(manifest_path),
+            "--media-id",
+            str(job.media_id),
             "--job-id",
-            str(batch.inspection_id),
+            str(job.job_id),
             "--output",
             str(output_path),
-            "--room-provider",
-            "gemini",
-            "--defect-verifier",
-            "gemini",
-            "--gemini-model",
-            self.settings.gemini_model,
-            "--gemini-defect-model",
-            self.settings.gemini_defect_model,
-            "--gemini-reject-confidence",
-            str(self.settings.gemini_reject_confidence),
         ]
         completed = subprocess.run(
             command,
@@ -310,129 +193,92 @@ class MediaAnalysisWorker:
             check=False,
             capture_output=True,
             text=True,
-            timeout=self.settings.model_timeout_seconds,
+            timeout=600,
         )
         if completed.returncode != 0:
-            result_path = output_path / "result.json"
-            if result_path.is_file():
-                try:
-                    failed_result = json.loads(result_path.read_text(encoding="utf-8"))
-                    failure = failed_result.get("error") or {}
-                    failure_type = failure.get("type") or "UnknownError"
-                    failure_message = failure.get("message") or "No failure message"
-                    raise RuntimeError(
-                        f"AI batch model process failed (exit={completed.returncode}): "
-                        f"{failure_type}: {failure_message}"
-                    )
-                except json.JSONDecodeError:
-                    pass
-            diagnostic = completed.stdout.strip() or completed.stderr.strip()
-            if diagnostic:
-                diagnostic = " ".join(diagnostic.splitlines()[-20:])
-                raise RuntimeError(
-                    f"AI batch model process failed (exit={completed.returncode}): {diagnostic}"
-                )
-            raise RuntimeError(
-                f"AI batch model process failed (exit={completed.returncode}, no diagnostic output)"
-            )
+            raise RuntimeError("AI model process failed")
         result_path = output_path / "result.json"
         if not result_path.is_file():
-            raise RuntimeError("AI batch model did not create result.json")
+            raise RuntimeError("AI model did not create result.json")
         return json.loads(result_path.read_text(encoding="utf-8"))
 
-    def _complete_batch(
+    def _upload_crops(self, job: ClaimedJob, detections: list[DetectionResult]) -> dict[int, str]:
+        crop_keys: dict[int, str] = {}
+        for index, detection in enumerate(detections, start=1):
+            if detection.crop_path is None:
+                continue
+            crop_path = Path(detection.crop_path)
+            if not crop_path.is_file():
+                raise ValueError("AI crop file does not exist")
+            key = f"derived/{job.owner_id}/{job.inspection_id}/{job.media_id}/{index:03d}.jpg"
+            self.storage.fput_object(
+                self.settings.minio_bucket,
+                key,
+                str(crop_path),
+                content_type="image/jpeg",
+            )
+            crop_keys[index] = key
+        return crop_keys
+
+    def _complete(
         self,
-        batch: ClaimedBatch,
+        job: ClaimedJob,
         model_version: str,
-        results: list[BatchImageResult],
+        detections: list[DetectionResult],
+        crop_keys: dict[int, str],
     ) -> None:
-        jobs_by_media = {item.media_id: item for item in batch.media}
         with psycopg.connect(self.settings.database_dsn) as connection:
             with connection.cursor() as cursor:
-                for result in results:
-                    claimed = jobs_by_media[result.media_id]
-                    cursor.execute(
-                        "DELETE FROM media_analysis_detections WHERE job_id = %s",
-                        (claimed.job_id,),
-                    )
-                    self._insert_detections(cursor, claimed, model_version, result.detections)
+                cursor.execute("DELETE FROM media_analysis_detections WHERE job_id = %s", (job.job_id,))
+                for index, detection in enumerate(detections, start=1):
                     cursor.execute(
                         """
-                        UPDATE media_analysis_jobs
-                        SET status = 'COMPLETED', completed_at = NOW(), model_version = %s,
-                            failure_code = NULL, failure_message = NULL, updated_at = NOW()
-                        WHERE id = %s AND status = 'ANALYZING'
-                        """,
-                        (model_version, claimed.job_id),
-                    )
-                    cursor.execute(
-                        """
-                        UPDATE media
-                        SET analysis_status = 'COMPLETED', ai_zone = %s,
-                            zone_uncertain = %s, zone_model_version = %s,
-                            zone_confidence = NULL, updated_at = NOW()
-                        WHERE id = %s
+                        INSERT INTO media_analysis_detections (
+                            id, job_id, media_id, class_id, label, confidence,
+                            box_left, box_top, box_right, box_bottom, model_version,
+                            crop_storage_key, crop_width, crop_height, created_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                         """,
                         (
-                            result.zone,
-                            result.zone_uncertain,
-                            result.zone_model_version,
-                            result.media_id,
+                            uuid4(), job.job_id, job.media_id, detection.class_id, detection.label,
+                            detection.confidence, detection.left, detection.top, detection.right,
+                            detection.bottom, model_version, crop_keys.get(index),
+                            detection.crop_width, detection.crop_height,
                         ),
                     )
-                self._refresh_inspection(cursor, batch.inspection_id)
+                cursor.execute(
+                    """
+                    UPDATE media_analysis_jobs
+                    SET status = 'COMPLETED', completed_at = NOW(), model_version = %s, updated_at = NOW()
+                    WHERE id = %s AND status = 'ANALYZING'
+                    """,
+                    (model_version, job.job_id),
+                )
+                cursor.execute(
+                    "UPDATE media SET analysis_status = 'COMPLETED', updated_at = NOW() WHERE id = %s",
+                    (job.media_id,),
+                )
+                self._refresh_inspection(cursor, job.inspection_id)
 
-    @staticmethod
-    def _insert_detections(
-        cursor,
-        claimed: ClaimedMedia,
-        model_version: str,
-        detections: tuple[DetectionResult, ...],
-    ) -> None:
-        for detection in detections:
-            cursor.execute(
-                """
-                INSERT INTO media_analysis_detections (
-                    id, job_id, media_id, class_id, label, confidence,
-                    box_left, box_top, box_right, box_bottom, model_version,
-                    crop_storage_key, crop_width, crop_height, created_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NULL, NULL, NULL, NOW())
-                """,
-                (
-                    uuid4(), claimed.job_id, claimed.media_id, detection.class_id,
-                    detection.label, detection.confidence, detection.left, detection.top,
-                    detection.right, detection.bottom, model_version,
-                ),
-            )
-
-    def _fail_batch(self, batch: ClaimedBatch, code: str, message: str) -> None:
+    def _fail(self, job: ClaimedJob, code: str, message: str) -> None:
         safe_code = code[:64]
-        safe_message = self._sanitize_error(message)[:500]
+        safe_message = message.replace("\n", " ")[:500]
         with psycopg.connect(self.settings.database_dsn) as connection:
             with connection.cursor() as cursor:
-                for item in batch.media:
-                    cursor.execute(
-                        """
-                        UPDATE media_analysis_jobs
-                        SET status = 'FAILED', completed_at = NOW(), failure_code = %s,
-                            failure_message = %s, updated_at = NOW()
-                        WHERE id = %s AND status = 'ANALYZING'
-                        """,
-                        (safe_code, safe_message, item.job_id),
-                    )
-                    cursor.execute(
-                        "UPDATE media SET analysis_status = 'FAILED', updated_at = NOW() WHERE id = %s",
-                        (item.media_id,),
-                    )
-                self._refresh_inspection(cursor, batch.inspection_id)
-
-    @staticmethod
-    def _sanitize_error(message: str) -> str:
-        sanitized = " ".join(message.splitlines())
-        api_key = os.getenv("GEMINI_API_KEY")
-        if api_key:
-            sanitized = sanitized.replace(api_key, "[REDACTED]")
-        return sanitized
+                cursor.execute(
+                    """
+                    UPDATE media_analysis_jobs
+                    SET status = 'FAILED', completed_at = NOW(), failure_code = %s,
+                        failure_message = %s, updated_at = NOW()
+                    WHERE id = %s
+                    """,
+                    (safe_code, safe_message, job.job_id),
+                )
+                cursor.execute(
+                    "UPDATE media SET analysis_status = 'FAILED', updated_at = NOW() WHERE id = %s",
+                    (job.media_id,),
+                )
+                self._refresh_inspection(cursor, job.inspection_id)
 
     @staticmethod
     def _refresh_inspection(cursor, inspection_id: UUID) -> None:
@@ -448,14 +294,6 @@ class MediaAnalysisWorker:
                     SELECT 1 FROM media m WHERE m.inspection_id = i.id AND m.deleted_at IS NULL
                       AND m.analysis_status = 'ANALYZING'
                 ) THEN 'ANALYZING'
-                WHEN EXISTS (
-                    SELECT 1 FROM media m WHERE m.inspection_id = i.id AND m.deleted_at IS NULL
-                      AND m.analysis_status IN ('NOT_REQUESTED', 'QUEUED')
-                ) THEN 'QUEUED'
-                WHEN i.media_finalized_at IS NULL THEN 'UPLOADING'
-                WHEN NOT EXISTS (
-                    SELECT 1 FROM media m WHERE m.inspection_id = i.id AND m.deleted_at IS NULL
-                ) THEN 'FAILED'
                 WHEN NOT EXISTS (
                     SELECT 1 FROM media m WHERE m.inspection_id = i.id AND m.deleted_at IS NULL
                       AND m.analysis_status <> 'COMPLETED'
@@ -480,19 +318,12 @@ class MediaAnalysisWorker:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Process queued Tenant Leaf inspection batches")
-    parser.add_argument("--once", action="store_true", help="Process at most one inspection batch and exit")
+    parser = argparse.ArgumentParser(description="Process queued Tenant Leaf JPEG analysis jobs")
+    parser.add_argument("--once", action="store_true", help="Process at most one job and exit")
     args = parser.parse_args()
     worker = MediaAnalysisWorker(Settings.from_environment())
-    print(
-        f"Tenant Leaf AI Worker started poll_seconds={worker.settings.poll_seconds} "
-        f"room_model={worker.settings.gemini_model} "
-        f"defect_model={worker.settings.gemini_defect_model}",
-        flush=True,
-    )
     if args.once:
-        if not worker.run_once():
-            print("No eligible QUEUED inspection batch found", flush=True)
+        worker.run_once()
         return
     while True:
         if not worker.run_once():

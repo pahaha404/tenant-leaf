@@ -7,11 +7,7 @@ import com.tenantleaf.api.inspection.InspectionRepository
 import com.tenantleaf.api.property.DemoUserContext
 import com.tenantleaf.api.property.PropertyEntity
 import com.tenantleaf.api.property.PropertyRepository
-import com.tenantleaf.api.report.ObservationEvidenceRepository
-import com.tenantleaf.api.report.ObservationRepository
-import com.tenantleaf.api.report.ReportRepository
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -42,16 +38,9 @@ class MediaApiIntegrationTests(
     @Autowired private val idempotencyRepository: ApiIdempotencyRecordRepository,
     @Autowired private val inspectionRepository: InspectionRepository,
     @Autowired private val propertyRepository: PropertyRepository,
-    @Autowired private val reportRepository: ReportRepository,
-    @Autowired private val observationRepository: ObservationRepository,
-    @Autowired private val evidenceRepository: ObservationEvidenceRepository,
 ) {
     @BeforeEach
-    @AfterEach
     fun cleanDatabase() {
-        evidenceRepository.deleteAll()
-        observationRepository.deleteAll()
-        reportRepository.deleteAll()
         idempotencyRepository.deleteAll()
         analysisJobRepository.deleteAll()
         mediaRepository.deleteAll()
@@ -125,35 +114,6 @@ class MediaApiIntegrationTests(
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.analysisStatus").value("COMPLETED"))
 
-        val finalizeKey = UUID.randomUUID()
-        val finalizeBody = """{"expectedMediaCount":1}"""
-        mockMvc.perform(
-            post("/api/v1/inspections/{inspectionId}/media/finalize", inspectionId)
-                .header("Idempotency-Key", finalizeKey)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(finalizeBody),
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.expectedMediaCount").value(1))
-            .andExpect(jsonPath("$.registeredMediaCount").value(1))
-            .andExpect(jsonPath("$.analysisStatus").value("COMPLETED"))
-
-        mockMvc.perform(
-            post("/api/v1/inspections/{inspectionId}/media/finalize", inspectionId)
-                .header("Idempotency-Key", finalizeKey)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(finalizeBody),
-        ).andExpect(status().isOk)
-
-        mockMvc.perform(
-            post("/api/v1/inspections/{inspectionId}/media/upload-requests", inspectionId)
-                .header("Idempotency-Key", UUID.randomUUID())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestBody(UUID.randomUUID(), sourceVideoId)),
-        )
-            .andExpect(status().isConflict)
-            .andExpect(jsonPath("$.code").value("MEDIA_SET_FINALIZED"))
-
         mockMvc.perform(get("/api/v1/inspections/{inspectionId}/media", inspectionId))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.totalElements").value(1))
@@ -190,7 +150,7 @@ class MediaApiIntegrationTests(
     }
 
     private fun requestBody(clientMediaId: UUID, sourceVideoId: UUID) =
-        """{"items":[{"clientMediaId":"$clientMediaId","contentType":"image/jpeg","fileSize":123,"width":640,"height":480,"sourceVideoId":"$sourceVideoId","sourceVideoOffsetMs":3000,"frameOrigin":"POST_RECORDING_EXTRACTION","captureSource":"META_GLASS","capturedAt":"2026-08-19T10:00:00+09:00"}]}"""
+        """{"items":[{"clientMediaId":"$clientMediaId","zone":"KITCHEN","contentType":"image/jpeg","fileSize":123,"width":640,"height":480,"sourceVideoId":"$sourceVideoId","sourceVideoOffsetMs":3000,"frameOrigin":"POST_RECORDING_EXTRACTION","captureSource":"META_GLASS","capturedAt":"2026-08-19T10:00:00+09:00"}]}"""
 
     private fun createEndedInspection() = createInspection(InspectionLifecycleStatus.ENDED)
 
@@ -220,9 +180,6 @@ class MediaApiIntegrationTests(
         fun fakeObjectStorage(): ObjectStorageGateway = object : ObjectStorageGateway {
             override fun createUploadUrl(key: String) =
                 PresignedUpload(URI.create("http://storage.test/$key?signature=test"), OffsetDateTime.now().plusMinutes(15))
-
-            override fun createViewUrl(key: String) =
-                PresignedView(URI.create("http://storage.test/$key?signature=view-test"), OffsetDateTime.now().plusMinutes(15))
 
             override fun inspectJpeg(key: String, maximumBytes: Int) = StoredJpeg(123, 640, 480, "image/jpeg")
         }

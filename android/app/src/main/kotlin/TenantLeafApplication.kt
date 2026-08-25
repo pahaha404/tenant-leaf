@@ -9,6 +9,5 @@ class TenantLeafApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         BuildConfig.KAKAO_NATIVE_APP_KEY.takeIf { it.isNotBlank() }?.let { KakaoMapSdk.init(this, it) }
-        com.seipseip.app.feature.inspection.VoiceGuideManager.warmUp(this)
     }
 }

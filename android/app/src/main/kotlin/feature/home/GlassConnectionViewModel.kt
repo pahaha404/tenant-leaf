@@ -239,8 +239,7 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
         fun setVideoQuality(quality: VideoQuality) {
             if (_sharedPreviewUiState.value.selectedQuality == quality) return
             _sharedPreviewUiState.update { it.copy(selectedQuality = quality) }
-            val activeSession = session
-            if (activeSession != null && _sharedUiState.value.isConnected) {
+            if (camera != null || stream != null) {
                 stopPreview()
                 startPreview()
             }
@@ -442,7 +441,6 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
     }
 
     override fun onCleared() {
-        Companion.clearPreview()
         cleanupSession()
         super.onCleared()
     }

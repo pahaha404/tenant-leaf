@@ -17,12 +17,10 @@ import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
 data class PresignedUpload(val url: URI, val expiresAt: OffsetDateTime)
-data class PresignedView(val url: URI, val expiresAt: OffsetDateTime)
 data class StoredJpeg(val size: Long, val width: Int, val height: Int, val contentType: String?)
 
 interface ObjectStorageGateway {
     fun createUploadUrl(key: String): PresignedUpload
-    fun createViewUrl(key: String): PresignedView
     fun inspectJpeg(key: String, maximumBytes: Int): StoredJpeg
 }
 
@@ -72,19 +70,6 @@ class MinioObjectStorageGateway(
                 .build(),
         )
         PresignedUpload(URI.create(url), expiresAt)
-    }
-
-    override fun createViewUrl(key: String): PresignedView = storageCall {
-        val expiresAt = OffsetDateTime.now().plusMinutes(properties.presignMinutes.toLong())
-        val url = presignClient.getPresignedObjectUrl(
-            GetPresignedObjectUrlArgs.builder()
-                .method(Method.GET)
-                .bucket(properties.bucket)
-                .`object`(key)
-                .expiry(properties.presignMinutes, TimeUnit.MINUTES)
-                .build(),
-        )
-        PresignedView(URI.create(url), expiresAt)
     }
 
     override fun inspectJpeg(key: String, maximumBytes: Int): StoredJpeg = storageCall {

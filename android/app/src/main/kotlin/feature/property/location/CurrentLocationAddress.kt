@@ -42,31 +42,6 @@ internal suspend fun currentLocationSelection(context: Context): CurrentLocation
     )
 }
 
-@SuppressLint("MissingPermission")
-internal suspend fun fastCurrentCoordinates(context: Context): Pair<Double, Double>? = withContext(Dispatchers.IO) {
-    val hasPermission = arrayOf(
-        Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.ACCESS_COARSE_LOCATION,
-    ).any { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }
-    if (!hasPermission) return@withContext null
-
-    val locationManager = context.getSystemService(LocationManager::class.java) ?: return@withContext null
-    val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
-        .filter(locationManager::isProviderEnabled)
-    if (providers.isEmpty()) return@withContext null
-
-    // 1. Instant check on last known location (0ms response)
-    val lastKnown = providers.mapNotNull(locationManager::getLastKnownLocation).maxByOrNull(Location::getTime)
-    if (lastKnown != null) {
-        return@withContext (lastKnown.latitude to lastKnown.longitude)
-    }
-
-    // 2. Query active location with short 2.5-second timeout
-    val preferred = providers.first()
-    val fresh = withTimeoutOrNull(2_500) { currentLocation(context, locationManager, preferred) }
-    fresh?.let { it.latitude to it.longitude }
-}
-
 internal suspend fun reverseGeocode(context: Context, latitude: Double, longitude: Double): String =
     withContext(Dispatchers.IO) {
         if (!Geocoder.isPresent()) error("주소 변환 서비스를 사용할 수 없습니다.")

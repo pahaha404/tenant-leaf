@@ -221,7 +221,7 @@ private fun GuideItemRow(item: GuideItem, number: Int, onClick: () -> Unit) {
     }
 }
 
-internal fun guideImageResource(zoneId: String, itemIndex: Int): Int = when ("$zoneId:$itemIndex") {
+private fun guideImageResource(zoneId: String, itemIndex: Int): Int = when ("$zoneId:$itemIndex") {
     "entry:0" -> R.drawable.guide_entry_door
     "entry:1" -> R.drawable.guide_entry_lock
     "entry:2" -> R.drawable.guide_entry_shoe_cabinet

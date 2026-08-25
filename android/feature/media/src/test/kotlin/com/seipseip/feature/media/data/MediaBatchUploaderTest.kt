@@ -63,7 +63,6 @@ class MediaBatchUploaderTest {
         server.enqueue(jsonResponse(registrationJson(server.url("/signed/first").toString()), 201))
         server.enqueue(MockResponse().setResponseCode(200))
         server.enqueue(jsonResponse(mediaJson(), 200))
-        server.enqueue(jsonResponse(finalizeJson(), 200))
 
         val result = uploader.upload(inspectionId, listOf(photo())) {}
 
@@ -75,9 +74,6 @@ class MediaBatchUploaderTest {
         })
         assertEquals("PUT", server.takeRequest().method)
         assertEquals("/api/v1/media/$mediaId/upload-complete", server.takeRequest().path)
-        val finalize = server.takeRequest()
-        assertEquals("/api/v1/inspections/$inspectionId/media/finalize", finalize.path)
-        assertTrue(finalize.body.readUtf8().contains("\"expectedMediaCount\":1"))
     }
 
     @Test
@@ -87,7 +83,6 @@ class MediaBatchUploaderTest {
         server.enqueue(jsonResponse(instructionJson(server.url("/signed/fresh").toString()), 200))
         server.enqueue(MockResponse().setResponseCode(200))
         server.enqueue(jsonResponse(mediaJson(), 200))
-        server.enqueue(jsonResponse(finalizeJson(), 200))
 
         val result = uploader.upload(inspectionId, listOf(photo())) {}
 
@@ -99,7 +94,6 @@ class MediaBatchUploaderTest {
         assertEquals("POST", retry.method)
         assertEquals("/signed/fresh", server.takeRequest().path)
         assertEquals("/api/v1/media/$mediaId/upload-complete", server.takeRequest().path)
-        assertEquals("/api/v1/inspections/$inspectionId/media/finalize", server.takeRequest().path)
     }
 
     private fun photo() = ExtractedJpeg(
@@ -128,6 +122,7 @@ class MediaBatchUploaderTest {
         "clientMediaId":"$clientMediaId",
         "inspectionId":"$inspectionId",
         "mediaType":"PHOTO",
+        "zone":"UNKNOWN",
         "contentType":"image/jpeg",
         "fileSize":4,
         "width":1,
@@ -142,16 +137,9 @@ class MediaBatchUploaderTest {
         "createdAt":"2026-08-19T10:00:04+09:00"
     }""".trimIndent()
 
-    private fun finalizeJson() = """{
-        "inspectionId":"$inspectionId",
-        "expectedMediaCount":1,
-        "registeredMediaCount":1,
-        "mediaFinalizedAt":"2026-08-19T10:00:05+09:00",
-        "analysisStatus":"QUEUED"
-    }""".trimIndent()
-
     private fun jsonResponse(body: String, code: Int) = MockResponse()
         .setResponseCode(code)
         .setHeader("Content-Type", "application/json")
         .setBody(body)
 }
+

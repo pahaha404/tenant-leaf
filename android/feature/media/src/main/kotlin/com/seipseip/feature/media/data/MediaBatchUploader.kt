@@ -7,8 +7,8 @@ import com.seipseip.core.network.generated.api.MediaApi
 import com.seipseip.core.network.generated.model.CaptureSource
 import com.seipseip.core.network.generated.model.CreateMediaUploadBatchRequest
 import com.seipseip.core.network.generated.model.CreateMediaUploadRequest
-import com.seipseip.core.network.generated.model.FinalizeInspectionMediaRequest
 import com.seipseip.core.network.generated.model.MediaUploadInstruction
+import com.seipseip.core.network.generated.model.Zone
 import com.seipseip.feature.media.domain.ExtractedJpeg
 import com.seipseip.feature.media.domain.MediaPlanning
 import com.seipseip.feature.media.domain.MediaUploadProgress
@@ -58,21 +58,7 @@ class MediaBatchUploader @Inject constructor(
                 }
             }
         }
-        val finalizeKey = MediaPlanning.idempotencyKey(
-            operation = "finalize-media",
-            resourceId = inspectionId,
-            discriminator = photos.size.toString(),
-        )
-        return when (val finalized = executeApiCall(moshi) {
-            mediaApi.finalizeInspectionMedia(
-                inspectionId,
-                finalizeKey,
-                FinalizeInspectionMediaRequest(expectedMediaCount = photos.size),
-            )
-        }) {
-            is AppResult.Success -> AppResult.Success(Unit)
-            is AppResult.Failure -> finalized
-        }
+        return AppResult.Success(Unit)
     }
 
     private suspend fun uploadOne(
@@ -116,6 +102,7 @@ class MediaBatchUploader @Inject constructor(
 
     private fun ExtractedJpeg.toRequest() = CreateMediaUploadRequest(
         clientMediaId = clientMediaId,
+        zone = Zone.UNKNOWN,
         contentType = CreateMediaUploadRequest.ContentType.imageSlashJpeg,
         fileSize = file.length(),
         width = width,
@@ -127,3 +114,4 @@ class MediaBatchUploader @Inject constructor(
         capturedAt = capturedAt,
     )
 }
+

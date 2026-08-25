@@ -27,15 +27,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +55,6 @@ enum class AppTab(val label: String) {
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun AppPageScaffold(
     title: String,
     onBack: (() -> Unit)? = null,
@@ -67,14 +62,9 @@ fun AppPageScaffold(
     selectedTab: AppTab? = null,
     onTabSelected: ((AppTab) -> Unit)? = null,
     bottomAction: (@Composable () -> Unit)? = null,
-    topTrailingAction: (@Composable () -> Unit)? = null,
-    floatingActionButton: (@Composable () -> Unit)? = null,
-    isRefreshing: Boolean = false,
-    onRefresh: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     Scaffold(
-        floatingActionButton = { floatingActionButton?.invoke() },
         bottomBar = {
             Column {
                 bottomAction?.invoke()
@@ -84,83 +74,39 @@ fun AppPageScaffold(
             }
         },
     ) { innerPadding ->
-        val pageContent: @Composable () -> Unit = {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFFCFBF8))
-                    .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                if (onBack != null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.ArrowBack,
-                                contentDescription = "뒤로",
-                                modifier = Modifier.clickable(onClick = onBack),
-                                tint = Green,
-                            )
-                            Text(
-                                text = title,
-                                modifier = Modifier.padding(start = 12.dp),
-                                color = DeepGreen,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
-                        topTrailingAction?.invoke()
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = title,
-                            color = DeepGreen,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                        )
-                        topTrailingAction?.invoke()
-                    }
-                }
-                content()
-            }
-        }
-
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .background(Color(0xFFFCFBF8))
+                .padding(innerPadding)
+                .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            if (onRefresh != null) {
-                val pullRefreshState = rememberPullToRefreshState()
-                PullToRefreshBox(
-                    isRefreshing = isRefreshing,
-                    onRefresh = onRefresh,
-                    state = pullRefreshState,
-                    modifier = Modifier.fillMaxSize(),
-                    indicator = {
-                        PullToRefreshDefaults.Indicator(
-                            state = pullRefreshState,
-                            isRefreshing = isRefreshing,
-                            containerColor = Color.White,
-                            color = Green,
-                            modifier = Modifier.align(Alignment.TopCenter),
-                        )
-                    },
-                ) {
-                    pageContent()
+            if (onBack != null) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Outlined.ArrowBack,
+                        contentDescription = "뒤로",
+                        modifier = Modifier.clickable(onClick = onBack),
+                        tint = Green,
+                    )
+                    Text(
+                        text = title,
+                        modifier = Modifier.padding(start = 12.dp),
+                        color = DeepGreen,
+                        fontWeight = FontWeight.Bold,
+                    )
                 }
             } else {
-                pageContent()
+                Text(
+                    text = title,
+                    color = DeepGreen,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
             }
+            content()
         }
     }
 }

@@ -15,7 +15,6 @@ class HevcDecoder {
     private data class Frame(
         val bytes: ByteArray,
         val offset: Int,
-        val length: Int,
         val timestampUs: Long,
         val keyFrame: Boolean,
         val config: Boolean,
@@ -30,7 +29,7 @@ class HevcDecoder {
         private val blockedDecoders = setOf("OMX.Exynos.hevc.dec", "c2.mtk.hevc.decoder")
     }
 
-    @Volatile private var queue = ArrayBlockingQueue<Frame>(100)
+    private val queue = ArrayBlockingQueue<Frame>(100)
     @Volatile private var codec: MediaCodec? = null
     @Volatile private var decoderThread: HandlerThread? = null
     @Volatile private var format: MediaFormat? = null
@@ -52,23 +51,10 @@ class HevcDecoder {
 
     fun decodeFrame(bytes: ByteArray, timestampUs: Long) {
         if (bytes.isEmpty()) return
-
-        // Extract NAL Units and calculate individual lengths
-        val nalPositions = mutableListOf<Int>()
         var index = findNalUnit(bytes, 0, bytes.size, BooleanArray(3))
         val prefixFlags = BooleanArray(3)
         while (index < bytes.size) {
-            nalPositions.add(index)
-            index = findNalUnit(bytes, index + 1, bytes.size, prefixFlags)
-        }
-
-        for (i in nalPositions.indices) {
-            val startOffset = nalPositions[i]
-            val endOffset = if (i + 1 < nalPositions.size) nalPositions[i + 1] else bytes.size
-            val length = endOffset - startOffset
-            if (length <= 0) continue
-
-            val type = nalType(bytes, startOffset)
+            val type = nalType(bytes, index)
             val config = type in 32..34
             val keyFrame = type in 16..21
             if (config) cachedConfig = bytes
@@ -76,7 +62,8 @@ class HevcDecoder {
                 active = true
                 cachedConfig?.let(::enqueueConfig)
             }
-            enqueue(Frame(bytes, startOffset, length, timestampUs, keyFrame, config))
+            enqueue(Frame(bytes, index, timestampUs, keyFrame, config))
+            index = findNalUnit(bytes, index + 1, bytes.size, prefixFlags)
         }
     }
 
@@ -94,22 +81,12 @@ class HevcDecoder {
     }
 
     private fun enqueueConfig(bytes: ByteArray) {
-        val nalPositions = mutableListOf<Int>()
         var index = findNalUnit(bytes, 0, bytes.size, BooleanArray(3))
         val prefixFlags = BooleanArray(3)
         while (index < bytes.size) {
-            nalPositions.add(index)
+            val type = nalType(bytes, index)
+            enqueue(Frame(bytes, index, 0, type in 16..21, type in 32..34))
             index = findNalUnit(bytes, index + 1, bytes.size, prefixFlags)
-        }
-
-        for (i in nalPositions.indices) {
-            val startOffset = nalPositions[i]
-            val endOffset = if (i + 1 < nalPositions.size) nalPositions[i + 1] else bytes.size
-            val length = endOffset - startOffset
-            if (length <= 0) continue
-
-            val type = nalType(bytes, startOffset)
-            enqueue(Frame(bytes, startOffset, length, 0, type in 16..21, type in 32..34))
         }
     }
 
@@ -123,11 +100,9 @@ class HevcDecoder {
             firstInput = false
             activateCodec()
         }
-
         if (!queue.offer(frame)) {
-            // Drop oldest frame on queue overflow to maintain live preview stream
-            queue.poll()
-            queue.offer(frame)
+            Log.w(TAG, "Decoder queue full")
+            active = false
         }
     }
 
@@ -160,14 +135,14 @@ class HevcDecoder {
                             codec.queueInputBuffer(index, 0, 0, 0, 0)
                         } else {
                             input.clear()
-                            val bytesToPut = minOf(frame.length, input.capacity())
-                            input.put(frame.bytes, frame.offset, bytesToPut)
+                            input.put(frame.bytes)
                             input.flip()
-                            codec.queueInputBuffer(index, 0, bytesToPut, frame.timestampUs, frame.flags)
+                            codec.queueInputBuffer(index, frame.offset, minOf(frame.bytes.size - frame.offset, input.limit() - frame.offset), frame.timestampUs, frame.flags)
                         }
                         queued = true
                     } catch (error: Throwable) {
                         Log.e(TAG, "Decoder input failed", error)
+                        active = false
                     } finally {
                         if (!queued) runCatching { codec.queueInputBuffer(index, 0, 0, 0, 0) }
                     }

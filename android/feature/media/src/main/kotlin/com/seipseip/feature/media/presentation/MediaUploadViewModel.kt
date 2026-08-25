@@ -77,7 +77,9 @@ class MediaUploadViewModel @Inject constructor(
                 is AppResult.Success -> when (val selection = VideoSelection.from(result.value, VideoCandidate::createdAtMillis)) {
                     VideoSelection.None -> _state.value = MediaUploadUiState.NoVideo
                     is VideoSelection.Automatic -> process(selection.value)
-                    is VideoSelection.ConfirmationRequired -> process(selection.newestFirst.first())
+                    is VideoSelection.ConfirmationRequired -> {
+                        _state.value = MediaUploadUiState.ConfirmNewest(selection.newestFirst)
+                    }
                 }
                 is AppResult.Failure -> _state.value = MediaUploadUiState.Error(result.error.userMessage)
             }
