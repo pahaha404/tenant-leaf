@@ -1,10 +1,6 @@
 package com.seipseip.app.feature.inspection.voice
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.media.MediaPlayer
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -41,7 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
@@ -51,22 +46,8 @@ import com.seipseip.app.feature.common.AppPageScaffold
 
 /** 점검 시작부터 종료까지 자동으로 동작하는 로컬 음성 기록 상태 카드. */
 @Composable
-fun VoiceRecordSection(inspectionId: String) {
-    val context = LocalContext.current
+fun VoiceRecordSection() {
     val state = VoiceRecordSession.result
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        if (granted) VoiceRecordSession.start(context, inspectionId)
-    }
-
-    LaunchedEffect(inspectionId) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-            VoiceRecordSession.start(context, inspectionId)
-        } else {
-            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-        }
-    }
 
     Row(
         modifier = Modifier

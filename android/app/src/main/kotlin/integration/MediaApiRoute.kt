@@ -83,7 +83,7 @@ private fun MediaUploadUiState.toPresentation(
         progress = if (total == 0) 0f else completed.toFloat() / total,
         message = "사진 준비 또는 전송을 완료하지 못했어요.",
         error = message,
-        primaryLabel = "다시 시도",
-        primaryAction = retry,
+        primaryLabel = "리포트로 이동",
+        primaryAction = finish,
     )
 }

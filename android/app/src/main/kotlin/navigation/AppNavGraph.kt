@@ -75,6 +75,7 @@ object Route {
     const val Login = "login"
     const val SignUp = "signup"
     const val SignupOnboarding = "signup_onboarding"
+    const val SignupConsent = "signup_consent"
     const val FirstUse = "first_use"
     const val Welcome = "welcome"
     const val Consent = "consent"
@@ -131,10 +132,16 @@ object Route {
 private const val SESSION_PREFERENCES = "tenant_leaf_session"
 private const val KEY_LOGGED_IN = "logged_in"
 private const val KEY_TUTORIAL_COMPLETED = "tutorial_completed"
+private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
 
-internal fun initialRouteFor(isLoggedIn: Boolean, isTutorialCompleted: Boolean): String = when {
+internal fun initialRouteFor(
+    isLoggedIn: Boolean,
+    isTutorialCompleted: Boolean,
+    isOnboardingCompleted: Boolean,
+): String = when {
+    !isOnboardingCompleted -> Route.Welcome
     isTutorialCompleted && isLoggedIn -> Route.Home
-    isLoggedIn -> Route.Welcome
+    isLoggedIn -> Route.Consent
     else -> Route.Login
 }
 
@@ -190,7 +197,8 @@ fun AppNavGraph(
             LoadingScreen {
                 val isLoggedIn = sessionPreferences.getBoolean(KEY_LOGGED_IN, false)
                 val isTutorialCompleted = sessionPreferences.getBoolean(KEY_TUTORIAL_COMPLETED, false)
-                navController.navigate(initialRouteFor(isLoggedIn, isTutorialCompleted)) {
+                val isOnboardingCompleted = sessionPreferences.getBoolean(KEY_ONBOARDING_COMPLETED, false)
+                navController.navigate(initialRouteFor(isLoggedIn, isTutorialCompleted, isOnboardingCompleted)) {
                     popUpTo(Route.Loading) { inclusive = true }
                 }
             }
@@ -200,8 +208,11 @@ fun AppNavGraph(
                 if (destination == "signup") {
                     navController.navigate(Route.SignUp)
                 } else {
+                    if (destination == "guest") {
+                        onNicknameChanged("게스트")
+                    }
                     sessionPreferences.edit().putBoolean(KEY_LOGGED_IN, true).apply()
-                    navController.navigate(Route.Welcome)
+                    navController.navigate(Route.Consent)
                 }
             }
         }
@@ -210,7 +221,16 @@ fun AppNavGraph(
                 back = navController::popBackStack,
                 next = { newNickname ->
                     onNicknameChanged(newNickname)
-                    navController.navigate(Route.SignupOnboarding)
+                    navController.navigate(Route.SignupConsent)
+                },
+            )
+        }
+        composable(Route.SignupConsent) {
+            Consent(
+                back = navController::popBackStack,
+                next = {
+                    sessionPreferences.edit().putBoolean(KEY_LOGGED_IN, true).apply()
+                    navController.navigate(Route.FirstUse)
                 },
             )
         }
@@ -223,13 +243,18 @@ fun AppNavGraph(
         composable(Route.FirstUse) {
             FirstUse(
                 back = navController::popBackStack,
-                next = { navController.navigate(Route.Consent) },
+                next = { navController.navigate(Route.Permissions) },
             )
         }
         composable(Route.Welcome) {
             Welcome(
                 back = navController::popBackStack,
-                next = { navController.navigate(Route.Consent) },
+                next = {
+                    sessionPreferences.edit().putBoolean(KEY_ONBOARDING_COMPLETED, true).apply()
+                    navController.navigate(Route.Login) {
+                        popUpTo(Route.Welcome) { inclusive = true }
+                    }
+                },
             )
         }
         composable(Route.Consent) {
