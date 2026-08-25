@@ -65,7 +65,7 @@ class GeminiDefectVerifier:
     def __init__(
         self,
         model: str = "gemini-3.5-flash-lite",
-        retries: int = 3,
+        retries: int = 2,
         min_request_interval_sec: float = 4.2,
     ) -> None:
         api_key = os.environ.get("GEMINI_API_KEY")
@@ -76,7 +76,11 @@ class GeminiDefectVerifier:
             from google.genai import types
         except ImportError as error:
             raise RuntimeError("google-genai is not installed; run pip install -r requirements.txt") from error
-        self.client = genai.Client(api_key=api_key)
+        request_timeout_ms = max(1_000, int(os.environ.get("GEMINI_REQUEST_TIMEOUT_MS", "15000")))
+        self.client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(timeout=request_timeout_ms),
+        )
         self.types = types
         self.model = model
         self.retries = max(1, retries)
