@@ -25,6 +25,7 @@
 
 ## 진행 기록
 
+- 2026-08-25 — 홈 화면(`HomeScreen`, `AppNavGraph`) "매물 등록하기" 퀵 액션 버튼 내비게이션 경로 직결. 기존 매물 리스트(`Route.PropertyList`)로 이동하던 경로를 매물 등록 화면(`Route.PropertyForm`)으로 직접 이동하도록 수정하여 불필요한 뎁스를 단축함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-25 — 구역 명칭 간소화(현관·공용 ➔ 현관). `UiCatalog`, 실시간 점검(`LiveInspectionScreen`), 리포트(`ReportApiRoute`) 등 UI 전반에서 '현관·공용'으로 표기되던 명칭을 '현관'으로 간결하게 변경 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 
 - 2026-08-25 — 실시간 점검 화면(`LiveInspectionScreen`) UI/UX Best Practices 고도화. 1) 카메라 프리뷰 시인성 극대화(높이 230dp 확대, REC 펄스 애니메이션 뱃지, 실시간 경과 시간 및 소스 뱃지 오버레이), 2) 가로 스크롤 구역(Zone) 퀵 스위처 칩 바를 탑재하여 이동 동선에 맞춰 원하는 구역 가이드로 즉각 전환 지원, 3) 체크리스트를 번호 인덱스 기반 촬영 리마인더 카드로 재정돈, 4) 뒤로가기 터치 및 시스템 백 제스처 시 이탈 방지 안전 확인 다이얼로그(`showExitDialog`, `BackHandler`) 연동, 5) 하단 엄지 조작 영역의 일시정지/재개 및 점검 종료 액션바 인터랙션을 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
