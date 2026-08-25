@@ -567,6 +567,8 @@ fun LiveInspectionScreen(
     onOpenGuide: (Int) -> Unit,
     onNextZone: (String) -> Unit,
     onFinish: (Long) -> Unit,
+    canceling: Boolean = false,
+    cancelErrorMessage: String? = null,
     glassViewModel: GlassConnectionViewModel = rememberGlassConnectionViewModel(),
 ) {
     var currentZoneId by remember(zoneId) { mutableStateOf(zoneId) }
@@ -674,7 +676,7 @@ fun LiveInspectionScreen(
     var accumulatedPausedTime by remember { mutableStateOf(0L) }
     var lastPauseTimestamp by remember { mutableStateOf(0L) }
 
-    BackHandler(enabled = !isFinishing) {
+    BackHandler(enabled = !isFinishing && !canceling) {
         showExitDialog = true
     }
 
@@ -1280,6 +1282,9 @@ fun LiveInspectionScreen(
                         fontSize = 12.sp,
                         lineHeight = 17.sp,
                     )
+                    cancelErrorMessage?.let {
+                        Text(it, color = Color(0xFFB3261E), fontSize = 12.sp, lineHeight = 17.sp)
+                    }
                     Spacer(Modifier.height(4.dp))
                     Box(
                         modifier = Modifier
@@ -1298,13 +1303,15 @@ fun LiveInspectionScreen(
                             .height(46.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(Color(0xFFF2F4F2))
-                            .clickable {
-                                showExitDialog = false
-                                onBack()
-                            },
+                            .clickable(enabled = !canceling, onClick = onBack),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("점검 나가기 (취소)", color = Secondary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            if (canceling) "취소 처리 중..." else "점검 나가기 (취소)",
+                            color = Secondary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
                     }
                 }
             }

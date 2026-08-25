@@ -46,6 +46,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.RealEstateAgent
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -97,7 +98,7 @@ private val InspectionTips = listOf(
 
 @Composable
 fun HomeScreen(
-    onOpenProperties: () -> Unit,
+    onAddProperty: () -> Unit,
     onOpenReports: () -> Unit,
     onOpenRecentReport: () -> Unit,
     onOpenMagazine: () -> Unit,
@@ -112,7 +113,7 @@ fun HomeScreen(
     val glassState by glassViewModel.uiState.collectAsState()
     TenantLeafHomeLayout(
         selectedTab = AppTab.Home,
-        onOpenProperties = onOpenProperties,
+        onAddProperty = onAddProperty,
         onOpenReports = onOpenReports,
         onOpenRecentReport = onOpenRecentReport,
         onOpenMagazine = onOpenMagazine,
@@ -129,45 +130,54 @@ fun HomeScreen(
 @Composable
 fun TenantLeafHomeLayout(
     selectedTab: AppTab,
-    onOpenProperties: () -> Unit,
+    onAddProperty: () -> Unit,
     onOpenReports: () -> Unit,
     onOpenRecentReport: () -> Unit = onOpenReports,
     onOpenMagazine: () -> Unit,
     onOpenMagazineArticle: (String) -> Unit = { onOpenMagazine() },
     onTabSelected: (String) -> Unit,
-    onStartInspection: () -> Unit = onOpenProperties,
-    onOpenChecklist: () -> Unit = onOpenProperties,
+    onStartInspection: () -> Unit = onAddProperty,
+    onOpenChecklist: () -> Unit = onAddProperty,
     processing: Boolean = false,
     glassState: GlassConnectionUiState = GlassConnectionUiState(),
     onGlassClick: () -> Unit = {},
 ) {
-    Box(modifier = Modifier.fillMaxSize().background(HomeBackground)) {
+    val scrollState = rememberScrollState()
+
+    Scaffold(
+        bottomBar = {
+            AppBottomNavigation(
+                selectedTab = selectedTab,
+                onTabSelected = { tab ->
+                    onTabSelected(
+                        when (tab) {
+                            AppTab.Home -> "home"
+                            AppTab.Property -> "property"
+                            AppTab.Report -> "report"
+                            AppTab.Profile -> "profile"
+                        },
+                    )
+                },
+            )
+        },
+        containerColor = HomeBackground,
+    ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 20.dp, top = 18.dp, end = 20.dp, bottom = 96.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(scrollState)
+                .padding(start = 20.dp, top = 18.dp, end = 20.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(13.dp),
         ) {
             HomeHeader(processing)
             GlassStatusCard(glassState, onGlassClick)
             if (processing) ReportProcessingCard(onOpenReports) else StartInspectionCard(onStartInspection)
-            HomeQuickActions(onOpenProperties, onOpenChecklist)
+            HomeQuickActions(onAddProperty, onOpenChecklist)
             RecentReportCard(onOpenRecentReport, processing)
             InspectionTipCard()
             MagazineSection(onOpenAll = onOpenMagazine, onOpenArticle = onOpenMagazineArticle)
         }
-        AppBottomNavigation(
-            selectedTab = selectedTab,
-            onTabSelected = { tab ->
-                onTabSelected(
-                    when (tab) {
-                        AppTab.Home -> "home"
-                        AppTab.Property -> "property"
-                        AppTab.Report -> "report"
-                        AppTab.Profile -> "profile"
-                    },
-                )
-            },
-            modifier = Modifier.align(Alignment.BottomCenter),
-        )
     }
 }
 
@@ -1040,9 +1050,9 @@ private fun HomeHeroCard(
 }
 
 @Composable
-private fun HomeQuickActions(onOpenProperties: () -> Unit, onOpenChecklist: () -> Unit) {
+private fun HomeQuickActions(onAddProperty: () -> Unit, onOpenChecklist: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        QuickAction(Modifier.weight(1f), Icons.Outlined.AddHome, "매물 등록하기", "직접 정보 입력", PaleGreen, onOpenProperties)
+        QuickAction(Modifier.weight(1f), Icons.Outlined.AddHome, "매물 등록하기", "직접 정보 입력", PaleGreen, onAddProperty)
         QuickAction(Modifier.weight(1f), Icons.Outlined.Checklist, "체크리스트 확인", "방문 전 미리 보기", PaleOrange, onOpenChecklist)
     }
 }
