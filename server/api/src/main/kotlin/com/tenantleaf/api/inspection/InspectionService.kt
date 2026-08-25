@@ -99,5 +99,7 @@ class InspectionService(
         endedAt = endedAt,
         cancelledAt = cancelledAt,
         archivedAt = archivedAt,
+        mediaFinalizedAt = mediaFinalizedAt,
+        expectedMediaCount = expectedMediaCount,
     )
 }

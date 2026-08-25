@@ -12,6 +12,7 @@ import com.tenantleaf.api.generated.model.InspectionStatus
 import com.tenantleaf.api.generated.model.MediaAnalysisStatus
 import com.tenantleaf.api.generated.model.MediaUploadStatus
 import com.tenantleaf.api.generated.model.ObservationStatus
+import com.tenantleaf.api.generated.model.ObservationType
 import com.tenantleaf.api.generated.model.ReportStatus
 import com.tenantleaf.api.generated.model.Zone
 import com.tenantleaf.api.generated.model.ZoneAnalysisStatus
@@ -104,6 +105,9 @@ class OpenApiGeneratedContractTests {
 	@Test
 	fun `관찰과 리포트 상태 공통 타입을 생성한다`() {
 		assertEquals(listOf("ACTIVE", "VIEWED", "DISMISSED"), ObservationStatus.entries.map { it.value })
+		assertEquals(13, ObservationType.entries.size)
+		assertEquals("CRACK_CHECK_NEEDED", ObservationType.entries.first().value)
+		assertEquals("OTHER_CHECK_NEEDED", ObservationType.entries.last().value)
 		assertEquals(
 			listOf("NOT_REQUESTED", "WAITING_FOR_ANALYSIS", "GENERATING", "COMPLETED", "PARTIAL_COMPLETED", "FAILED"),
 			ReportStatus.entries.map { it.value },
@@ -111,7 +115,7 @@ class OpenApiGeneratedContractTests {
 	}
 
 	@Test
-	fun `미확정 또는 폐기된 HTTP 계약은 명세에서 제외한다`() {
+	fun `확정된 미디어 관찰 리포트 계약과 폐기된 계약을 구분한다`() {
 		val specification = File("../shared-types/openapi/openapi.yaml").readText()
 
 		assertFalse(specification.contains("/checklist"))
@@ -119,13 +123,15 @@ class OpenApiGeneratedContractTests {
 		assertTrue(specification.contains("/inspections/{inspectionId}/media/upload-requests"))
 		assertTrue(specification.contains("/media/{mediaId}/upload-complete"))
 		assertTrue(specification.contains("/media/{mediaId}/upload-retry"))
+		assertTrue(specification.contains("/inspections/{inspectionId}/media/finalize"))
+		assertTrue(specification.contains("/inspections/{inspectionId}/observations"))
+		assertTrue(specification.contains("/observations/{observationId}"))
+		assertTrue(specification.contains("/properties/{propertyId}/reports"))
 		assertTrue(specification.contains("maxItems: 20"))
 		assertTrue(specification.contains("maximum: 2097152"))
 		assertFalse(specification.contains("maximum: 1048576"))
 		assertFalse(specification.contains("/analyses/"))
 		assertFalse(specification.contains("/detections/"))
-		assertFalse(specification.contains("/observations"))
-		assertFalse(specification.contains("/report"))
 		assertFalse(specification.contains("checklistItemId"))
 		assertFalse(specification.contains("CreateFrameUploadRequest"))
 	}
