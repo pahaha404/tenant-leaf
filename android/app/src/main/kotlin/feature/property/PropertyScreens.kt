@@ -868,9 +868,6 @@ fun PropertyDetailScreen(
             propertyName = property?.name ?: "매물 위치",
             address = property?.address ?: "주소 미입력",
         )
-
-        // 5. Start Inspection CTA Button
-        PrimaryButton("이 매물 임장 시작", onStartInspection)
     }
 }
 

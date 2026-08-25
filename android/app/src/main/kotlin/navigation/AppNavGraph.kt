@@ -17,6 +17,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -68,7 +69,10 @@ import com.seipseip.app.integration.PropertyListApiRoute
 import com.seipseip.app.integration.PropertyMapApiRoute
 import com.seipseip.app.integration.PropertySelectApiRoute
 import com.seipseip.app.integration.ReportApiRoute
+import com.seipseip.app.integration.ReportListApiUiState
 import com.seipseip.app.integration.ReportListApiRoute
+import com.seipseip.app.integration.ReportListApiViewModel
+import com.seipseip.app.integration.latestReportItem
 
 object Route {
     const val Loading = "loading"
@@ -281,11 +285,22 @@ fun AppNavGraph(
             }
         }
         composable(Route.Home) {
+            val reportListViewModel: ReportListApiViewModel = hiltViewModel()
+            val reportListState by reportListViewModel.state.collectAsState()
+            LaunchedEffect(Unit) { reportListViewModel.refresh() }
+            val recentReport = (reportListState as? ReportListApiUiState.Ready)
+                ?.items
+                ?.let(::latestReportItem)
             HomeScreen(
                 processing = false,
                 onAddProperty = { navController.navigate(Route.PropertyForm) },
                 onOpenReports = { navController.navigate(Route.Reports) },
-                onOpenRecentReport = { navController.navigate(Route.Reports) },
+                onOpenRecentReport = {
+                    recentReport?.inspectionId?.let { navController.navigate(Route.inspectionReport(it)) }
+                        ?: navController.navigate(Route.Reports)
+                },
+                recentReportTitle = recentReport?.propertyName,
+                recentReportDate = recentReport?.dateLabel,
                 onOpenMagazine = { navController.navigate(Route.Magazine) },
                 onOpenMagazineArticle = { articleId -> navController.navigate(Route.magazineDetail(articleId)) },
                 onStartInspection = { navController.navigate(Route.PropertySelect) },

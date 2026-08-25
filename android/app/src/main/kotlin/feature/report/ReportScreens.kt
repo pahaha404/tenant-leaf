@@ -192,6 +192,7 @@ data class ReportListItemUiModel(
     val status: ReportListStatus,
     val dateLabel: String = "",
     val referenceScore: Int? = null,
+    val inspectionEndedAt: java.time.OffsetDateTime? = null,
 )
 
 fun reportReferenceScore(observationCount: Int): Int = max(0, 100 - observationCount.coerceAtLeast(0) * 5)

@@ -107,6 +107,8 @@ fun HomeScreen(
     onOpenChecklist: () -> Unit,
     onTabSelected: (String) -> Unit,
     processing: Boolean = false,
+    recentReportTitle: String? = null,
+    recentReportDate: String? = null,
 ) {
     val activity = LocalContext.current as? ComponentActivity
     val glassViewModel: GlassConnectionViewModel = rememberGlassConnectionViewModel()
@@ -122,6 +124,8 @@ fun HomeScreen(
         onOpenChecklist = onOpenChecklist,
         onTabSelected = onTabSelected,
         processing = processing,
+        recentReportTitle = recentReportTitle,
+        recentReportDate = recentReportDate,
         glassState = glassState,
         onGlassClick = { activity?.let(glassViewModel::connect) },
     )
@@ -139,6 +143,8 @@ fun TenantLeafHomeLayout(
     onStartInspection: () -> Unit = onAddProperty,
     onOpenChecklist: () -> Unit = onAddProperty,
     processing: Boolean = false,
+    recentReportTitle: String? = null,
+    recentReportDate: String? = null,
     glassState: GlassConnectionUiState = GlassConnectionUiState(),
     onGlassClick: () -> Unit = {},
 ) {
@@ -174,7 +180,7 @@ fun TenantLeafHomeLayout(
             GlassStatusCard(glassState, onGlassClick)
             if (processing) ReportProcessingCard(onOpenReports) else StartInspectionCard(onStartInspection)
             HomeQuickActions(onAddProperty, onOpenChecklist)
-            RecentReportCard(onOpenRecentReport, processing)
+            RecentReportCard(onOpenRecentReport, processing, recentReportTitle, recentReportDate)
             InspectionTipCard()
             MagazineSection(onOpenAll = onOpenMagazine, onOpenArticle = onOpenMagazineArticle)
         }
@@ -1085,7 +1091,12 @@ private fun QuickAction(
 }
 
 @Composable
-private fun RecentReportCard(onClick: () -> Unit, processing: Boolean) {
+private fun RecentReportCard(
+    onClick: () -> Unit,
+    processing: Boolean,
+    recentReportTitle: String?,
+    recentReportDate: String?,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Color.White).clickable(onClick = onClick).padding(15.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -1096,7 +1107,13 @@ private fun RecentReportCard(onClick: () -> Unit, processing: Boolean) {
         Spacer(Modifier.width(11.dp))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(if (processing) "하자 점검 및 리포트 작성 중" else "최근 점검 리포트", color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
-            Text(if (processing) "촬영한 사진을 분석하고 리포트를 작성 중이에요" else "망원동 리버뷰 · 2026. 08. 19 점검", color = Secondary, fontSize = 10.sp)
+            Text(
+                if (processing) "촬영한 사진을 분석하고 리포트를 작성 중이에요"
+                else if (recentReportTitle != null && recentReportDate != null) "$recentReportTitle · $recentReportDate 점검"
+                else "아직 점검 리포트가 없어요",
+                color = Secondary,
+                fontSize = 10.sp,
+            )
         }
         Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, tint = Green, modifier = Modifier.size(18.dp))
     }
