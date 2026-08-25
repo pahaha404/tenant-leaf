@@ -924,10 +924,10 @@ fun LiveInspectionScreen(
                     Text(liveContent.checkDescription, color = Secondary, fontSize = 11.sp, lineHeight = 16.sp)
                     liveContent.items.forEachIndexed { index, item ->
                         Row(
-                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (index == 0) PaleGreen else Color(0xFFF8F8F6)).clickable { activeGuideIndex = index }.padding(horizontal = 11.dp, vertical = 10.dp),
+                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Color(0xFFF8F8F6)).clickable { activeGuideIndex = index }.padding(horizontal = 11.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(if (index == 0) "●" else "○", color = if (index == 0) Green else Secondary, fontSize = 11.sp)
+                            Text("○", color = Secondary, fontSize = 11.sp)
                             Spacer(Modifier.width(8.dp))
                             Text(item, color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                             Spacer(Modifier.weight(1f))
