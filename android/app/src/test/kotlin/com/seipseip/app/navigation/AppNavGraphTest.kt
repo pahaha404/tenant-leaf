@@ -7,12 +7,16 @@ class AppNavGraphTest {
     @Test
     fun initialRouteFollowsSavedSessionFlags() {
         assertEquals(
-            Route.Welcome,
+            Route.Login,
             initialRouteFor(isLoggedIn = false, isTutorialCompleted = false, isOnboardingCompleted = false),
         )
         assertEquals(
             Route.Login,
             initialRouteFor(isLoggedIn = false, isTutorialCompleted = false, isOnboardingCompleted = true),
+        )
+        assertEquals(
+            Route.Welcome,
+            initialRouteFor(isLoggedIn = true, isTutorialCompleted = false, isOnboardingCompleted = false),
         )
         assertEquals(
             Route.Consent,

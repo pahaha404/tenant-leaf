@@ -139,10 +139,10 @@ internal fun initialRouteFor(
     isTutorialCompleted: Boolean,
     isOnboardingCompleted: Boolean,
 ): String = when {
-    !isOnboardingCompleted -> Route.Welcome
     isTutorialCompleted && isLoggedIn -> Route.Home
-    isLoggedIn -> Route.Consent
-    else -> Route.Login
+    !isLoggedIn -> Route.Login
+    !isOnboardingCompleted -> Route.Welcome
+    else -> Route.Consent
 }
 
 @Composable
@@ -212,7 +212,13 @@ fun AppNavGraph(
                         onNicknameChanged("게스트")
                     }
                     sessionPreferences.edit().putBoolean(KEY_LOGGED_IN, true).apply()
-                    navController.navigate(Route.Consent)
+                    navController.navigate(
+                        initialRouteFor(
+                            isLoggedIn = true,
+                            isTutorialCompleted = false,
+                            isOnboardingCompleted = sessionPreferences.getBoolean(KEY_ONBOARDING_COMPLETED, false),
+                        ),
+                    )
                 }
             }
         }
@@ -251,7 +257,7 @@ fun AppNavGraph(
                 back = navController::popBackStack,
                 next = {
                     sessionPreferences.edit().putBoolean(KEY_ONBOARDING_COMPLETED, true).apply()
-                    navController.navigate(Route.Login) {
+                    navController.navigate(Route.Consent) {
                         popUpTo(Route.Welcome) { inclusive = true }
                     }
                 },
