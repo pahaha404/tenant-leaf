@@ -1546,14 +1546,24 @@ components:
 
     ReportRepresentativePhoto:
       type: object
-      required: [mediaId, sourceVideoOffsetMs, image, viewUrl, viewUrlExpiresAt]
+      required: [mediaId, zone, zoneUncertain, sourceVideoOffsetMs, image, viewUrl, viewUrlExpiresAt]
       description: >-
-        완료 리포트에서 임장 공간을 다시 떠올릴 수 있도록 제공하는 대표 JPEG입니다.
-        촬영 시점 순서로 정렬하며 AI 구역명은 사용자에게 확정 정보로 표시하지 않습니다.
+        Gemini 공간 분류 결과를 바탕으로 주방·거실/방·화장실별로 선별한 대표 JPEG입니다.
+        Android 촬영 단계의 흔들림·중복 제거를 통과한 사진 중 같은 공간에서 시간상 지나치게
+        가까운 사진을 제외해 공간별 여러 장을 제공할 수 있습니다. UNKNOWN은 공간 확인 필요로 표시합니다.
       properties:
         mediaId:
           type: string
           format: uuid
+        zone:
+          $ref: "#/components/schemas/Zone"
+        zoneUncertain:
+          type: boolean
+          description: true이면 공간명을 확정 표현하지 않고 '공간 확인 필요'로 표시합니다.
+        zoneModelVersion:
+          type: string
+          nullable: true
+          description: Gemini 공간 분류 모델 버전입니다. 사용자 화면에는 직접 노출하지 않습니다.
         sourceVideoOffsetMs:
           type: integer
           format: int64
@@ -1582,8 +1592,8 @@ components:
             representativePhotos:
               type: array
               description: >-
-                분석 완료 JPEG 중 공간 흐름을 대표하도록 선별한 사진입니다. 관찰 결과와 독립적이므로
-                관찰이 0건이어도 제공할 수 있으며 촬영 시점 오름차순입니다.
+                분석 완료 JPEG 중 Gemini 공간별 대표 사진으로 선별한 목록입니다. 관찰 결과와 독립적이므로
+                관찰이 0건이어도 제공할 수 있으며 같은 공간에서 여러 장을 반환할 수 있습니다.
               items:
                 $ref: "#/components/schemas/ReportRepresentativePhoto"
             observations:

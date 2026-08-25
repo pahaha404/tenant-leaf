@@ -138,6 +138,8 @@ data class ReportEvidenceUiModel(
 
 data class ReportRepresentativePhotoUiModel(
     val id: String,
+    val zoneLabel: String,
+    val zoneUncertain: Boolean = false,
     val imageUrl: String? = null,
     @DrawableRes val placeholderRes: Int = R.drawable.guide_bath_mold,
     val useSamplePlaceholder: Boolean = false,
@@ -518,27 +520,38 @@ private fun RepresentativePhotoGallery(
     onPhotoClick: (ReportRepresentativePhotoUiModel) -> Unit,
 ) {
     if (photos.isEmpty()) return
+    val groupedPhotos = photos.groupBy { photo ->
+        if (photo.zoneUncertain) "공간 확인 필요" else photo.zoneLabel
+    }.toSortedMap(compareBy<String> { representativeZoneOrder(it) }.thenBy { it })
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("촬영 공간 다시 보기", color = DeepGreen, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
-        Text("임장 중 촬영한 대표 사진이에요. 사진을 누르면 크게 보고 옆으로 넘길 수 있어요.", color = Secondary, fontSize = 11.sp, lineHeight = 16.sp)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            itemsIndexed(photos, key = { _, photo -> photo.id }) { index, photo ->
-                Card(
-                    modifier = Modifier.width(146.dp).clickable { onPhotoClick(photo) },
-                    shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Border),
-                ) {
-                    Column {
-                        RepresentativePhotoImage(
-                            photo = photo,
-                            modifier = Modifier.fillMaxWidth().height(104.dp),
-                            contentScale = ContentScale.Crop,
-                        )
-                        Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("대표 사진 ${index + 1}", color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
-                            Spacer(Modifier.weight(1f))
-                            Text(formatVideoOffset(photo.sourceVideoOffsetMs).removePrefix("촬영 "), color = Secondary, fontSize = 9.sp)
+        Text("Gemini가 분류한 공간별 대표 사진이에요. 사진을 누르면 크게 보고 옆으로 넘길 수 있어요.", color = Secondary, fontSize = 11.sp, lineHeight = 16.sp)
+        groupedPhotos.forEach { (zoneLabel, zonePhotos) ->
+            Text(
+                if (zoneLabel == "공간 확인 필요") zoneLabel else "$zoneLabel 대표 사진",
+                color = DeepGreen,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                itemsIndexed(zonePhotos, key = { _, photo -> photo.id }) { index, photo ->
+                    Card(
+                        modifier = Modifier.width(146.dp).clickable { onPhotoClick(photo) },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        border = BorderStroke(1.dp, Border),
+                    ) {
+                        Column {
+                            RepresentativePhotoImage(
+                                photo = photo,
+                                modifier = Modifier.fillMaxWidth().height(104.dp),
+                                contentScale = ContentScale.Crop,
+                            )
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text("$zoneLabel ${index + 1}", color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                                Spacer(Modifier.weight(1f))
+                                Text(formatVideoOffset(photo.sourceVideoOffsetMs).removePrefix("촬영 "), color = Secondary, fontSize = 9.sp)
+                            }
                         }
                     }
                 }
@@ -567,7 +580,13 @@ private fun ReportPhotoViewer(
                 IconButton(onClick = onClose, modifier = Modifier.size(48.dp)) {
                     Icon(Icons.Outlined.Close, "대표 사진 닫기", tint = Color.White, modifier = Modifier.size(31.dp))
                 }
-                Text("촬영 공간 사진", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                val currentPhoto = photos[pagerState.currentPage]
+                Text(
+                    if (currentPhoto.zoneUncertain) "공간 확인 필요" else "${currentPhoto.zoneLabel} 대표 사진",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
                 Spacer(Modifier.weight(1f))
                 Surface(color = Color.White.copy(alpha = 0.18f), shape = RoundedCornerShape(22.dp)) {
                     Text(
@@ -586,7 +605,12 @@ private fun ReportPhotoViewer(
                 Modifier.fillMaxWidth().background(DarkViewer).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("대표 사진 ${pagerState.currentPage + 1}", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    if (currentPhoto.zoneUncertain) "공간 확인 필요" else currentPhoto.zoneLabel,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                )
                 Spacer(Modifier.weight(1f))
                 Text(formatVideoOffset(currentPhoto.sourceVideoOffsetMs), color = Color.White.copy(alpha = 0.78f), fontSize = 12.sp)
             }
@@ -623,11 +647,12 @@ private fun RepresentativePhotoImage(
         }
     }
     val bitmap = remoteBitmap
+    val accessibleZoneLabel = if (photo.zoneUncertain) "공간 확인 필요" else photo.zoneLabel
     when {
-        bitmap != null -> Image(bitmap = bitmap, contentDescription = "임장 대표 사진", modifier = modifier, contentScale = contentScale)
+        bitmap != null -> Image(bitmap = bitmap, contentDescription = "$accessibleZoneLabel 대표 사진", modifier = modifier, contentScale = contentScale)
         photo.useSamplePlaceholder -> Image(
             painter = painterResource(photo.placeholderRes),
-            contentDescription = "임장 대표 사진",
+            contentDescription = "$accessibleZoneLabel 대표 사진",
             modifier = modifier,
             contentScale = contentScale,
         )
@@ -638,6 +663,13 @@ private fun RepresentativePhotoImage(
             }
         }
     }
+}
+
+private fun representativeZoneOrder(label: String): Int = when (label) {
+    "주방" -> 0
+    "거실·방" -> 1
+    "화장실" -> 2
+    else -> 3
 }
 
 @Composable

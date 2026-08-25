@@ -32,16 +32,34 @@ class ReportGenerationRulesTests {
     }
 
     @Test
-    fun `공간 구간별 가장 신뢰도 높은 사진을 촬영 순서로 선택한다`() {
+    fun `Gemini 공간별로 시간상 겹치지 않는 대표 사진을 여러 장 선택한다`() {
         val media = listOf(
             completedMedia(3_000, MediaZone.LIVING_ROOM, 0.71),
             completedMedia(6_000, MediaZone.LIVING_ROOM, 0.92),
-            completedMedia(9_000, MediaZone.KITCHEN, 0.81),
-            completedMedia(12_000, MediaZone.LIVING_ROOM, 0.85),
+            completedMedia(9_000, MediaZone.LIVING_ROOM, 0.81),
+            completedMedia(15_000, MediaZone.LIVING_ROOM, 0.85),
+            completedMedia(18_000, MediaZone.KITCHEN, 0.81),
+            completedMedia(21_000, MediaZone.KITCHEN, 0.83),
+            completedMedia(24_000, MediaZone.KITCHEN, 0.82),
+            completedMedia(30_000, MediaZone.BATHROOM, 0.90),
         )
 
         assertEquals(
-            listOf(6_000L, 9_000L, 12_000L),
+            listOf(3_000L, 9_000L, 15_000L, 18_000L, 24_000L, 30_000L),
+            selectReportRepresentativeMedia(media).map { it.sourceVideoOffsetMs },
+        )
+    }
+
+    @Test
+    fun `불확실한 Gemini 공간 결과는 공간별 대표 사진에서 제외한다`() {
+        val media = listOf(
+            completedMedia(3_000, MediaZone.LIVING_ROOM, null, uncertain = true),
+            completedMedia(9_000, MediaZone.KITCHEN, 0.81),
+            completedMedia(12_000, MediaZone.UNKNOWN, null, uncertain = true),
+        )
+
+        assertEquals(
+            listOf(9_000L),
             selectReportRepresentativeMedia(media).map { it.sourceVideoOffsetMs },
         )
     }

@@ -232,6 +232,13 @@ private fun ReportDetail.toUiModel(propertyAddress: String?): ReportDetailUiMode
         representativePhotos = representativePhotos.map { photo ->
             ReportRepresentativePhotoUiModel(
                 id = photo.mediaId.toString(),
+                zoneLabel = when (photo.zone.name) {
+                    "KITCHEN" -> "주방"
+                    "LIVING_ROOM" -> "거실·방"
+                    "BATHROOM" -> "화장실"
+                    else -> "공간 확인 필요"
+                },
+                zoneUncertain = photo.zoneUncertain,
                 imageUrl = photo.viewUrl.toString(),
                 imageWidth = photo.image.width,
                 imageHeight = photo.image.height,

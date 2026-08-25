@@ -234,6 +234,9 @@ class ReportService(
             val signed = storage.createViewUrl(item.storageKey)
             ReportRepresentativePhoto(
                 mediaId = item.id,
+                zone = Zone.valueOf((item.aiZone ?: MediaZone.UNKNOWN).name),
+                zoneUncertain = item.zoneUncertain != false || item.aiZone == null || item.aiZone == MediaZone.UNKNOWN,
+                zoneModelVersion = item.zoneModelVersion,
                 sourceVideoOffsetMs = item.sourceVideoOffsetMs,
                 image = ImageDimensions(item.width, item.height),
                 viewUrl = signed.url,
@@ -280,43 +283,28 @@ class ReportService(
     }
 }
 
-internal fun selectReportRepresentativeMedia(media: List<MediaEntity>, limit: Int = 8): List<MediaEntity> {
+internal fun selectReportRepresentativeMedia(
+    media: List<MediaEntity>,
+    limit: Int = 12,
+    perZoneLimit: Int = 3,
+    minimumOffsetGapMs: Long = 6_000,
+): List<MediaEntity> {
     val completed = media
         .filter { it.uploadStatus == MediaUploadState.UPLOADED && it.analysisStatus == MediaAnalysisState.COMPLETED }
         .sortedWith(compareBy<MediaEntity> { it.sourceVideoOffsetMs }.thenBy { it.id })
     if (completed.isEmpty() || limit <= 0) return emptyList()
 
-    val runs = mutableListOf<List<MediaEntity>>()
-    var currentZone: MediaZone? = null
-    var currentRun = mutableListOf<MediaEntity>()
+    require(perZoneLimit > 0) { "perZoneLimit must be greater than zero" }
+    require(minimumOffsetGapMs >= 0) { "minimumOffsetGapMs must not be negative" }
 
-    fun flushRun() {
-        if (currentRun.isNotEmpty()) runs += currentRun.toList()
-        currentRun = mutableListOf()
-        currentZone = null
-    }
-
-    completed.forEach { item ->
-        val zone = (item.userCorrectedZone ?: item.aiZone)
-            ?.takeIf { it != MediaZone.UNKNOWN && item.zoneUncertain != true }
-        if (zone == null) {
-            flushRun()
-        } else if (zone != currentZone) {
-            flushRun()
-            currentZone = zone
-            currentRun += item
-        } else {
-            currentRun += item
+    val classifiedRepresentatives = completed
+        .filter { it.aiZone != null && it.aiZone != MediaZone.UNKNOWN && it.zoneUncertain != true }
+        .groupBy { it.aiZone!! }
+        .values
+        .flatMap { sameZone ->
+            selectTemporallyDistinct(sameZone, perZoneLimit, minimumOffsetGapMs)
         }
-    }
-    flushRun()
-
-    val classifiedRepresentatives = runs.mapNotNull { run ->
-        run.maxWithOrNull(
-            compareBy<MediaEntity> { it.zoneConfidence ?: -1.0 }
-                .thenBy { -it.sourceVideoOffsetMs },
-        )
-    }.sortedBy { it.sourceVideoOffsetMs }
+        .sortedBy { it.sourceVideoOffsetMs }
 
     if (classifiedRepresentatives.isNotEmpty()) return classifiedRepresentatives.take(limit)
     if (completed.size <= 3) return completed.take(limit)
@@ -324,4 +312,18 @@ internal fun selectReportRepresentativeMedia(media: List<MediaEntity>, limit: In
     return listOf(completed.first(), completed[(completed.lastIndex) / 2], completed.last())
         .distinctBy { it.id }
         .take(limit)
+}
+
+private fun selectTemporallyDistinct(
+    media: List<MediaEntity>,
+    limit: Int,
+    minimumOffsetGapMs: Long,
+): List<MediaEntity> {
+    val selected = mutableListOf<MediaEntity>()
+    media.sortedBy { it.sourceVideoOffsetMs }.forEach { candidate ->
+        if (selected.none { kotlin.math.abs(it.sourceVideoOffsetMs - candidate.sourceVideoOffsetMs) < minimumOffsetGapMs }) {
+            selected += candidate
+        }
+    }
+    return selected.take(limit)
 }
