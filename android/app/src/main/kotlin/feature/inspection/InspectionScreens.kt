@@ -21,6 +21,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.viewinterop.AndroidView
@@ -502,8 +508,8 @@ private data class LiveInspectionContent(
 
 private fun liveInspectionContent(zoneId: String): LiveInspectionContent = when (zoneId) {
     "entry" -> LiveInspectionContent(
-        voiceGuide = "현관문과 공용 설비를 천천히 비춰주세요.",
-        checkTitle = "현관·공용 확인 안내",
+        voiceGuide = "현관문과 설비를 천천히 비춰주세요.",
+        checkTitle = "현관 확인 안내",
         checkDescription = "문과 문틀부터 도어락, 신발장, 인터폰 순서로 확인해요.",
         items = listOf("문과 문틀", "도어락 비밀번호", "신발장 내부", "인터폰과 공용 복도"),
     )
@@ -558,10 +564,9 @@ fun LiveInspectionScreen(
     onFinish: (Long) -> Unit,
     glassViewModel: GlassConnectionViewModel = rememberGlassConnectionViewModel(),
 ) {
-    val zone = UiCatalog.zone(zoneId)
-    val nextZone = UiCatalog.nextZone(zoneId)
-    val zoneRows = UiCatalog.guideZones
-    val liveContent = liveInspectionContent(zoneId)
+    var currentZoneId by remember(zoneId) { mutableStateOf(zoneId) }
+    val nextZone = UiCatalog.nextZone(currentZoneId)
+    val liveContent = liveInspectionContent(currentZoneId)
     val previewState by glassViewModel.previewUiState.collectAsState()
     val connectionState by glassViewModel.uiState.collectAsState()
 
@@ -642,11 +647,16 @@ fun LiveInspectionScreen(
     }
 
     var showFinishDialog by remember { mutableStateOf(false) }
+    var showExitDialog by remember { mutableStateOf(false) }
     var activeGuideIndex by remember { mutableStateOf<Int?>(null) }
     var isPaused by remember { mutableStateOf(false) }
     var nowElapsed by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
     var accumulatedPausedTime by remember { mutableStateOf(0L) }
     var lastPauseTimestamp by remember { mutableStateOf(0L) }
+
+    BackHandler(enabled = !isFinishing) {
+        showExitDialog = true
+    }
 
     val togglePause = {
         if (isPaused) {
@@ -686,18 +696,37 @@ fun LiveInspectionScreen(
 
     var showQualityMenu by remember { mutableStateOf(false) }
 
+    val infiniteTransition = rememberInfiniteTransition(label = "rec_pulse")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(700),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "rec_alpha",
+    )
+
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
-                modifier = Modifier.fillMaxWidth().height(54.dp).padding(horizontal = 20.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    modifier = Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).background(Color.White).clickable(onClick = onBack),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color.White)
+                        .clickable { showExitDialog = true },
                     contentAlignment = Alignment.Center,
                 ) { Text("‹", color = DeepGreen, fontSize = 28.sp, fontWeight = FontWeight.Medium) }
-                Spacer(Modifier.width(8.dp))
-                Text("실시간 점검", color = DeepGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+
+                Spacer(Modifier.width(10.dp))
+                Column {
+                    Text("실시간 점검", color = DeepGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("안경·스마트폰 동시 녹화 중", color = Secondary, fontSize = 10.5.sp)
+                }
                 Spacer(Modifier.weight(1f))
 
                 if (isGlassConnected) {
@@ -793,16 +822,20 @@ fun LiveInspectionScreen(
                     StateBadge("핸드폰 촬영", Green)
                 }
             }
+
             Column(
-                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(156.dp)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(Color(0xFF2F4437))
+                        .height(230.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color(0xFF1E2E25))
                         .clickable(onClick = togglePause),
                 ) {
                     AndroidView(
@@ -861,19 +894,44 @@ fun LiveInspectionScreen(
                             applyCenterCropTransform(textureView, previewState.videoWidth, previewState.videoHeight)
                         },
                     )
+
                     Row(
                         modifier = Modifier
                             .align(Alignment.TopStart)
                             .padding(10.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.Black.copy(alpha = 0.55f))
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.Black.copy(alpha = 0.65f))
                             .clickable(onClick = togglePause)
                             .padding(horizontal = 9.dp, vertical = 5.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Box(Modifier.size(7.dp).clip(RoundedCornerShape(9.dp)).background(if (isPaused) Green else Color(0xFFE53935)))
-                        Spacer(Modifier.width(5.dp))
-                        Text(if (isPaused) "일시정지" else "녹화 중", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                        Box(
+                            Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(if (isPaused) Orange else Color(0xFFE53935).copy(alpha = if (isPaused) 1f else pulseAlpha))
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(if (isPaused) "일시정지" else "REC", color = Color.White, fontSize = 10.5.sp, fontWeight = FontWeight.ExtraBold)
+                        Spacer(Modifier.width(6.dp))
+                        Text(formatInspectionDuration(durationSeconds), color = Color.White, fontSize = 10.5.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(10.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.Black.copy(alpha = 0.55f))
+                            .padding(horizontal = 9.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            if (cameraSource == CameraSource.GLASS) "👓 AI 안경" else "📱 스마트폰",
+                            color = Color.White.copy(alpha = 0.9f),
+                            fontSize = 10.5.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
                     }
 
                     if (isPaused) {
@@ -887,8 +945,22 @@ fun LiveInspectionScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
-                                Text("⏸️ 스트리밍 및 녹화가 일시 중지됨", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                Text("탭하여 다시 시작하기", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
+                                Box(
+                                    modifier = Modifier
+                                        .size(46.dp)
+                                        .clip(CircleShape)
+                                        .background(Green),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.PlayArrow,
+                                        contentDescription = "촬영 재개",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(24.dp),
+                                    )
+                                }
+                                Text("촬영이 일시 중지되었습니다", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text("화면이나 아래 버튼을 탭하여 다시 시작", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
                             }
                         }
                     } else if (cameraSource == CameraSource.GLASS && !previewState.hasFirstFrame) {
@@ -908,41 +980,129 @@ fun LiveInspectionScreen(
                             }
                         }
                     }
-
-                    Text(formatInspectionDuration(durationSeconds), modifier = Modifier.align(Alignment.BottomEnd).padding(13.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
-                VoiceRecordSection(inspectionId = inspectionId)
-                Column(
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White).padding(15.dp),
-                    verticalArrangement = Arrangement.spacedBy(9.dp),
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(29.dp).clip(RoundedCornerShape(10.dp)).background(PaleGreen), contentAlignment = Alignment.Center) { Text("✓", color = Green, fontWeight = FontWeight.ExtraBold) }
-                        Spacer(Modifier.width(8.dp))
-                        Text(liveContent.checkTitle, color = DeepGreen, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
-                    }
-                    Text(liveContent.checkDescription, color = Secondary, fontSize = 11.sp, lineHeight = 16.sp)
-                    liveContent.items.forEachIndexed { index, item ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (index == 0) PaleGreen else Color(0xFFF8F8F6)).clickable { activeGuideIndex = index }.padding(horizontal = 11.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+                    UiCatalog.guideZones.forEach { gz ->
+                        val isSelected = gz.id == currentZoneId
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isSelected) Green else Color.White)
+                                .border(
+                                    width = 1.dp,
+                                    color = if (isSelected) Green else Color(0xFFE2E8E0),
+                                    shape = RoundedCornerShape(12.dp),
+                                )
+                                .clickable {
+                                    if (currentZoneId != gz.id) {
+                                        currentZoneId = gz.id
+                                    }
+                                }
+                                .padding(horizontal = 13.dp, vertical = 8.dp),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            Text(if (index == 0) "●" else "○", color = if (index == 0) Green else Secondary, fontSize = 11.sp)
-                            Spacer(Modifier.width(8.dp))
-                            Text(item, color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                            Spacer(Modifier.weight(1f))
-                            Text("가이드", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                gz.title,
+                                color = if (isSelected) Color.White else DeepGreen,
+                                fontSize = 11.5.sp,
+                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                            )
                         }
                     }
                 }
-                Spacer(Modifier.height(6.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(Color.White)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier.size(28.dp).clip(RoundedCornerShape(9.dp)).background(PaleGreen),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text("💡", fontSize = 14.sp)
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text(liveContent.checkTitle, color = DeepGreen, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(liveContent.checkDescription, color = Secondary, fontSize = 11.sp, lineHeight = 15.sp)
+                        }
+                    }
+
+                    Spacer(Modifier.height(2.dp))
+
+                    liveContent.items.forEachIndexed { index, item ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(11.dp))
+                                .background(Color(0xFFF8F9F8))
+                                .clickable { activeGuideIndex = index }
+                                .padding(horizontal = 11.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clip(CircleShape)
+                                    .background(PaleGreen),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text("${index + 1}", color = Green, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                            }
+                            Spacer(Modifier.width(9.dp))
+                            Text(
+                                item,
+                                color = DeepGreen,
+                                fontSize = 11.5.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color.White)
+                                    .border(0.8.dp, Color(0xFFD6E4DB), RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 7.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text("가이드", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.width(2.dp))
+                                Text("›", color = Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+
+                VoiceRecordSection(inspectionId = inspectionId)
+
+                Spacer(Modifier.height(4.dp))
             }
+
             Row(
-                modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 20.dp, vertical = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Box(
-                    modifier = Modifier.weight(1f).height(48.dp).clip(RoundedCornerShape(14.dp)).background(Green).clickable(onClick = togglePause),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(if (isPaused) Orange else Green)
+                        .clickable(onClick = togglePause),
                     contentAlignment = Alignment.Center,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -953,20 +1113,33 @@ fun LiveInspectionScreen(
                             modifier = Modifier.size(20.dp),
                         )
                         Spacer(Modifier.width(7.dp))
-                        Text(if (isPaused) "촬영 재개" else "일시정지", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(
+                            if (isPaused) "촬영 재개" else "일시정지",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
                     }
                 }
                 Box(
-                    modifier = Modifier.width(92.dp).height(48.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFFFF0E4)).clickable { showFinishDialog = true },
+                    modifier = Modifier
+                        .width(96.dp)
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0xFFFFF0E4))
+                        .clickable { showFinishDialog = true },
                     contentAlignment = Alignment.Center,
-                ) { Text("점검 종료", color = Orange, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold) }
+                ) {
+                    Text("점검 종료", color = Orange, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+                }
             }
         }
+
         activeGuideIndex?.let { guideIdx ->
-            val zone = UiCatalog.zone(zoneId)
+            val zone = UiCatalog.zone(currentZoneId)
             val item = zone.items.getOrElse(guideIdx) { zone.items.first() }
             val steps = item.steps
-            val imageRes = guideImageResource(zoneId, guideIdx)
+            val imageRes = guideImageResource(currentZoneId, guideIdx)
             val progress = "${zone.title} ${guideIdx + 1} / ${zone.items.size}"
 
             Box(
@@ -1050,6 +1223,73 @@ fun LiveInspectionScreen(
                 }
             }
         }
+
+        if (showExitDialog) {
+            Box(
+                modifier = Modifier.fillMaxSize().background(Color(0x8A173426)).padding(horizontal = 28.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(Color.White)
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Box(
+                        modifier = Modifier.size(46.dp).clip(RoundedCornerShape(14.dp)).background(PaleOrange),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.WarningAmber,
+                            contentDescription = "경고",
+                            tint = Orange,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                    Text(
+                        "점검을 중단하시겠습니까?",
+                        color = DeepGreen,
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                    Text(
+                        "점검을 종료하지 않고 나가면 현재까지의 실시간 촬영 및 음성 녹음 내용이 저장되지 않고 취소됩니다.",
+                        color = Secondary,
+                        fontSize = 12.sp,
+                        lineHeight = 17.sp,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Green)
+                            .clickable { showExitDialog = false },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("계속 점검하기", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFFF2F4F2))
+                            .clickable {
+                                showExitDialog = false
+                                onBack()
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("점검 나가기 (취소)", color = Secondary, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        }
+
         if (showFinishDialog) {
             Box(
                 modifier = Modifier.fillMaxSize().background(Color(0x8A173426)).padding(horizontal = 28.dp),
@@ -1234,7 +1474,7 @@ fun FinishConfirmScreen(
                         fontWeight = FontWeight.ExtraBold,
                     )
                 }
-                Text("현관·공용  ·  주방  ·  창틀·환기\n거실·방  ·  화장실", color = Color(0xFFDCE9D6), fontSize = 13.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold)
+                Text("현관  ·  주방  ·  창틀·환기\n거실·방  ·  화장실", color = Color(0xFFDCE9D6), fontSize = 13.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold)
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = .11f)).padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
