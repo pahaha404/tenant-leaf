@@ -24,6 +24,10 @@
 
 ## 진행 기록
 
+- 2026-08-25 — AI Worker를 사진 한 장 선점 방식에서 `media_finalized_at`이 확정된 임장 단위 배치 방식으로 변경했다. 같은 임장의 `QUEUED` JPEG를 `source_video_offset_ms` 순으로 내려받아 manifest를 만들고, `process_image_batch_room_defect`를 Gemini 구역 분류·Gemini 하자 검증 옵션으로 실행하도록 연결했다. 통합 결과에서 `bathroom/kitchen/living_room/unknown`을 서버 구역으로 변환해 `ai_zone`, `zone_uncertain`, `zone_model_version`과 살아남은 BBOX를 사진별 저장하도록 구현했다. 변경 Python 파일 문법 검사와 Worker 계약·런타임 단위 테스트 9건은 통과했으며, 실제 Gemini·MinIO·PostgreSQL 배치 smoke test는 미검증 상태이므로 관련 체크 항목은 `[ ]`로 유지한다.
+
+- 2026-08-25 — AI 공간 분류 범위를 실제 Gemini 분류 계약과 동일하게 `KITCHEN`, `LIVING_ROOM`, `BATHROOM`, `UNKNOWN` 네 값으로 정리했다. 도메인 규칙·공통 API·OpenAPI·서버 enum·계약 테스트를 수정하고, 기존 `ENTRANCE_COMMON`·`WINDOW_VENTILATION` 데이터를 `UNKNOWN`으로 바꾸는 Flyway V10 마이그레이션을 추가했다. 변경 파일 정적 검사는 통과했으나 Gradle 플러그인 원격 해석 제한으로 서버 전체 테스트는 미검증 상태다.
+
 - 2026-08-24 — 리포트 생성 중 전체 분석 대상이 `0 / 0장`으로 표시되던 계약 오류를 수정함. `ReportSummary.totalMediaCount`를 확정 미디어 수에서 제공하고 성공·실패 수와 분리했으며, 원격 Gradle 플러그인 접근 제한으로 서버 전체 테스트는 미검증 상태임.
 - 2026-08-24 — 분석 완료 JPEG의 원시 탐지를 사용자 관찰로 변환하고 자동 리포트를 집계하는 DB V9·Spring Boot API·주기적 조정 작업을 구현함. 관찰별 근거와 동일 사진의 다중 픽셀 `xyxy` bbox, 짧은 만료 조회 URL, 잠정 참고 점수를 응답하도록 연결했으나 Gradle 플러그인 원격 해석 제한으로 서버 컴파일·통합 테스트는 미검증이므로 관련 체크 항목은 `[ ]`로 유지함.
 - 2026-08-24 — 매물 삭제 정책을 소프트 삭제(Soft Delete, `deleted_at`)로 전환함. Flyway 마이그레이션 `V8__add_deleted_at_to_properties.sql`을 추가하고, `PropertyEntity`, `PropertyRepository`, `PropertyService`, `InspectionService`에 `deletedAtIsNull` 조회를 적용함. 임장 기록이 있는 매물도 외래키 제약 충돌 없이 안전하게 삭제(보관/숨김 처리)되어 목록과 상세 조회에서 제외되며, 과거 임장 세션 및 리포트 데이터의 무결성은 영구 보존됨. `server/api` 22개 전체 단위/통합 테스트 통과 (`BUILD SUCCESSFUL`).

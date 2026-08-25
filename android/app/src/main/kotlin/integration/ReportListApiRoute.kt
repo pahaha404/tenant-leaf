@@ -125,6 +125,8 @@ internal fun Property.toReportListItem(report: ReportSummary?): ReportListItemUi
         address = addressSummary ?: "주소 미등록",
         detail = detail,
         status = listStatus,
+        dateLabel = date.orEmpty(),
+        referenceScore = report?.referenceScore,
     )
 }
 

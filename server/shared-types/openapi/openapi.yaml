@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
   title: Tenant Leaf API
-  version: 2.2.0-draft.1
+  version: 2.4.0-draft.1
   x-contract-status: review-draft
   description: |
-    세입세잎 Android 앱과 Kotlin API 서버가 공유하는 MVP HTTP API 계약의 2.2 검토 초안입니다.
+    세입세잎 Android 앱과 Kotlin API 서버가 공유하는 MVP HTTP API 계약의 2.4 검토 초안입니다.
     현장 점검은 체크리스트 대신 구역·관찰·근거 JPEG를 중심으로 처리합니다.
     원본 영상은 휴대전화 갤러리에만 보관하고 서버에는 업로드하지 않습니다.
     AI 결과는 실제 하자나 안전 상태를 확정하지 않는 확인 필요 관찰 후보입니다.
@@ -1573,7 +1573,8 @@ components:
 
     Zone:
       type: string
-      enum: [ENTRANCE_COMMON, KITCHEN, WINDOW_VENTILATION, LIVING_ROOM, BATHROOM, UNKNOWN]
+      description: AI 분류 지원 구역. 현관·창틀 등 지원 범위 밖이거나 불확실한 결과는 UNKNOWN이다.
+      enum: [KITCHEN, LIVING_ROOM, BATHROOM, UNKNOWN]
 
     MediaType:
       type: string
