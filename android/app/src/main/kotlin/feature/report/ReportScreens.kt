@@ -134,6 +134,17 @@ data class ReportDetailUiModel(
     val referenceScore: Int get() = serverReferenceScore ?: reportReferenceScore(observations.size)
 }
 
+enum class ReportListStatus { NONE, PROCESSING, COMPLETED, PARTIAL, FAILED }
+
+data class ReportListItemUiModel(
+    val propertyId: String,
+    val inspectionId: String?,
+    val propertyName: String,
+    val address: String,
+    val detail: String,
+    val status: ReportListStatus,
+)
+
 fun reportReferenceScore(observationCount: Int): Int = max(0, 100 - observationCount.coerceAtLeast(0) * 5)
 
 object ReportSamples {
@@ -201,15 +212,29 @@ object ReportSamples {
 }
 
 @Composable
-fun ReportListScreen(onOpenReport: () -> Unit, onTabSelected: (String) -> Unit) {
-    var selectedProperty by remember { mutableStateOf("망원동 리버뷰") }
-    val selectedHasReport = selectedProperty == "망원동 리버뷰"
+fun ReportListScreen(
+    items: List<ReportListItemUiModel>,
+    loading: Boolean,
+    errorMessage: String?,
+    onOpenReport: (String) -> Unit,
+    onRetry: () -> Unit,
+    onTabSelected: (String) -> Unit,
+) {
+    var selectedInspectionId by rememberSaveable(items) {
+        mutableStateOf(items.firstOrNull { it.inspectionId != null }?.inspectionId)
+    }
+    val selectedReport = items.firstOrNull { it.inspectionId == selectedInspectionId }
+    val completedReportCount = items.count { it.status in setOf(ReportListStatus.COMPLETED, ReportListStatus.PARTIAL) }
     AppPageScaffold(
         title = "리포트 선택",
         selectedTab = AppTab.Report,
         bottomAction = {
             Box(Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
-                PrimaryButton("선택한 매물 리포트 확인하기", onOpenReport, enabled = selectedHasReport)
+                PrimaryButton(
+                    "선택한 매물 리포트 확인하기",
+                    onClick = { selectedReport?.inspectionId?.let(onOpenReport) },
+                    enabled = selectedReport?.inspectionId != null,
+                )
             }
         },
         onTabSelected = { tab ->
@@ -225,17 +250,45 @@ fun ReportListScreen(onOpenReport: () -> Unit, onTabSelected: (String) -> Unit) 
     ) {
         Text("어느 매물의 리포트를 볼까요?", color = Green, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
         Text("점검을 마친 매물을 선택하면 결과를 확인할 수 있어요.", color = Secondary, fontSize = 12.sp)
-        StateBadge("완료 리포트 3개", Green)
-        ReportPropertyCard("망원동 리버뷰", "서울 마포구 망원동", "2026.08.24 · 확인 필요 관찰 3건", selectedProperty == "망원동 리버뷰", true) { selectedProperty = "망원동 리버뷰" }
-        ReportPropertyCard("연남동 햇살 원룸", "서울 마포구 연남동", "아직 점검을 시작하지 않았어요", false, false) { selectedProperty = "연남동 햇살 원룸" }
-        ReportPropertyCard("성산동 테라스 하우스", "서울 마포구 성산동", "아직 점검을 시작하지 않았어요", false, false) { selectedProperty = "성산동 테라스 하우스" }
+        StateBadge("완료 리포트 ${completedReportCount}개", Green)
+        when {
+            loading -> Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Green)
+            }
+            errorMessage != null -> Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                InfoNotice(errorMessage, PaleOrange, Orange)
+                SecondaryButton("다시 불러오기", onRetry)
+            }
+            items.isEmpty() -> InfoNotice("등록된 매물이 없어요. 매물을 등록하고 점검을 완료하면 리포트를 확인할 수 있어요.", PaleGreen, Green)
+            else -> items.forEach { item ->
+                ReportPropertyCard(
+                    item = item,
+                    selected = item.inspectionId != null && item.inspectionId == selectedInspectionId,
+                    onClick = { item.inspectionId?.let { selectedInspectionId = it } },
+                )
+            }
+        }
     }
 }
 
 @Composable
-private fun ReportPropertyCard(name: String, address: String, detail: String, selected: Boolean, available: Boolean, onClick: () -> Unit) {
+private fun ReportPropertyCard(item: ReportListItemUiModel, selected: Boolean, onClick: () -> Unit) {
+    val available = item.inspectionId != null
+    val statusLabel = when (item.status) {
+        ReportListStatus.NONE -> "리포트 없음"
+        ReportListStatus.PROCESSING -> "생성 중"
+        ReportListStatus.COMPLETED -> "작성 완료"
+        ReportListStatus.PARTIAL -> "부분 완료"
+        ReportListStatus.FAILED -> "생성 실패"
+    }
+    val statusColor = when (item.status) {
+        ReportListStatus.PARTIAL -> Orange
+        ReportListStatus.FAILED -> Color(0xFFD33B2F)
+        ReportListStatus.NONE -> Secondary
+        else -> Green
+    }
     Card(
-        modifier = Modifier.fillMaxWidth().height(78.dp).clickable(onClick = onClick),
+        modifier = Modifier.fillMaxWidth().height(78.dp).clickable(enabled = available, onClick = onClick),
         shape = RoundedCornerShape(15.dp),
         colors = CardDefaults.cardColors(containerColor = if (selected) PaleGreen else Color.White),
         border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) Green else Border),
@@ -247,12 +300,12 @@ private fun ReportPropertyCard(name: String, address: String, detail: String, se
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Row(Modifier.fillMaxWidth()) {
-                    Text(name, color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(item.propertyName, color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
                     Spacer(Modifier.weight(1f))
-                    Text(if (available) "작성 완료" else "리포트 없음", color = if (available) Green else Secondary, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(statusLabel, color = statusColor, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
                 }
-                Text(address, color = Secondary, fontSize = 10.sp)
-                Text(detail, color = Secondary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text(item.address, color = Secondary, fontSize = 10.sp)
+                Text(item.detail, color = Secondary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
