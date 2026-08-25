@@ -151,6 +151,31 @@ class PropertyApiIntegrationTests(
     }
 
     @Test
+    fun `데모 사용자 헤더별로 매물 목록이 분리된다`() {
+        mockMvc.perform(
+            post("/api/v1/properties")
+                .header(DemoUserContext.DEMO_USER_HEADER, "judge-a")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""{"name":"A 폰 전용 매물"}"""),
+        ).andExpect(status().isCreated)
+
+        mockMvc.perform(
+            get("/api/v1/properties")
+                .header(DemoUserContext.DEMO_USER_HEADER, "judge-a"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.totalElements").value(1))
+            .andExpect(jsonPath("$.items[0].name").value("A 폰 전용 매물"))
+
+        mockMvc.perform(
+            get("/api/v1/properties")
+                .header(DemoUserContext.DEMO_USER_HEADER, "judge-b"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.totalElements").value(0))
+    }
+
+    @Test
     fun `임장 기록이 존재하는 매물도 소프트 삭제할 수 있고 목록과 조회에서 제외된다`() {
         val propertyId = createPropertyDirectly(ownerId = DemoUserContext.DEMO_USER_ID)
         val now = OffsetDateTime.now()

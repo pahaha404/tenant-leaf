@@ -24,6 +24,8 @@
 
 ## 진행 기록
 
+- 2026-08-25 — 발표용 다중 휴대전화 LAN 시연에서 매물·임장·리포트가 섞이지 않도록 `DemoUserContext`가 허용된 `X-Demo-User` 값(`judge-a`~`judge-d`)별 UUID를 사용하게 변경했다. 로컬 API 재시작 뒤 judge-a 등록 매물이 judge-b 목록에는 보이지 않는 HTTP 호출을 확인했다. 이는 발표 전용 분리 방식이며 실제 인증/JWT는 별도 구현이 필요하다.
+
 - 2026-08-25 — AI Worker를 사진 한 장 선점 방식에서 `media_finalized_at`이 확정된 임장 단위 배치 방식으로 변경했다. 같은 임장의 `QUEUED` JPEG를 `source_video_offset_ms` 순으로 내려받아 manifest를 만들고, `process_image_batch_room_defect`를 Gemini 구역 분류·Gemini 하자 검증 옵션으로 실행하도록 연결했다. 통합 결과에서 `bathroom/kitchen/living_room/unknown`을 서버 구역으로 변환해 `ai_zone`, `zone_uncertain`, `zone_model_version`과 살아남은 BBOX를 사진별 저장하도록 구현했다. 변경 Python 파일 문법 검사와 Worker 계약·런타임 단위 테스트 9건은 통과했으며, 실제 Gemini·MinIO·PostgreSQL 배치 smoke test는 미검증 상태이므로 관련 체크 항목은 `[ ]`로 유지한다.
 
 - 2026-08-25 — AI 공간 분류 범위를 실제 Gemini 분류 계약과 동일하게 `KITCHEN`, `LIVING_ROOM`, `BATHROOM`, `UNKNOWN` 네 값으로 정리했다. 도메인 규칙·공통 API·OpenAPI·서버 enum·계약 테스트를 수정하고, 기존 `ENTRANCE_COMMON`·`WINDOW_VENTILATION` 데이터를 `UNKNOWN`으로 바꾸는 Flyway V10 마이그레이션을 추가했다. 변경 파일 정적 검사는 통과했으나 Gradle 플러그인 원격 해석 제한으로 서버 전체 테스트는 미검증 상태다.

@@ -1,5 +1,6 @@
 package com.seipseip.core.network
 
+import com.seipseip.core.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.mockwebserver.MockResponse
@@ -24,7 +25,7 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun `authorization header is omitted while demo server has no token`() {
+    fun `demo user header is sent while authorization header is omitted without a token`() {
         server.enqueue(MockResponse().setResponseCode(200))
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor(NoAuthTokenProvider()))
@@ -32,7 +33,10 @@ class AuthInterceptorTest {
 
         client.newCall(Request.Builder().url(server.url("properties")).build()).execute().close()
 
-        assertNull(server.takeRequest().getHeader("Authorization"))
+        server.takeRequest().also { request ->
+            assertNull(request.getHeader("Authorization"))
+            assertEquals(BuildConfig.DEMO_USER, request.getHeader("X-Demo-User"))
+        }
     }
 
     @Test
@@ -50,4 +54,3 @@ class AuthInterceptorTest {
         assertEquals("Bearer demo-token", server.takeRequest().getHeader("Authorization"))
     }
 }
-
