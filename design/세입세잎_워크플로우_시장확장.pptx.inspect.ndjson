@@ -1,0 +1,71 @@
+{"kind":"deck","id":"pr/1yvbd7","name":"Deck"}
+{"kind":"layout","layoutId":"5282527a-ab45-4e0b-90fc-8623f651c739","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"5538b55c-d0c0-4def-a313-893347fd7960","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/stmsw3","slide":1,"title":"HOW WE BUILT","textShapes":25}
+{"kind":"textbox","id":"sh/tsfi9k32","slide":1,"name":"kicker","text":"HOW WE BUILT","textPreview":"HOW WE BUILT","textChars":12,"textLines":1,"bbox":[64,42,154,30]}
+{"kind":"textbox","id":"sh/6p4zy54b","slide":1,"name":"title","text":"바이브코딩으로 빠르게 만들고, 팀의 검증으로 완성했습니다","textPreview":"바이브코딩으로 빠르게 만들고, 팀의 검증으로 완성했습니다","textChars":31,"textLines":1,"bbox":[64,91,1136,56]}
+{"kind":"shape","id":"sh/rqd07alw","slide":1,"name":"title-rule","bbox":[64,155,1152,3]}
+{"kind":"textbox","id":"sh/4nmhwvml","slide":1,"name":"flow-caption","text":"역할은 나누되, 결과는 하나의 사용자 흐름으로 통합","textPreview":"역할은 나누되, 결과는 하나의 사용자 흐름으로 통합","textChars":28,"textLines":1,"bbox":[72,192,575,28]}
+{"kind":"textbox","id":"sh/5ovi503q","slide":1,"name":"role-0","text":"기획\n디자인","textPreview":"기획 | 디자인","textChars":6,"textLines":2,"bbox":[72,238,104,112]}
+{"kind":"shape","id":"sh/il4zu54f","slide":1,"name":"role-arrow-0","bbox":[182,280,28,28]}
+{"kind":"textbox","id":"sh/jmdg3al0","slide":1,"name":"role-1","text":"Android\nMeta","textPreview":"Android | Meta","textChars":12,"textLines":2,"bbox":[204,238,104,112]}
+{"kind":"shape","id":"sh/oj6h8z2p","slide":1,"name":"role-arrow-1","bbox":[314,280,28,28]}
+{"kind":"textbox","id":"sh/pkzih43a","slide":1,"name":"role-2","text":"백엔드","textPreview":"백엔드","textChars":3,"textLines":1,"bbox":[336,238,104,112]}
+{"kind":"shape","id":"sh/lsfadsre","slide":1,"name":"role-arrow-2","bbox":[446,280,28,28]}
+{"kind":"textbox","id":"sh/k76tknqt","slide":1,"name":"role-3","text":"AI","textPreview":"AI","textChars":2,"textLines":1,"bbox":[468,238,104,112]}
+{"kind":"shape","id":"sh/z6xsbi98","slide":1,"name":"role-arrow-3","bbox":[578,280,28,28]}
+{"kind":"textbox","id":"sh/y5obid8n","slide":1,"name":"role-4","text":"통합\n검증","textPreview":"통합 | 검증","textChars":5,"textLines":2,"bbox":[600,238,104,112]}
+{"kind":"shape","id":"sh/x4va98r2","slide":1,"name":"verification-panel","bbox":[748,190,468,232]}
+{"kind":"textbox","id":"sh/c3mtg3qx","slide":1,"name":"verification-title","text":"개발 방식","textPreview":"개발 방식","textChars":5,"textLines":1,"bbox":[782,214,160,32]}
+{"kind":"textbox","id":"sh/b2ds7y9c","slide":1,"name":"practice-dot-0","text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[784,263,24,24]}
+{"kind":"textbox","id":"sh/a14bet8r","slide":1,"name":"practice-0","text":"Task 문서로 요구사항·완료 기준 관리","textPreview":"Task 문서로 요구사항·완료 기준 관리","textChars":22,"textLines":1,"bbox":[820,260,358,27]}
+{"kind":"textbox","id":"sh/h0zulc7m","slide":1,"name":"practice-dot-1","text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[784,299,24,24]}
+{"kind":"textbox","id":"sh/wzqts7q1","slide":1,"name":"practice-1","text":"OpenAPI로 Android·서버 계약 통일","textPreview":"OpenAPI로 Android·서버 계약 통일","textChars":25,"textLines":1,"bbox":[820,296,358,27]}
+{"kind":"textbox","id":"sh/g3ydobyd","slide":1,"name":"practice-dot-2","text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[784,335,24,24]}
+{"kind":"textbox","id":"sh/h47uxgfi","slide":1,"name":"practice-2","text":"AI로 초안·오류 분석·테스트 보조","textPreview":"AI로 초안·오류 분석·테스트 보조","textChars":19,"textLines":1,"bbox":[820,332,358,27]}
+{"kind":"textbox","id":"sh/u1gvm1g7","slide":1,"name":"practice-dot-3","text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[784,371,24,24]}
+{"kind":"textbox","id":"sh/f2pcv6xs","slide":1,"name":"practice-3","text":"팀원이 빌드·테스트 결과 최종 확인","textPreview":"팀원이 빌드·테스트 결과 최종 확인","textChars":19,"textLines":1,"bbox":[820,368,358,27]}
+{"kind":"textbox","id":"sh/szedkry1","slide":1,"name":"vibe-message","text":"바이브코딩은 속도를 높였고, 계약 문서와 테스트는 팀이 책임졌습니다.","textPreview":"바이브코딩은 속도를 높였고, 계약 문서와 테스트는 팀이 책임졌습니다.","textChars":38,"textLines":1,"bbox":[72,462,1144,76]}
+{"kind":"textbox","id":"sh/t0nutwfm","slide":1,"name":"tech-caption","text":"핵심 기술","textPreview":"핵심 기술","textChars":5,"textLines":1,"bbox":[72,576,115,28]}
+{"kind":"textbox","id":"sh/6dwvi1gv","slide":1,"name":"tech-0","text":"Android · Kotlin","textPreview":"Android · Kotlin","textChars":16,"textLines":1,"bbox":[193,566,145,40]}
+{"kind":"textbox","id":"sh/7e5cr6xg","slide":1,"name":"tech-1","text":"Meta AI Glasses","textPreview":"Meta AI Glasses","textChars":15,"textLines":1,"bbox":[350,566,145,40]}
+{"kind":"textbox","id":"sh/kbedgry5","slide":1,"name":"tech-2","text":"Spring Boot","textPreview":"Spring Boot","textChars":11,"textLines":1,"bbox":[507,566,126,40]}
+{"kind":"textbox","id":"sh/5cnupwfq","slide":1,"name":"tech-3","text":"PostgreSQL","textPreview":"PostgreSQL","textChars":10,"textLines":1,"bbox":[645,566,118,40]}
+{"kind":"textbox","id":"sh/n6lwzm1c","slide":1,"name":"tech-4","text":"Python · YOLO","textPreview":"Python · YOLO","textChars":13,"textLines":1,"bbox":[775,566,122,40]}
+{"kind":"textbox","id":"sh/m5cvqh0r","slide":1,"name":"tech-5","text":"OpenAPI","textPreview":"OpenAPI","textChars":7,"textLines":1,"bbox":[909,566,98,40]}
+{"kind":"notes","id":"nt/stmsw3","slide":1,"text":"[Sources]\n- Project Task documents and repository implementation records.\n[/Sources]"}
+{"kind":"slide","id":"sl/aid6m3","slide":2,"title":"GO-TO-MARKET","textShapes":24}
+{"kind":"textbox","id":"sh/2pgbepk7","slide":2,"name":"kicker","text":"GO-TO-MARKET","textPreview":"GO-TO-MARKET","textChars":12,"textLines":1,"bbox":[64,42,154,30]}
+{"kind":"textbox","id":"sh/psrap43i","slide":2,"name":"title","text":"글래스 구매 부담을 낮추면, 점검 기록 서비스가 확장됩니다","textPreview":"글래스 구매 부담을 낮추면, 점검 기록 서비스가 확장됩니다","textChars":32,"textLines":1,"bbox":[64,91,1136,56]}
+{"kind":"shape","id":"sh/oritgz2d","slide":2,"name":"title-rule","bbox":[64,155,1152,3]}
+{"kind":"shape","id":"sh/fmpsjulg","slide":2,"name":"market-step-0","bbox":[72,208,252,154]}
+{"kind":"textbox","id":"sh/elgbapkv","slide":2,"name":"market-label-0","text":"초기 사용자","textPreview":"초기 사용자","textChars":6,"textLines":1,"bbox":[96,230,204,28]}
+{"kind":"textbox","id":"sh/1o7al43m","slide":2,"name":"market-body-0","text":"첫 자취생\n청년 1인 가구","textPreview":"첫 자취생 | 청년 1인 가구","textChars":14,"textLines":2,"bbox":[90,274,216,60]}
+{"kind":"shape","id":"sh/0nytcz21","slide":2,"name":"market-arrow-0","bbox":[330,270,30,28]}
+{"kind":"shape","id":"sh/ri5sfalk","slide":2,"name":"market-step-1","bbox":[360,208,252,154]}
+{"kind":"textbox","id":"sh/qxwr65kz","slide":2,"name":"market-label-1","text":"진입 장벽","textPreview":"진입 장벽","textChars":5,"textLines":1,"bbox":[384,230,204,28]}
+{"kind":"textbox","id":"sh/kjyh4r21","slide":2,"name":"market-body-1","text":"AI 글래스\n직접 구매 부담","textPreview":"AI 글래스 | 직접 구매 부담","textChars":15,"textLines":2,"bbox":[378,274,216,60]}
+{"kind":"shape","id":"sh/lk7yxwjm","slide":2,"name":"market-arrow-1","bbox":[618,270,30,28]}
+{"kind":"shape","id":"sh/yhwz21kb","slide":2,"name":"market-step-2","bbox":[648,208,252,154]}
+{"kind":"textbox","id":"sh/ji5gvm1g","slide":2,"name":"market-label-2","text":"초기 제공 방식","textPreview":"초기 제공 방식","textChars":8,"textLines":1,"bbox":[672,230,204,28]}
+{"kind":"textbox","id":"sh/wfeh0r25","slide":2,"name":"market-body-2","text":"기관을 통한\n단기 대여","textPreview":"기관을 통한 | 단기 대여","textChars":12,"textLines":2,"bbox":[666,274,216,60]}
+{"kind":"shape","id":"sh/xgnytwjq","slide":2,"name":"market-arrow-2","bbox":[906,270,30,28]}
+{"kind":"shape","id":"sh/atwzyhkz","slide":2,"name":"market-step-3","bbox":[936,208,252,154]}
+{"kind":"textbox","id":"sh/bu5grm1k","slide":2,"name":"market-label-3","text":"확장","textPreview":"확장","textChars":2,"textLines":1,"bbox":[960,230,204,28]}
+{"kind":"textbox","id":"sh/gbihcb29","slide":2,"name":"market-body-3","text":"입주 점검 · 주택관리\n기관 상담 기록","textPreview":"입주 점검 · 주택관리 | 기관 상담 기록","textChars":21,"textLines":2,"bbox":[954,274,216,60]}
+{"kind":"shape","id":"sh/hcri5gju","slide":2,"name":"market-formula","bbox":[72,414,1144,190]}
+{"kind":"textbox","id":"sh/p8nypgby","slide":2,"name":"formula-title","text":"시장 규모는 숫자 하나가 아니라, 계산 근거로 보여줍니다","textPreview":"시장 규모는 숫자 하나가 아니라, 계산 근거로 보여줍니다","textChars":31,"textLines":1,"bbox":[106,438,820,32]}
+{"kind":"textbox","id":"sh/47ehwbud","slide":2,"name":"factor-label-0","text":"① 대상","textPreview":"① 대상","textChars":4,"textLines":1,"bbox":[106,492,108,27]}
+{"kind":"textbox","id":"sh/365gn6ts","slide":2,"name":"factor-body-0","text":"청년 1인 가구 수","textPreview":"청년 1인 가구 수","textChars":10,"textLines":1,"bbox":[102,532,184,28]}
+{"kind":"textbox","id":"sh/25czu1cn","slide":2,"name":"factor-times-0","text":"×","textPreview":"×","textChars":1,"textLines":1,"bbox":[299,522,24,30]}
+{"kind":"textbox","id":"sh/h43ylwb2","slide":2,"name":"factor-label-1","text":"② 이용","textPreview":"② 이용","textChars":4,"textLines":1,"bbox":[378,492,108,27]}
+{"kind":"textbox","id":"sh/g3uhsbuh","slide":2,"name":"factor-body-1","text":"연간 임장 진행 비율","textPreview":"연간 임장 진행 비율","textChars":11,"textLines":1,"bbox":[374,532,184,28]}
+{"kind":"textbox","id":"sh/f2lgj6tw","slide":2,"name":"factor-times-1","text":"×","textPreview":"×","textChars":1,"textLines":1,"bbox":[571,522,24,30]}
+{"kind":"textbox","id":"sh/u1czq1cb","slide":2,"name":"factor-label-2","text":"③ 전환","textPreview":"③ 전환","textChars":4,"textLines":1,"bbox":[650,492,108,27]}
+{"kind":"textbox","id":"sh/t03yhwbq","slide":2,"name":"factor-body-2","text":"글래스 대여 전환율","textPreview":"글래스 대여 전환율","textChars":10,"textLines":1,"bbox":[646,532,184,28]}
+{"kind":"textbox","id":"sh/sfuhoru5","slide":2,"name":"factor-times-2","text":"×","textPreview":"×","textChars":1,"textLines":1,"bbox":[843,522,24,30]}
+{"kind":"textbox","id":"sh/y98n2tor","slide":2,"name":"factor-label-3","text":"④ 단가","textPreview":"④ 단가","textChars":4,"textLines":1,"bbox":[922,492,108,27]}
+{"kind":"textbox","id":"sh/jah4by5c","slide":2,"name":"factor-body-3","text":"1회 대여·서비스\n이용료","textPreview":"1회 대여·서비스 | 이용료","textChars":13,"textLines":2,"bbox":[918,532,184,28]}
+{"kind":"textbox","id":"sh/kvq5436x","slide":2,"name":"formula-result","text":"= 초기 연간 매출 가능성","textPreview":"= 초기 연간 매출 가능성","textChars":14,"textLines":1,"bbox":[868,622,300,28]}
+{"kind":"textbox","id":"sh/lwzmd8ni","slide":2,"name":"formula-note","text":"발표 전: 팀 조사값과 출처를 각 항목 아래에 한 줄씩 추가","textPreview":"발표 전: 팀 조사값과 출처를 각 항목 아래에 한 줄씩 추가","textChars":33,"textLines":1,"bbox":[106,622,600,24]}
+{"kind":"notes","id":"nt/aid6m3","slide":2,"text":"[Sources]\n- Replace calculation inputs with team-verified statistics and official source citations before presentation.\n[/Sources]"}

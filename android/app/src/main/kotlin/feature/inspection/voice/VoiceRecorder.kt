@@ -1,59 +1,47 @@
 package com.seipseip.app.feature.inspection.voice
 
 import android.content.Context
-import android.media.AudioFormat
-import android.media.AudioRecord
-import android.media.MediaRecorder
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
-import kotlin.concurrent.thread
 
 data class VoiceRecordFile(val pcmFile: File, val wavFile: File, val durationMillis: Long)
 
-/** 임장 전체 음성을 앱 내부에 저장한다. STT 입력용 PCM과 재생용 WAV를 함께 만든다. */
+/**
+ * MP4 녹화기가 이미 읽은 PCM을 STT 입력용 WAV로 저장한다.
+ * 이 클래스는 AudioRecord를 만들지 않으므로 영상 AAC 오디오와 마이크를 경쟁하지 않는다.
+ */
 class VoiceRecorder(context: Context) {
     private val appContext = context.applicationContext
-    private var audioRecord: AudioRecord? = null
-    private var writer: Thread? = null
+    private var output: BufferedOutputStream? = null
     private var pcmFile: File? = null
     private var startedAt = 0L
     @Volatile private var recording = false
 
+    @Synchronized
     fun start(inspectionId: String) {
         if (recording) return
         val directory = File(appContext.filesDir, "voice-records/$inspectionId").apply { mkdirs() }
         val pcm = File(directory, "recording-${System.currentTimeMillis()}.pcm")
-        val bufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, ENCODING).coerceAtLeast(4096)
-        val recorder = AudioRecord(MediaRecorder.AudioSource.MIC, SAMPLE_RATE, CHANNEL_CONFIG, ENCODING, bufferSize)
-        check(recorder.state == AudioRecord.STATE_INITIALIZED) { "마이크를 초기화하지 못했습니다." }
-
         pcmFile = pcm
-        audioRecord = recorder
+        output = BufferedOutputStream(FileOutputStream(pcm))
         startedAt = System.currentTimeMillis()
         recording = true
-        recorder.startRecording()
-        writer = thread(name = "tenant-leaf-voice-record", start = true) {
-            BufferedOutputStream(FileOutputStream(pcm)).use { output ->
-                val buffer = ByteArray(bufferSize)
-                while (recording) {
-                    val size = recorder.read(buffer, 0, buffer.size)
-                    if (size > 0) output.write(buffer, 0, size)
-                }
-            }
-        }
     }
 
+    @Synchronized
+    fun appendPcm(bytes: ByteArray, size: Int) {
+        if (!recording || size <= 0) return
+        output?.write(bytes, 0, size)
+    }
+
+    @Synchronized
     fun stop(): VoiceRecordFile? {
         if (!recording) return null
         recording = false
-        val recorder = audioRecord
-        audioRecord = null
-        runCatching { recorder?.stop() }
-        recorder?.release()
-        writer?.join(1_500)
-        writer = null
+        runCatching { output?.close() }
+        output = null
 
         val pcm = pcmFile ?: return null
         pcmFile = null
@@ -102,8 +90,6 @@ class VoiceRecorder(context: Context) {
     }
 
     companion object {
-        const val SAMPLE_RATE = 16_000
-        const val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
-        const val ENCODING = AudioFormat.ENCODING_PCM_16BIT
+        const val SAMPLE_RATE = 44_100
     }
 }

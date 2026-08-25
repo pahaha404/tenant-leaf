@@ -62,6 +62,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
@@ -120,17 +121,6 @@ fun InspectionPrepScreen(
             }
         },
     ) {
-        Card(
-            modifier = Modifier.fillMaxWidth().border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(18.dp)),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF241A1A)),
-        ) {
-            Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                Text("⚠  촬영 허가를 반드시 받아주세요", color = Color(0xFFFFD6D2), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
-                Text("임대인과 기존 세입자에게 허가를 받고 촬영을 해야 합니다.", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, lineHeight = 18.sp)
-                Text("허가 없이 촬영을 진행하지 마세요. 촬영·녹음에 동의하지 않은 사람이 포함되면 법적 책임이 발생할 수 있습니다.", color = Color(0xFFFFB4AB), fontSize = 11.sp, lineHeight = 17.sp)
-            }
-        }
         SectionTitle("점검을 시작하기 전이에요", "망원동 리버뷰 · 오늘 오후 4:00")
         InfoCard(title = "점검할 매물", description = "망원동 리버뷰 · 서울시 마포구 망원동", onClick = onSelectProperty)
         InfoCard(title = "촬영 전 확인", description = "휴대전화 카메라와 마이크 권한을 허용해 주세요.", accent = PaleGreen)
@@ -141,6 +131,10 @@ fun InspectionPrepScreen(
 @Composable
 fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit) {
     val context = LocalContext.current
+    var landlordConsent by remember { mutableStateOf(false) }
+    var occupantConsent by remember { mutableStateOf(false) }
+    var recordingScopeConfirmed by remember { mutableStateOf(false) }
+    val canContinue = landlordConsent && occupantConsent && recordingScopeConfirmed
     LaunchedEffect(Unit) {
         VoiceGuideManager.warmUp(context)
     }
@@ -153,40 +147,54 @@ fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 10.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0xFFB42318))
-                        .clickable {
+                PrimaryButton(
+                    label = "허가를 확인했고 촬영을 계속합니다",
+                    enabled = canContinue,
+                    onClick = {
+                        if (canContinue) {
                             VoiceGuideManager.speak(context, "3초 뒤 촬영이 시작됩니다.")
                             onContinue()
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        "허가를 확인했고 촬영을 계속합니다",
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-                }
+                        }
+                    },
+                )
             }
         },
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth().border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(18.dp)),
+            modifier = Modifier.fillMaxWidth().border(1.dp, Orange, RoundedCornerShape(18.dp)),
             shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF241A1A)),
+            colors = CardDefaults.cardColors(containerColor = PaleOrange),
         ) {
-            Column(modifier = Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("⚠  촬영 전 반드시 확인", color = Color(0xFFFFD6D2), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
-                Text("허가를 받고 촬영을 해야 합니다.", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
-                Text("임대인과 기존 세입자 모두에게 촬영·녹음 허가를 명확히 받으세요. 허가를 받지 못했다면 촬영을 시작하지 마세요.", color = Color(0xFFFFB4AB), fontSize = 12.sp, lineHeight = 19.sp)
-                Text("공개되지 않은 타인 간 대화의 녹음·청취는 통신비밀보호법의 제한을 받을 수 있습니다. 위반 시 상황에 따라 민·형사상 책임이 발생할 수 있습니다.", color = Color(0xFFFFE4E1), fontSize = 11.sp, lineHeight = 17.sp)
+            Column(modifier = Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Text("촬영 전 꼭 확인해 주세요", color = DeepGreen, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                Text("촬영과 녹음은 상대방이 알 수 있게 안내하고, 허가를 받은 뒤에만 시작합니다.", color = Secondary, fontSize = 13.sp, lineHeight = 20.sp)
+                Text("집을 보여주는 임대인·중개인뿐 아니라, 기존 세입자나 동행자가 화면 또는 음성에 포함될 수 있다면 모두에게 먼저 알려야 합니다. 허가를 받지 못했거나 누가 포함되는지 확실하지 않다면 촬영하지 마세요.", color = Secondary, fontSize = 12.sp, lineHeight = 19.sp)
             }
         }
+        Spacer(Modifier.height(18.dp))
+        Text("촬영을 시작하기 전에 아래 항목을 직접 확인해 주세요.", color = DeepGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        ConsentCheckRow(landlordConsent, { landlordConsent = it }, "임대인 또는 중개인에게 촬영 사실을 알리고 허가를 받았습니다.")
+        ConsentCheckRow(occupantConsent, { occupantConsent = it }, "현장에 있는 사람에게 영상과 음성 녹음 여부를 알렸습니다.")
+        ConsentCheckRow(recordingScopeConfirmed, { recordingScopeConfirmed = it }, "촬영이 필요 없는 사람·사적인 대화·문서는 담지 않겠습니다.")
+    }
+}
+
+@Composable
+private fun ConsentCheckRow(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    text: String,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = checked, onCheckedChange = onCheckedChange)
+        Text(text, modifier = Modifier.padding(end = 10.dp), color = DeepGreen, fontSize = 13.sp, lineHeight = 19.sp)
     }
 }
 @Composable
@@ -582,7 +590,11 @@ fun LiveInspectionScreen(
     }
     val coroutineScope = rememberCoroutineScope()
     var isFinishing by remember { mutableStateOf(false) }
-    val recorder = remember(context) { com.seipseip.app.feature.inspection.preview.InspectionVideoRecorder(context) }
+    val recorder = remember(context) {
+        com.seipseip.app.feature.inspection.preview.InspectionVideoRecorder(context) { bytes, size ->
+            VoiceRecordSession.appendPcm(bytes, size)
+        }
+    }
     val isGlassConnected = connectionState.isConnected
     var cameraSource by remember(isGlassConnected) {
         mutableStateOf(if (isGlassConnected) CameraSource.GLASS else CameraSource.PHONE)
@@ -1236,32 +1248,13 @@ fun FinishConfirmScreen(
 
         VoiceRecordReviewCard()
 
-        Text("촬영 구역 상세", color = DeepGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-        Column(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White).padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            zones.forEachIndexed { index, zone ->
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(32.dp).clip(RoundedCornerShape(9.dp)).background(if (index % 2 == 0) PaleGreen else Color(0xFFF8F8F6)).padding(horizontal = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("✓", color = Green, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
-                    Spacer(Modifier.width(8.dp))
-                    Text(zone.title, color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                    Spacer(Modifier.weight(1f))
-                    Text("촬영 완료", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(PaleOrange).padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text("ⓘ", color = Orange, fontSize = 15.sp)
             Spacer(Modifier.width(8.dp))
-            Text("분석 결과는 확인이 필요한 관찰 결과이며, 최종 상태는 사용자가 결정해요.", color = Color(0xFF8B542D), fontSize = 11.sp, lineHeight = 16.sp)
+            Text("분석 결과는 확인이 필요한 내용이에요. 사진을 확인하고 직접 결정하세요!", color = Color(0xFF8B542D), fontSize = 11.sp, lineHeight = 16.sp)
         }
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
         PrimaryButton(if (updating) "촬영 종료 처리 중..." else "촬영 종료하고 사진 준비", onConfirm, enabled = !updating)

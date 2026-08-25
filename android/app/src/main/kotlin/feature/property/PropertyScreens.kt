@@ -64,11 +64,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -96,6 +105,7 @@ import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SectionTitle
 import com.seipseip.app.feature.common.StateBadge
 import com.seipseip.app.feature.property.location.addressWithDetail
+import com.seipseip.app.feature.inspection.voice.PropertyVoiceRecordCard
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
@@ -483,6 +493,10 @@ fun PropertyFormScreen(
     var visitHour by rememberSaveable { mutableStateOf(14) }
     var visitMinute by rememberSaveable { mutableStateOf(0) }
     var visitTimeSelected by rememberSaveable { mutableStateOf(false) }
+    val propertyNameFocus = remember { FocusRequester() }
+    val addressDetailFocus = remember { FocusRequester() }
+    val depositFocus = remember { FocusRequester() }
+    val monthlyRentFocus = remember { FocusRequester() }
 
     LaunchedEffect(initialProperty) {
         if (initialProperty != null) {
@@ -515,15 +529,30 @@ fun PropertyFormScreen(
         }
         Text("기본 정보는 리포트 제목과 증거 정리에 사용돼요.", color = Secondary, fontSize = 13.sp)
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            FormTextField("매물 이름", "예: 연남동 햇살 원룸", propertyName, { propertyName = it })
+            FormTextField(
+                "매물 이름", "예: 연남동 햇살 원룸", propertyName, { propertyName = it },
+                focusRequester = propertyNameFocus,
+                nextFocusRequester = addressDetailFocus,
+            )
             AddressFormField(
                 value = address,
                 onOpenAddressPicker = onOpenAddressPicker,
                 onUseCurrentLocation = onOpenLocationPicker,
             )
-            FormTextField("상세 주소", "예: 101동 202호", addressDetail, { addressDetail = it })
-            FormTextField("보증금(원)", "예: 5000000", deposit, { deposit = it })
-            FormTextField("월세(원)", "예: 450000", monthlyRent, { monthlyRent = it })
+            FormTextField(
+                "상세 주소", "예: 101동 202호", addressDetail, { addressDetail = it },
+                focusRequester = addressDetailFocus,
+                nextFocusRequester = depositFocus,
+            )
+            FormTextField(
+                "보증금(원)", "예: 5000000", deposit, { deposit = it },
+                focusRequester = depositFocus,
+                nextFocusRequester = monthlyRentFocus,
+            )
+            FormTextField(
+                "월세(원)", "예: 450000", monthlyRent, { monthlyRent = it },
+                focusRequester = monthlyRentFocus,
+            )
             Text("주거 형태", color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 HousingOption("원룸", housingType, { housingType = it }, Modifier.weight(1f))
@@ -629,17 +658,33 @@ private fun FormTextField(
     value: String,
     onChange: (String) -> Unit,
     onClick: (() -> Unit)? = null,
+    focusRequester: FocusRequester? = null,
+    nextFocusRequester: FocusRequester? = null,
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
     Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Text(label, color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         Box(modifier = Modifier.fillMaxWidth().height(68.dp)) {
             OutlinedTextField(
                 value = value,
                 onValueChange = onChange,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .bringIntoViewRequester(bringIntoViewRequester)
+                    .then(focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)
+                    .onFocusChanged { state ->
+                        if (state.isFocused) coroutineScope.launch { bringIntoViewRequester.bringIntoView() }
+                    },
                 placeholder = { Text(placeholder, color = Secondary, fontSize = 14.sp) },
                 singleLine = true,
                 readOnly = onClick != null,
+                keyboardOptions = KeyboardOptions(imeAction = if (nextFocusRequester != null) ImeAction.Next else ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onNext = { nextFocusRequester?.requestFocus() },
+                    onDone = { focusManager.clearFocus() },
+                ),
                 shape = RoundedCornerShape(14.dp),
             )
             onClick?.let { openAddressPicker ->
@@ -684,6 +729,7 @@ fun PropertyDetailScreen(
     onBack: () -> Unit,
     onStartInspection: () -> Unit,
     onOpenReport: () -> Unit,
+    onOpenVoiceSummary: (String) -> Unit = {},
     onOpenBasicInfo: () -> Unit = {},
     onEditProperty: (() -> Unit)? = null,
     onDeleteProperty: (() -> Unit)? = null,
@@ -809,6 +855,13 @@ fun PropertyDetailScreen(
             accent = PaleGreen,
             onClick = onOpenReport,
         )
+
+        property?.let {
+            PropertyVoiceRecordCard(
+                propertyId = it.id,
+                onOpenSummary = onOpenVoiceSummary,
+            )
+        }
 
         // 4. Kakao Map with Pinpoint at Address (해당 주소 핀포인트 카카오 지도)
         PropertyKakaoMapCard(

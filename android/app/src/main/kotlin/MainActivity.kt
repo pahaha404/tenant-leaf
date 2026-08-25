@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.meta.wearable.dat.core.Wearables
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -21,6 +22,7 @@ class MainActivity : ComponentActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         com.seipseip.app.feature.inspection.VoiceGuideManager.warmUp(this)
         setContent {
@@ -60,4 +62,3 @@ class MainActivity : ComponentActivity() {
         const val DAT_TAG = "TenantLeafDAT"
     }
 }
-

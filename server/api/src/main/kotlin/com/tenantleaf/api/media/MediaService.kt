@@ -66,6 +66,7 @@ class MediaService(
                 inspectionId = inspectionId,
                 ownerId = ownerId,
                 clientMediaId = item.clientMediaId,
+                zone = MediaZone.valueOf(item.zone.name),
                 declaredFileSize = item.fileSize,
                 width = item.width,
                 height = item.height,
@@ -254,12 +255,12 @@ class MediaService(
     }
 
     private fun CreateMediaUploadRequest.fingerprint() = listOf(
-        clientMediaId, contentType.value, fileSize, width, height, sourceVideoId,
+        clientMediaId, zone.value, contentType.value, fileSize, width, height, sourceVideoId,
         sourceVideoOffsetMs, frameOrigin.value, captureSource.name, capturedAt.toInstant(),
     ).joinToString("|")
 
     private fun MediaEntity.matches(item: CreateMediaUploadRequest) =
-        contentType == item.contentType.value && declaredFileSize == item.fileSize &&
+        zone?.name == item.zone.name && contentType == item.contentType.value && declaredFileSize == item.fileSize &&
             width == item.width && height == item.height && sourceVideoId == item.sourceVideoId &&
             sourceVideoOffsetMs == item.sourceVideoOffsetMs && frameOrigin == item.frameOrigin.value &&
             captureSource.name == item.captureSource.name && capturedAt.toInstant() == item.capturedAt.toInstant()

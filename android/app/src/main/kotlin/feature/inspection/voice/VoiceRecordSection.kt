@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +47,7 @@ import com.seipseip.app.Green
 import com.seipseip.app.Orange
 import com.seipseip.app.PaleGreen
 import com.seipseip.app.Secondary
+import com.seipseip.app.feature.common.AppPageScaffold
 
 /** 점검 시작부터 종료까지 자동으로 동작하는 로컬 음성 기록 상태 카드. */
 @Composable
@@ -194,5 +196,195 @@ private fun VoiceTextBlock(title: String, body: String, highlighted: Boolean = f
     ) {
         Text(title, color = if (highlighted) Green else DeepGreen, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
         Text(body, color = DeepGreen, fontSize = 11.sp, lineHeight = 16.sp)
+    }
+}
+
+/** 매물 상세에서 해당 매물의 최근 점검 음성 기록을 확인하는 카드. */
+@Composable
+fun PropertyVoiceRecordCard(
+    propertyId: String,
+    onOpenSummary: (String) -> Unit,
+) {
+    val context = LocalContext.current
+    val archiveVersion = VoiceRecordArchive.version
+    val record = remember(propertyId, archiveVersion) {
+        VoiceRecordArchive.latestForProperty(context, propertyId)
+    }
+    var player by remember { mutableStateOf<MediaPlayer?>(null) }
+    var playing by remember { mutableStateOf(false) }
+    var importingLegacyRecord by remember(propertyId) { mutableStateOf(true) }
+
+    LaunchedEffect(propertyId, archiveVersion) {
+        if (record == null) {
+            VoiceRecordArchive.adoptLatestUnlinkedRecording(context, propertyId)?.let { adopted ->
+                VoiceRecordSession.retryTranscription(
+                    context = context,
+                    inspectionId = adopted.inspectionId,
+                    audioPath = adopted.audioPath,
+                )
+            }
+        }
+        importingLegacyRecord = false
+    }
+    DisposableEffect(Unit) {
+        onDispose { player?.release() }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White)
+            .border(1.dp, Color(0xFFD9E1DA), RoundedCornerShape(16.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier.size(34.dp).clip(RoundedCornerShape(12.dp)).background(PaleGreen),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Outlined.Mic, contentDescription = null, tint = Green, modifier = Modifier.size(18.dp))
+            }
+            Spacer(Modifier.width(9.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("점검 음성 기록", color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+                Text(
+                    when {
+                        record != null -> "최근 점검에서 저장한 음성 기록이에요."
+                        importingLegacyRecord -> "이전 점검의 녹음 파일을 확인하고 있어요."
+                        else -> "이 매물에서 저장된 음성 기록이 없어요."
+                    },
+                    color = Secondary,
+                    fontSize = 10.sp,
+                )
+            }
+        }
+
+        if (record != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                VoiceArchiveButton(
+                    label = if (playing) "일시정지" else "음성 녹음 재생",
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        if (playing) {
+                            player?.pause()
+                            playing = false
+                        } else {
+                            runCatching {
+                                player?.release()
+                                player = MediaPlayer().apply {
+                                    setDataSource(record!!.audioPath)
+                                    setOnCompletionListener { playing = false }
+                                    prepare()
+                                    start()
+                                }
+                                playing = true
+                            }
+                        }
+                    },
+                )
+                VoiceArchiveButton(
+                    label = "음성 요약 보기",
+                    modifier = Modifier.weight(1f),
+                    onClick = { onOpenSummary(propertyId) },
+                    emphasized = true,
+                )
+            }
+            Text("동의를 받은 현장 대화와 메모만 이 휴대전화에서 확인하세요.", color = Secondary, fontSize = 10.sp)
+        }
+    }
+
+}
+
+/** 매물별 최근 녹음의 핵심 요약을 먼저 보여주고, 요청할 때만 STT 원문을 펼치는 화면. */
+@Composable
+fun VoiceSummaryScreen(propertyId: String, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val archiveVersion = VoiceRecordArchive.version
+    val record = remember(propertyId, archiveVersion) {
+        VoiceRecordArchive.latestForProperty(context, propertyId)
+    }
+    var showTranscript by remember { mutableStateOf(false) }
+
+    LaunchedEffect(propertyId, archiveVersion) {
+        if (record == null) {
+            VoiceRecordArchive.adoptLatestUnlinkedRecording(context, propertyId)?.let { adopted ->
+                VoiceRecordSession.retryTranscription(
+                    context = context,
+                    inspectionId = adopted.inspectionId,
+                    audioPath = adopted.audioPath,
+                )
+            }
+        }
+    }
+
+    AppPageScaffold(title = "점검 음성 요약", onBack = onBack) {
+        Text("중개사와 나눈 이야기, 이렇게 정리했어요.", color = DeepGreen, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+        Text("녹음과 텍스트는 이 휴대전화에만 저장됩니다.", color = Secondary, fontSize = 11.sp)
+
+        when {
+            record == null -> {
+                VoiceTextBlock("저장된 음성 기록이 없어요", "이 매물에서 점검을 마친 뒤 다시 확인해 주세요.")
+            }
+            record.transcribing -> {
+                VoiceTextBlock("음성을 텍스트로 바꾸는 중이에요", "정리가 끝나면 이 화면에 핵심 내용이 표시됩니다.", highlighted = true)
+            }
+            record.summary.isNotBlank() -> {
+                VoiceTextBlock("핵심 내용", record.summary, highlighted = true)
+            }
+            else -> {
+                VoiceTextBlock("아직 요약할 텍스트가 없어요", "녹음은 저장됐지만 이번 음성 인식 결과를 받지 못했습니다. 녹음 파일은 매물 상세에서 재생할 수 있어요.")
+            }
+        }
+
+        if (record != null && !record.transcribing) {
+            VoiceArchiveButton(
+                label = if (showTranscript) "전체 STT 접기" else "전체 STT 보기",
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { showTranscript = !showTranscript },
+            )
+            if (showTranscript) {
+                if (record.transcript.isNotBlank()) {
+                    VoiceTextBlock("전체 STT", record.transcript)
+                } else {
+                    VoiceTextBlock("전체 STT", "이번 음성 인식 결과를 아직 받지 못했어요. 아래 버튼으로 다시 변환할 수 있어요.")
+                }
+            }
+        }
+
+        if (record != null && !record.transcribing && record.transcript.isBlank()) {
+            VoiceArchiveButton(
+                label = "텍스트 변환 다시 시도",
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    VoiceRecordSession.retryTranscription(
+                        context = context,
+                        inspectionId = record.inspectionId,
+                        audioPath = record.audioPath,
+                    )
+                },
+                emphasized = true,
+            )
+        }
+    }
+}
+
+@Composable
+private fun VoiceArchiveButton(
+    label: String,
+    modifier: Modifier,
+    onClick: () -> Unit,
+    emphasized: Boolean = false,
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(11.dp))
+            .background(if (emphasized) Green else PaleGreen)
+            .clickable(onClick = onClick)
+            .padding(vertical = 11.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(label, color = if (emphasized) Color.White else Green, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
     }
 }

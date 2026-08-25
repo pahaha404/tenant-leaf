@@ -37,6 +37,7 @@ class InspectionListViewModel @Inject constructor(
     private val propertyId = savedStateHandle.get<String>(PROPERTY_ID_ARGUMENT)?.let {
         runCatching { UUID.fromString(it) }.getOrNull()
     }
+    val selectedPropertyId: String? = propertyId?.toString()
 
     private val _state = MutableStateFlow(InspectionListUiState())
     val state: StateFlow<InspectionListUiState> = _state.asStateFlow()
@@ -87,4 +88,3 @@ class InspectionListViewModel @Inject constructor(
         const val PROPERTY_ID_ARGUMENT = "propertyId"
     }
 }
-

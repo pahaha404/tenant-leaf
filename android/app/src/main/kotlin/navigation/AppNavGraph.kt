@@ -43,6 +43,7 @@ import com.seipseip.app.feature.inspection.LiveInspectionScreen
 import com.seipseip.app.feature.inspection.ObservationScreen
 import com.seipseip.app.feature.inspection.TutorialChecklistScreen
 import com.seipseip.app.feature.inspection.TutorialScreen
+import com.seipseip.app.feature.inspection.voice.VoiceSummaryScreen
 import com.seipseip.app.feature.magazine.MagazineDetailScreen
 import com.seipseip.app.feature.magazine.MagazineScreen
 import com.seipseip.app.feature.profile.ProfileScreen
@@ -92,6 +93,7 @@ object Route {
     const val PropertyDetail = "property_detail/{propertyId}"
     const val PropertyEdit = "property_edit/{propertyId}"
     const val PropertyInfo = "property_info/{propertyId}"
+    const val VoiceSummary = "voice_summary/{propertyId}"
     const val PropertySelect = "property_select"
     const val PropertyEmpty = "property_empty"
     const val InspectionPrep = "inspection_prep/{propertyId}"
@@ -117,6 +119,7 @@ object Route {
     fun propertyDetail(propertyId: String) = "property_detail/$propertyId"
     fun propertyEdit(propertyId: String) = "property_edit/$propertyId"
     fun propertyInfo(propertyId: String) = "property_info/$propertyId"
+    fun voiceSummary(propertyId: String) = "voice_summary/$propertyId"
     fun inspectionPrep(propertyId: String) = "inspection_prep/$propertyId"
     fun inspectionPermission(inspectionId: String) = "inspection_permission_warning/$inspectionId"
     fun liveInspection(inspectionId: String, zone: String, startedAt: Long) = "live/$inspectionId/$zone/$startedAt"
@@ -190,8 +193,7 @@ fun AppNavGraph(
             LoadingScreen {
                 val isLoggedIn = sessionPreferences.getBoolean(KEY_LOGGED_IN, false)
                 val isTutorialCompleted = sessionPreferences.getBoolean(KEY_TUTORIAL_COMPLETED, false)
-                val nextRoute = initialRouteFor(isLoggedIn, isTutorialCompleted)
-                navController.navigate(nextRoute) {
+                navController.navigate(initialRouteFor(isLoggedIn, isTutorialCompleted)) {
                     popUpTo(Route.Loading) { inclusive = true }
                 }
             }
@@ -389,6 +391,7 @@ fun AppNavGraph(
                 onBack = navController::popBackStack,
                 onStartInspection = { navController.navigate(Route.inspectionPrep(it)) },
                 onOpenReport = { navController.navigate(Route.ReportDetail) },
+                onOpenVoiceSummary = { propertyId -> navController.navigate(Route.voiceSummary(propertyId)) },
                 onOpenBasicInfo = { property -> property?.id?.let { navController.navigate(Route.propertyInfo(it)) } },
                 onEditProperty = { propertyId -> navController.navigate(Route.propertyEdit(propertyId)) },
                 onTabSelected = { tab ->
@@ -414,6 +417,15 @@ fun AppNavGraph(
             arguments = listOf(navArgument("propertyId") { type = NavType.StringType }),
         ) {
             PropertyInfoApiRoute(onBack = navController::popBackStack)
+        }
+        composable(
+            route = Route.VoiceSummary,
+            arguments = listOf(navArgument("propertyId") { type = NavType.StringType }),
+        ) { entry ->
+            VoiceSummaryScreen(
+                propertyId = entry.arguments?.getString("propertyId").orEmpty(),
+                onBack = navController::popBackStack,
+            )
         }
         composable(Route.PropertySelect) {
             PropertySelectApiRoute(

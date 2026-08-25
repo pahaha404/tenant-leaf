@@ -41,7 +41,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Standard MediaCodec Surface-based MP4 Video Recorder with Audio (AAC) adhering to Android Best Practices.
  */
-class InspectionVideoRecorder(private val context: Context) {
+class InspectionVideoRecorder(
+    private val context: Context,
+    private val onAudioPcm: (bytes: ByteArray, size: Int) -> Unit = { _, _ -> },
+) {
     private val lock = Any()
     private var mediaMuxer: MediaMuxer? = null
     private var mediaEncoder: MediaCodec? = null
@@ -200,6 +203,7 @@ class InspectionVideoRecorder(private val context: Context) {
             val readBytes = record.read(audioBuffer, 0, audioBuffer.size)
             if (readBytes > 0) {
                 try {
+                    onAudioPcm(audioBuffer, readBytes)
                     val inputBufferIndex = encoder.dequeueInputBuffer(10_000)
                     if (inputBufferIndex >= 0) {
                         val inputBuffer = encoder.getInputBuffer(inputBufferIndex)
