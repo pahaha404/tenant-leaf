@@ -14,6 +14,7 @@ import com.seipseip.feature.inspection.domain.usecase.ListInspectionsUseCase
 import com.seipseip.feature.inspection.domain.usecase.UpdateInspectionStatusUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -99,16 +100,45 @@ class InspectionViewModelTest {
             assertEquals(InspectionDetailEvent.StatusChanged(InspectionStatus.ENDED), event.await())
         }
 
+    @Test
+    fun `cancelling before inspection load completes still publishes the changed status`() =
+        runTest(mainDispatcherRule.dispatcher.scheduler) {
+            val repository = FakeInspectionRepository().apply { blockGet = true }
+            val viewModel = InspectionDetailViewModel(
+                SavedStateHandle(mapOf(InspectionDetailViewModel.INSPECTION_ID_ARGUMENT to INSPECTION_ID.toString())),
+                GetInspectionUseCase(repository),
+                UpdateInspectionStatusUseCase(repository),
+            )
+            repository.getStarted.await()
+            val event = async(UnconfinedTestDispatcher(testScheduler)) { viewModel.events.first() }
+
+            viewModel.cancel()
+            advanceUntilIdle()
+
+            assertEquals(1, repository.updateCalls)
+            assertEquals(InspectionDetailEvent.StatusChanged(InspectionStatus.CANCELLED), event.await())
+            repository.releaseGet.complete(repository.current)
+        }
+
     private class FakeInspectionRepository : InspectionRepository {
         var current = INSPECTION
         var updateCalls = 0
+        var blockGet = false
+        val getStarted = CompletableDeferred<Unit>()
+        val releaseGet = CompletableDeferred<Inspection>()
 
         override suspend fun create(propertyId: UUID): AppResult<Inspection> = AppResult.Success(current)
 
         override suspend fun list(propertyId: UUID, page: Int, size: Int): AppResult<InspectionPage> =
             AppResult.Success(InspectionPage(page, size, 0, 0, emptyList()))
 
-        override suspend fun get(inspectionId: UUID): AppResult<Inspection> = AppResult.Success(current)
+        override suspend fun get(inspectionId: UUID): AppResult<Inspection> {
+            if (blockGet) {
+                getStarted.complete(Unit)
+                return AppResult.Success(releaseGet.await())
+            }
+            return AppResult.Success(current)
+        }
 
         override suspend fun updateStatus(inspectionId: UUID, status: InspectionStatus): AppResult<Inspection> {
             updateCalls += 1

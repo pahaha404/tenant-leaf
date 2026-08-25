@@ -70,8 +70,10 @@ class InspectionDetailViewModel @Inject constructor(
 
     private fun changeStatus(status: InspectionStatus) {
         val id = inspectionId ?: return
-        val current = (_state.value.content as? ContentState.Success<Inspection>)?.value ?: return
-        if (current.status != InspectionStatus.IN_PROGRESS || _state.value.updating) return
+        val current = (_state.value.content as? ContentState.Success<Inspection>)?.value
+        if (_state.value.updating) return
+        if (current == null && status != InspectionStatus.CANCELLED) return
+        if (current != null && current.status != InspectionStatus.IN_PROGRESS) return
         viewModelScope.launch {
             _state.value = _state.value.copy(updating = true)
             _state.value = when (val result = updateInspectionStatus(id, status)) {
