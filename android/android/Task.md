@@ -25,19 +25,17 @@
 
 ## 진행 기록
 
-<<<<<<< HEAD
 - 2026-08-25 — 리포트의 촬영 공간 다시 보기를 Gemini 공간 분류 기반 갤러리로 보완했다. 대표 사진을 `주방`, `거실·방`, `화장실`, `공간 확인 필요`로 묶고 같은 공간의 여러 사진 및 전체화면 좌우 탐색을 지원한다. OpenAPI 응답의 공간·불확실 여부를 UI 모델로 연결하고 정적 검사를 통과했으나 Android Gradle Plugin `9.3.2`를 오프라인 환경에서 해석하지 못해 빌드·단위 테스트·실기기 확인은 미완료 상태다.
 
 - 2026-08-25 — 점검 리포트에 촬영 순서 기반 대표 사진 가로 목록과 전체 화면 좌우 넘김 뷰어를 추가했다. 확인 필요 관찰은 불확실한 AI 구역명으로 묶지 않고 근거 사진의 영상 시점 순으로 표시하며, 서버 진행 수치가 한 번에 증가해도 화면에서는 사진 단위로 순차 반영하도록 보완했다. 구현과 정적 검사는 완료했으나 Kotlin `2.3.21`·Android Gradle Plugin `9.3.2` 의존성을 오프라인 환경에서 해석하지 못해 Android 빌드·단위 테스트·실기기 검증은 미완료 상태다.
 
-=======
 - 2026-08-25 — 실시간 점검의 `점검 나가기 (취소)` 간헐적 무반응을 수정함. 초기 임장 조회 완료 전에도 취소 요청을 허용하고, 취소 성공 후에만 음성 녹음을 폐기하며, 처리 중 중복 입력 잠금·취소 오류 표시를 추가함. `:feature:inspection:testDebugUnitTest`, `:app:compileDebugKotlin` 통과.
 - 2026-08-25 — 홈 화면(`HomeScreen`) 레이아웃을 `Scaffold` 구조로 리팩터링하여 세로 스크롤 먹통 현상 해결. 기존 `Box` + `align(BottomCenter)` 하단바 오버레이 구조에서 발생하던 스크롤 제스처 충돌 및 뷰포트 측정 오류를 `Scaffold(bottomBar = { AppBottomNavigation(...) })`와 `padding(innerPadding)` 기반의 독립 스크롤 컨테이너로 정돈하여 상하단 부드러운 스크롤을 복구함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-25 — 점검할 매물 선택 화면(`PropertySelectScreen`) 상단 여백 및 제목·소제목 레이아웃 정돈. 상단바와의 시각적 간격을 위해 상단 패딩(`top = 12.dp`)을 추가하고, "어느 매물을 점검할까요?" 제목과 "점검 기록은 선택한 매물에 저장돼요." 소제목을 하나의 그룹(`Column`, `spacedBy(4.dp)`)으로 묶어 전체적인 위치를 하단으로 자연스럽게 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-25 — 앱 전체 실행 주기(`MainActivity`) 동안 안드로이드 시스템 바(상단 상태바 및 하단 네비게이션바/제스처바 전체 `Type.systemBars()`) 전역 숨김(Full Immersive Mode) 적용. `onCreate`, `onResume`, `onWindowFocusChanged`에 `WindowInsetsControllerCompat`를 적용하여 앱 실행 중에는 항상 상단 상태창과 하단 네비게이션 토글바가 노출되지 않도록 처리함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 
 - 2026-08-25 — 홈 화면(`HomeScreen`, `AppNavGraph`) "매물 등록하기" 퀵 액션 버튼 내비게이션 경로 직결. 기존 매물 리스트(`Route.PropertyList`)로 이동하던 경로를 매물 등록 화면(`Route.PropertyForm`)으로 직접 이동하도록 수정하여 불필요한 뎁스를 단축함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
->>>>>>> origin/develop
+- 2026-08-25 — 리포트 UI에서 참고 점수·/100·감점 설명과 관련 UI 모델 필드를 제거했다. JPEG 전송 완료 후에는 로딩 스피너를 멈추고 완료 안내와 리포트 진행 버튼을 표시하도록 보완했다. Android Gradle Plugin `9.3.2`를 오프라인에서 해석하지 못해 빌드·실기기 검증은 미완료다.
 - 2026-08-25 — 구역 명칭 간소화(현관·공용 ➔ 현관). `UiCatalog`, 실시간 점검(`LiveInspectionScreen`), 리포트(`ReportApiRoute`) 등 UI 전반에서 '현관·공용'으로 표기되던 명칭을 '현관'으로 간결하게 변경 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 
 - 2026-08-25 — 실시간 점검 화면(`LiveInspectionScreen`) UI/UX Best Practices 고도화. 1) 카메라 프리뷰 시인성 극대화(높이 230dp 확대, REC 펄스 애니메이션 뱃지, 실시간 경과 시간 및 소스 뱃지 오버레이), 2) 가로 스크롤 구역(Zone) 퀵 스위처 칩 바를 탑재하여 이동 동선에 맞춰 원하는 구역 가이드로 즉각 전환 지원, 3) 체크리스트를 번호 인덱스 기반 촬영 리마인더 카드로 재정돈, 4) 뒤로가기 터치 및 시스템 백 제스처 시 이탈 방지 안전 확인 다이얼로그(`showExitDialog`, `BackHandler`) 연동, 5) 하단 엄지 조작 영역의 일시정지/재개 및 점검 종료 액션바 인터랙션을 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).

@@ -126,7 +126,6 @@ internal fun Property.toReportListItem(report: ReportSummary?): ReportListItemUi
         detail = detail,
         status = listStatus,
         dateLabel = date.orEmpty(),
-        referenceScore = report?.referenceScore,
     )
 }
 

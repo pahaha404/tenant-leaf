@@ -24,14 +24,6 @@ class ReportGenerationRulesTests {
     }
 
     @Test
-    fun `참고 점수는 관찰당 5점 차감하고 0점 아래로 내려가지 않는다`() {
-        assertEquals(100, calculateReferenceScore(0))
-        assertEquals(85, calculateReferenceScore(3))
-        assertEquals(0, calculateReferenceScore(20))
-        assertEquals(0, calculateReferenceScore(30))
-    }
-
-    @Test
     fun `Gemini 공간별로 시간상 겹치지 않는 대표 사진을 여러 장 선택한다`() {
         val media = listOf(
             completedMedia(3_000, MediaZone.LIVING_ROOM, 0.71),
@@ -74,11 +66,25 @@ class ReportGenerationRulesTests {
         )
     }
 
+    @Test
+    fun `사람이 포함된 사진은 리포트 대표 사진에서 제외한다`() {
+        val media = listOf(
+            completedMedia(3_000, MediaZone.KITCHEN, 0.91, containsPerson = true),
+            completedMedia(9_000, MediaZone.KITCHEN, 0.88),
+        )
+
+        assertEquals(
+            listOf(9_000L),
+            selectReportRepresentativeMedia(media).map { it.sourceVideoOffsetMs },
+        )
+    }
+
     private fun completedMedia(
         offsetMs: Long,
         zone: MediaZone,
         confidence: Double?,
         uncertain: Boolean = false,
+        containsPerson: Boolean? = false,
     ): MediaEntity {
         val now = OffsetDateTime.parse("2026-08-25T12:00:00+09:00")
         return MediaEntity(
@@ -89,6 +95,7 @@ class ReportGenerationRulesTests {
             aiZone = zone,
             zoneConfidence = confidence,
             zoneUncertain = uncertain,
+            containsPerson = containsPerson,
             declaredFileSize = 100_000,
             actualFileSize = 100_000,
             width = 1080,

@@ -216,9 +216,6 @@ class ReportService(
         observationCount = observations.size,
         propertyDisplayName = propertyName,
         inspectionEndedAt = inspectionEndedAt,
-        referenceScore = referenceScore,
-        scorePolicyVersion = scorePolicyVersion,
-        scoreIsProvisional = scoreIsProvisional,
         failureCode = failureCode?.let(ReportFailureCode::forValue),
         templateVersion = templateVersion,
         generatedAt = generatedAt,
@@ -259,9 +256,6 @@ class ReportService(
         observationCount = observationCount,
         propertyDisplayName = propertyName,
         inspectionEndedAt = inspectionEndedAt,
-        referenceScore = referenceScore,
-        scorePolicyVersion = scorePolicyVersion,
-        scoreIsProvisional = scoreIsProvisional,
         failureCode = failureCode?.let(ReportFailureCode::forValue),
         templateVersion = templateVersion,
         generatedAt = generatedAt,
@@ -290,7 +284,11 @@ internal fun selectReportRepresentativeMedia(
     minimumOffsetGapMs: Long = 6_000,
 ): List<MediaEntity> {
     val completed = media
-        .filter { it.uploadStatus == MediaUploadState.UPLOADED && it.analysisStatus == MediaAnalysisState.COMPLETED }
+        .filter {
+            it.uploadStatus == MediaUploadState.UPLOADED &&
+                it.analysisStatus == MediaAnalysisState.COMPLETED &&
+                it.containsPerson == false
+        }
         .sortedWith(compareBy<MediaEntity> { it.sourceVideoOffsetMs }.thenBy { it.id })
     if (completed.isEmpty() || limit <= 0) return emptyList()
 

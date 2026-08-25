@@ -23,8 +23,9 @@ For every supplied image, choose exactly one room label:
 
 Images are supplied in sequence_id order. Return one item for every sequence_id using it as frameId.
 Return JSON only in this shape:
-{"frames":[{"frameId":123,"room":"bathroom","uncertain":false}]}
+{"frames":[{"frameId":123,"room":"bathroom","uncertain":false,"containsPerson":false}]}
 Do not invent another label. Set uncertain=true whenever the visual evidence is weak.
+Set containsPerson=true when any person, face, or recognizable human body part appears in the image.
 """
 
 
@@ -59,10 +60,16 @@ def parse_room_response(text: str, expected_frame_ids: list[int]) -> list[dict[s
         room = str(item.get("room", "unknown")).strip().lower()
         if room not in ROOM_LABELS:
             room = "unknown"
+        raw_contains_person = item.get("containsPerson")
         parsed[frame_id] = {
             "frameId": frame_id,
             "room": room,
             "uncertain": bool(item.get("uncertain", room == "unknown")),
+            # Missing privacy metadata is treated conservatively so an older or
+            # malformed provider response cannot become a representative photo.
+            "containsPerson": (
+                raw_contains_person if isinstance(raw_contains_person, bool) else True
+            ),
         }
 
     missing = [frame_id for frame_id in expected_frame_ids if frame_id not in parsed]
@@ -218,6 +225,7 @@ class GeminiRoomClassifier:
                         "filename": row["filename"],
                         "room": "unknown",
                         "uncertain": True,
+                        "containsPerson": True,
                         "provider": "gemini_error_fallback",
                         "model": self.model,
                     })
