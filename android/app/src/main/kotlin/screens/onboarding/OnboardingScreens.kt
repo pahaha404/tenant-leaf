@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,12 +21,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +37,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.ui.graphics.Brush
 import com.seipseip.app.PageWithBottomAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,68 +52,132 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
-@Composable
-internal fun Welcome(back: () -> Unit, next: () -> Unit) {
-    val slides = listOf(
-        "내 눈으로 확인하고,\n증거로 안심해요" to "스마트 글라스와 함께 방을 둘러보면\n체크리스트·사진·AI 관찰을 차곡차곡 기록해 드려요.",
-        "찍고, 듣고,\n놓치지 않아요" to "중요한 순간은 사진으로 남기고,\n음성 안내를 따라 차근차근 점검해요.",
-        "기록이 모이면,\n안심이 남아요" to "점검 결과를 한눈에 보는 리포트로 정리해\n계약 전에도, 이사 후에도 든든하게.",
-    )
-    val pagerState = rememberPagerState(pageCount = { slides.size })
-    val scope = rememberCoroutineScope()
-    val page = pagerState.currentPage
+private data class OnboardingSlide(
+    @param:DrawableRes val imageRes: Int,
+    val contentDescription: String,
+)
 
-    Column(
-        modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF)).padding(horizontal = 24.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+@Composable
+internal fun Welcome(
+    back: () -> Unit = {},
+    next: () -> Unit,
+) {
+    val slides = remember {
+        listOf(
+            OnboardingSlide(
+                imageRes = R.drawable.onboarding_1,
+                contentDescription = "매물 비교와 하자 정보 과부하 안내 화면",
+            ),
+            OnboardingSlide(
+                imageRes = R.drawable.onboarding_2,
+                contentDescription = "스마트 글라스와 AI, AR 기술을 활용한 하자 점검 안내 화면",
+            ),
+            OnboardingSlide(
+                imageRes = R.drawable.onboarding_3,
+                contentDescription = "세입세잎과 함께하는 안심 집 찾기 서비스 시작 화면",
+            ),
+        )
+    }
+
+    val pagerState = rememberPagerState(pageCount = { slides.size })
+    val isLastPage by remember { derivedStateOf { pagerState.currentPage == slides.lastIndex } }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Row(
-                modifier = Modifier.background(PaleGreen, RoundedCornerShape(99.dp)).padding(horizontal = 11.dp, vertical = 7.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Outlined.Spa, null, tint = Green, modifier = Modifier.size(17.dp))
-                Spacer(Modifier.width(5.dp))
-                Text("세입세잎", color = Green, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
-            }
-            Spacer(Modifier.weight(1f))
-            Text("${page + 1} / ${slides.size}", color = Secondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-        }
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier.fillMaxSize(),
         ) { index ->
-            val (title, description) = slides[index]
-            Column(
+            val slide = slides[index]
+            Image(
+                painter = painterResource(id = slide.imageRes),
+                contentDescription = slide.contentDescription,
                 modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+            )
+        }
+
+        // 하단 컨트롤 가독성을 위한 부드러운 그라디언트 스크림
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.45f),
+                        ),
+                    ),
+                )
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Spacer(Modifier.height(28.dp))
-                Box(
-                    modifier = Modifier.size(230.dp).background(PaleGreen, RoundedCornerShape(115.dp)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    // UI.pen의 생성 캐릭터 이미지를 drawable로 추가하면 이 자리에 연결합니다.
-                    Icon(Icons.Outlined.Spa, null, tint = Green, modifier = Modifier.size(72.dp))
-                }
-                Spacer(Modifier.height(24.dp))
-                Text(title, modifier = Modifier.fillMaxWidth(), color = Green, fontSize = 25.sp, lineHeight = 32.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(11.dp))
-                Text(description, modifier = Modifier.fillMaxWidth(), color = Secondary, fontSize = 13.sp, lineHeight = 20.sp)
-            }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            repeat(slides.size) { index ->
-                Box(
-                    modifier = Modifier.height(7.dp).width(if (index == page) 24.dp else 7.dp).background(if (index == page) Green else Color(0xFFD9E1DA), RoundedCornerShape(99.dp)),
+                OnboardingPagerIndicator(
+                    pageCount = slides.size,
+                    currentPage = pagerState.currentPage,
                 )
+
+                AnimatedVisibility(
+                    visible = isLastPage,
+                    enter = fadeIn() + slideInVertically { it / 2 },
+                    exit = fadeOut() + slideOutVertically { it / 2 },
+                ) {
+                    Column {
+                        Spacer(Modifier.height(16.dp))
+                        MainButton(
+                            label = "시작하기",
+                            color = Green,
+                            click = next,
+                        )
+                    }
+                }
             }
-        }
-        Spacer(Modifier.height(18.dp))
-        MainButton(if (page == slides.lastIndex) "서비스 시작하기" else "다음", Orange) {
-            if (page == slides.lastIndex) next() else scope.launch { pagerState.animateScrollToPage(page + 1) }
         }
     }
+}
+
+@Composable
+private fun OnboardingPagerIndicator(
+    pageCount: Int,
+    currentPage: Int,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(pageCount) { index ->
+            val isSelected = index == currentPage
+            val width by animateDpAsState(
+                targetValue = if (isSelected) 24.dp else 6.dp,
+                label = "indicatorWidth_$index",
+            )
+            Box(
+                modifier = Modifier
+                    .height(6.dp)
+                    .width(width)
+                    .background(
+                        color = if (isSelected) Green else Color.White.copy(alpha = 0.6f),
+                        shape = RoundedCornerShape(99.dp),
+                    ),
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun WelcomePreview() {
+    Welcome(next = {})
 }
 
 @Composable
@@ -110,7 +185,9 @@ internal fun FirstUse(back: () -> Unit, next: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF6F4EF)),
+            .background(Color(0xFFF6F4EF))
+            .statusBarsPadding()
+            .navigationBarsPadding(),
     ) {
         Row(
             modifier = Modifier
@@ -125,7 +202,7 @@ internal fun FirstUse(back: () -> Unit, next: () -> Unit) {
                     .size(40.dp)
                     .background(Color.White, RoundedCornerShape(99.dp)),
             ) {
-                Icon(Icons.Outlined.ArrowBack, contentDescription = "뒤로가기", tint = Green)
+                Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "뒤로가기", tint = Green)
             }
             Text(
                 "첫 이용 안내",
@@ -307,4 +384,4 @@ private fun tenantLeafRuntimePermissions(): Array<String> = buildList {
         add(Manifest.permission.POST_NOTIFICATIONS)
     }
 }.toTypedArray()
-@Composable internal fun Complete(next:()->Unit) { Column(Modifier.fillMaxSize().padding(24.dp)) { Column(Modifier.weight(1f).fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) { Card(colors=CardDefaults.cardColors(containerColor=Green),shape=RoundedCornerShape(18.dp)) { Column(Modifier.fillMaxWidth().padding(32.dp),horizontalAlignment=Alignment.CenterHorizontally) { Icon(Icons.Outlined.Spa,null,tint=Color.White,modifier=Modifier.size(38.dp)); Text("로그인 완료",color=Color.White,fontWeight=FontWeight.ExtraBold,modifier=Modifier.padding(top=10.dp)); Text("세입세잎",color=SoftGreen,fontSize=12.sp) } }; Spacer(Modifier.height(30.dp)); Text("다시 만나서 반가워요",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.ExtraBold,color=Green); Text("이제 내 매물과 점검 기록을 관리할 수 있어요.",color=Secondary,fontSize=12.sp,modifier=Modifier.padding(top = 8.dp)); Spacer(Modifier.height(24.dp)); Tip("점검 기록은 내 계정에 안전하게 보관돼요.") }; MainButton("홈으로 돌아가기",Orange){next()} } }
+@Composable internal fun Complete(next:()->Unit) { Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(24.dp)) { Column(Modifier.weight(1f).fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) { Card(colors=CardDefaults.cardColors(containerColor=Green),shape=RoundedCornerShape(18.dp)) { Column(Modifier.fillMaxWidth().padding(32.dp),horizontalAlignment=Alignment.CenterHorizontally) { Icon(Icons.Outlined.Spa,null,tint=Color.White,modifier=Modifier.size(38.dp)); Text("로그인 완료",color=Color.White,fontWeight=FontWeight.ExtraBold,modifier=Modifier.padding(top=10.dp)); Text("세입세잎",color=SoftGreen,fontSize=12.sp) } }; Spacer(Modifier.height(30.dp)); Text("다시 만나서 반가워요",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.ExtraBold,color=Green); Text("이제 내 매물과 점검 기록을 관리할 수 있어요.",color=Secondary,fontSize=12.sp,modifier=Modifier.padding(top = 8.dp)); Spacer(Modifier.height(24.dp)); Tip("점검 기록은 내 계정에 안전하게 보관돼요.") }; MainButton("홈으로 돌아가기",Orange){next()} } }

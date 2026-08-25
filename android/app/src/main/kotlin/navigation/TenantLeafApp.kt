@@ -61,7 +61,7 @@ internal fun TenantLeafApp() {
 
     MaterialTheme {
         Surface(
-            modifier = Modifier.fillMaxSize().statusBarsPadding().padding(top = 4.dp).navigationBarsPadding(),
+            modifier = Modifier.fillMaxSize(),
             color = Color(0xFFFCFBF8),
         ) {
             AppNavGraph(
