@@ -101,7 +101,7 @@ class OpenApiGeneratedContractTests {
 	@Test
 	fun `구역과 미디어 상태 공통 타입을 생성한다`() {
 		assertEquals(
-			listOf("ENTRANCE_COMMON", "KITCHEN", "WINDOW_VENTILATION", "LIVING_ROOM", "BATHROOM", "UNKNOWN"),
+			listOf("KITCHEN", "LIVING_ROOM", "BATHROOM", "UNKNOWN"),
 			Zone.entries.map { it.value },
 		)
 		assertEquals(

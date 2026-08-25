@@ -10,7 +10,7 @@ import jakarta.persistence.UniqueConstraint
 import java.time.OffsetDateTime
 import java.util.UUID
 
-enum class MediaZone { ENTRANCE_COMMON, KITCHEN, WINDOW_VENTILATION, LIVING_ROOM, BATHROOM, UNKNOWN }
+enum class MediaZone { KITCHEN, LIVING_ROOM, BATHROOM, UNKNOWN }
 enum class MediaCaptureSource { META_GLASS, ANDROID_CAMERA }
 enum class MediaUploadState { PENDING, UPLOADING, UPLOADED, FAILED }
 enum class MediaAnalysisState { NOT_REQUESTED, QUEUED, ANALYZING, COMPLETED, FAILED }

@@ -362,7 +362,7 @@ Gemini 일부 또는 전체 요청 실패:
 - [ ] 샘플링·Blur/밝기·중복 필터가 끝난 이미지만 AI 폴더에 저장
 - [ ] 이미지 파일명이 시간순 오름차순이 되도록 저장
 - [ ] manifest의 `filename`과 실제 파일명 일치
-- [ ] manifest에 백엔드 `imageId`와 `timestampSec` 포함
+- [ ] manifest에 백엔드 `imageId`, `sequenceIndex`, `sourceVideoOffsetMs`, `timestampSec` 포함
 - [ ] worker 실행 명령을 `process_image_batch_room_defect`로 변경
 - [ ] AI worker 환경에 `GEMINI_API_KEY` 비밀변수 설정
 - [ ] worker와 같은 가상환경에 `requirements.txt` 설치 및 `google-genai==2.19.0` 확인
