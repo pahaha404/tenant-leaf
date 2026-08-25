@@ -46,6 +46,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.RealEstateAgent
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -141,9 +142,32 @@ fun TenantLeafHomeLayout(
     glassState: GlassConnectionUiState = GlassConnectionUiState(),
     onGlassClick: () -> Unit = {},
 ) {
-    Box(modifier = Modifier.fillMaxSize().background(HomeBackground)) {
+    val scrollState = rememberScrollState()
+
+    Scaffold(
+        bottomBar = {
+            AppBottomNavigation(
+                selectedTab = selectedTab,
+                onTabSelected = { tab ->
+                    onTabSelected(
+                        when (tab) {
+                            AppTab.Home -> "home"
+                            AppTab.Property -> "property"
+                            AppTab.Report -> "report"
+                            AppTab.Profile -> "profile"
+                        },
+                    )
+                },
+            )
+        },
+        containerColor = HomeBackground,
+    ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 20.dp, top = 18.dp, end = 20.dp, bottom = 96.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(scrollState)
+                .padding(start = 20.dp, top = 18.dp, end = 20.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(13.dp),
         ) {
             HomeHeader(processing)
@@ -154,20 +178,6 @@ fun TenantLeafHomeLayout(
             InspectionTipCard()
             MagazineSection(onOpenAll = onOpenMagazine, onOpenArticle = onOpenMagazineArticle)
         }
-        AppBottomNavigation(
-            selectedTab = selectedTab,
-            onTabSelected = { tab ->
-                onTabSelected(
-                    when (tab) {
-                        AppTab.Home -> "home"
-                        AppTab.Property -> "property"
-                        AppTab.Report -> "report"
-                        AppTab.Profile -> "profile"
-                    },
-                )
-            },
-            modifier = Modifier.align(Alignment.BottomCenter),
-        )
     }
 }
 

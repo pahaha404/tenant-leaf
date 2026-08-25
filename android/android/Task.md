@@ -25,6 +25,10 @@
 
 ## 진행 기록
 
+- 2026-08-25 — 홈 화면(`HomeScreen`) 레이아웃을 `Scaffold` 구조로 리팩터링하여 세로 스크롤 먹통 현상 해결. 기존 `Box` + `align(BottomCenter)` 하단바 오버레이 구조에서 발생하던 스크롤 제스처 충돌 및 뷰포트 측정 오류를 `Scaffold(bottomBar = { AppBottomNavigation(...) })`와 `padding(innerPadding)` 기반의 독립 스크롤 컨테이너로 정돈하여 상하단 부드러운 스크롤을 복구함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
+- 2026-08-25 — 점검할 매물 선택 화면(`PropertySelectScreen`) 상단 여백 및 제목·소제목 레이아웃 정돈. 상단바와의 시각적 간격을 위해 상단 패딩(`top = 12.dp`)을 추가하고, "어느 매물을 점검할까요?" 제목과 "점검 기록은 선택한 매물에 저장돼요." 소제목을 하나의 그룹(`Column`, `spacedBy(4.dp)`)으로 묶어 전체적인 위치를 하단으로 자연스럽게 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
+- 2026-08-25 — 앱 전체 실행 주기(`MainActivity`) 동안 안드로이드 시스템 바(상단 상태바 및 하단 네비게이션바/제스처바 전체 `Type.systemBars()`) 전역 숨김(Full Immersive Mode) 적용. `onCreate`, `onResume`, `onWindowFocusChanged`에 `WindowInsetsControllerCompat`를 적용하여 앱 실행 중에는 항상 상단 상태창과 하단 네비게이션 토글바가 노출되지 않도록 처리함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
+
 - 2026-08-25 — 홈 화면(`HomeScreen`, `AppNavGraph`) "매물 등록하기" 퀵 액션 버튼 내비게이션 경로 직결. 기존 매물 리스트(`Route.PropertyList`)로 이동하던 경로를 매물 등록 화면(`Route.PropertyForm`)으로 직접 이동하도록 수정하여 불필요한 뎁스를 단축함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-25 — 구역 명칭 간소화(현관·공용 ➔ 현관). `UiCatalog`, 실시간 점검(`LiveInspectionScreen`), 리포트(`ReportApiRoute`) 등 UI 전반에서 '현관·공용'으로 표기되던 명칭을 '현관'으로 간결하게 변경 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 
