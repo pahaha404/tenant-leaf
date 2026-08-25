@@ -180,7 +180,7 @@ private fun Observation.toUiModel(): ReportObservationUiModel {
 }
 
 private fun String.toZoneLabel(): String = when (this) {
-    "ENTRANCE_COMMON" -> "현관·공용"
+    "ENTRANCE_COMMON" -> "현관"
     "KITCHEN" -> "주방"
     "WINDOW_VENTILATION" -> "창틀·환기"
     "LIVING_ROOM" -> "거실·방"
