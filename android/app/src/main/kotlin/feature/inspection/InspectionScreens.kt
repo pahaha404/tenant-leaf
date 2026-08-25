@@ -1,9 +1,11 @@
 package com.seipseip.app.feature.inspection
 
 import android.app.Activity
+import android.Manifest
 import android.content.Context
 import android.content.res.Configuration
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.SystemClock
 import android.speech.tts.TextToSpeech
@@ -16,6 +18,7 @@ import android.widget.MediaController
 import android.widget.VideoView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.seipseip.app.R
 import com.seipseip.app.feature.home.GlassConnectionViewModel
 import com.seipseip.app.feature.home.rememberGlassConnectionViewModel
 import com.seipseip.app.feature.inspection.preview.PhoneCameraPreviewHelper
@@ -52,6 +56,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -571,6 +576,18 @@ fun LiveInspectionScreen(
     val connectionState by glassViewModel.uiState.collectAsState()
 
     val context = LocalContext.current
+    var microphonePermissionGranted by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED,
+        )
+    }
+    var microphonePermissionResolved by remember { mutableStateOf(microphonePermissionGranted) }
+    val microphonePermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        microphonePermissionGranted = granted
+        microphonePermissionResolved = true
+    }
     var cameraPermissionRequested by remember { mutableStateOf(false) }
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = Wearables.RequestPermissionContract(),
@@ -590,8 +607,11 @@ fun LiveInspectionScreen(
             cameraPermissionRequested = false
         }
     }
-    LaunchedEffect(inspectionId) {
-        VoiceRecordSession.start(context, inspectionId)
+    LaunchedEffect(inspectionId, microphonePermissionGranted, microphonePermissionResolved) {
+        when {
+            microphonePermissionGranted -> VoiceRecordSession.start(context, inspectionId)
+            !microphonePermissionResolved -> microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
     }
     val coroutineScope = rememberCoroutineScope()
     var isFinishing by remember { mutableStateOf(false) }
@@ -621,8 +641,8 @@ fun LiveInspectionScreen(
         }
     }
 
-    DisposableEffect(glassViewModel, cameraSource) {
-        if (!recorder.isRecording) {
+    DisposableEffect(glassViewModel, cameraSource, microphonePermissionResolved) {
+        if (microphonePermissionResolved && !recorder.isRecording) {
             recorder.startRecording()
         }
         val surface = activeSurface
@@ -1084,7 +1104,7 @@ fun LiveInspectionScreen(
                     }
                 }
 
-                VoiceRecordSection(inspectionId = inspectionId)
+                VoiceRecordSection()
 
                 Spacer(Modifier.height(4.dp))
             }
@@ -1321,11 +1341,11 @@ fun LiveInspectionScreen(
                         modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(if (isFinishing) Secondary else Orange).clickable(enabled = !isFinishing) {
                             if (!isFinishing) {
                                 isFinishing = true
-                                VoiceRecordSession.finish(context)
-                                VoiceGuideManager.speak(context, "촬영을 종료합니다. 해당 영상을 업로드해주세요.")
                                 coroutineScope.launch {
                                     val finalDuration = recorder.getRecordedDurationSeconds().coerceAtLeast(durationSeconds)
                                     recorder.stopRecording()
+                                    VoiceRecordSession.finish(context)
+                                    VoiceGuideManager.speak(context, "촬영을 종료합니다. 해당 영상을 업로드해주세요.")
                                     onFinish(finalDuration)
                                 }
                             }
@@ -1497,7 +1517,7 @@ fun FinishConfirmScreen(
             Text("분석 결과는 확인이 필요한 내용이에요. 사진을 확인하고 직접 결정하세요!", color = Color(0xFF8B542D), fontSize = 11.sp, lineHeight = 16.sp)
         }
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
-        PrimaryButton(if (updating) "촬영 종료 처리 중..." else "촬영 종료하고 사진 준비", onConfirm, enabled = !updating)
+        PrimaryButton(if (updating) "촬영 종료 처리 중..." else "다음", onConfirm, enabled = !updating)
     }
 }
 @Composable
@@ -1509,49 +1529,47 @@ fun AnalysisProgressScreen(
     primaryActionLabel: String,
     onPrimaryAction: () -> Unit,
 ) {
-    AppPageScaffold(title = "분석 진행", onBack = onBackToHome) {
-        SectionTitle("구역별 기록을 정리하고 있어요", "촬영한 사진과 메모를 점검 구역별로 묶는 중이에요.")
-        LinearProgressIndicator(
-            progress = { progress.coerceIn(0f, 1f) },
-            modifier = Modifier.fillMaxWidth(),
-            color = Green,
-            trackColor = PaleGreen,
-        )
-        Text(statusMessage, color = Secondary, fontSize = 12.sp)
-        errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
-        UiCatalog.guideZones.forEachIndexed { index, zone ->
-            val completedZoneCount = (progress.coerceIn(0f, 1f) * UiCatalog.guideZones.size).toInt()
-            val isComplete = index < completedZoneCount
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(74.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(if (isComplete) PaleGreen else Color.White)
-                    .padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text(zone.title, color = DeepGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-                    Text(if (isComplete) "기록 정리 완료" else "확인 중", color = Secondary, fontSize = 11.sp)
-                }
-                if (isComplete) {
-                    Icon(
-                        Icons.Outlined.CheckCircle,
-                        contentDescription = "정리 완료",
-                        tint = Green,
-                        modifier = Modifier.size(22.dp),
-                    )
-                } else {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(21.dp),
-                        color = Green,
-                        strokeWidth = 2.5.dp,
-                    )
-                }
+    AppPageScaffold(
+        title = "분석 진행",
+        onBack = onBackToHome,
+        scrollable = false,
+        bottomAction = {
+            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+                PrimaryButton(primaryActionLabel, onPrimaryAction)
             }
+        },
+    ) {
+        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                SectionTitle("촬영 내용을 분석하고 있어요", "촬영한 영상에서 분석할 사진을 준비하는 중이에요.")
+                LinearProgressIndicator(
+                    progress = { progress.coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Green,
+                    trackColor = PaleGreen,
+                )
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth().weight(1f).clip(RoundedCornerShape(20.dp)).background(Color.White).padding(vertical = 30.dp, horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.analysis_loading),
+                    contentDescription = "촬영 내용 분석 준비",
+                    modifier = Modifier.size(240.dp),
+                    contentScale = ContentScale.Fit,
+                )
+                Spacer(Modifier.height(20.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CircularProgressIndicator(modifier = Modifier.size(28.dp), color = Green, strokeWidth = 3.dp)
+                    Text("촬영 내용을 준비하고 있어요", color = DeepGreen, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                }
+                Spacer(Modifier.height(14.dp))
+                Text(statusMessage, color = Secondary, fontSize = 14.sp, lineHeight = 20.sp)
+            }
+            errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
         }
-        PrimaryButton(primaryActionLabel, onPrimaryAction)
     }
 }
 

@@ -1,10 +1,13 @@
 package com.seipseip.app
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,12 +24,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -35,10 +41,23 @@ import androidx.navigation.compose.rememberNavController
 @Composable internal fun Login(go: (String) -> Unit) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var showUnregisteredDialog by remember { mutableStateOf(false) }
+    var openingMetaAi by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    LaunchedEffect(openingMetaAi) {
+        if (!openingMetaAi) return@LaunchedEffect
+        kotlinx.coroutines.delay(900)
+        val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.facebook.stella"))
+        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.facebook.stella"))
+        runCatching { context.startActivity(marketIntent) }
+            .onFailure { context.startActivity(webIntent) }
+        openingMetaAi = false
+    }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF)).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 22.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF)).padding(horizontal = 20.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(7.dp),
     ) {
         Row(
             modifier = Modifier.background(PaleGreen, RoundedCornerShape(99.dp)).padding(horizontal = 11.dp, vertical = 7.dp),
@@ -47,21 +66,60 @@ import androidx.navigation.compose.rememberNavController
             Icon(Icons.Outlined.Spa, null, tint = Green, modifier = Modifier.size(17.dp))
             Text("세입세잎", color = Green, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(start = 5.dp))
         }
-        Spacer(Modifier.height(8.dp))
-        Text("첫 자취를 위한\n안심 점검, 시작해 볼까요?", color = Green, fontSize = 26.sp, lineHeight = 33.sp, fontWeight = FontWeight.ExtraBold)
-        Text("내 매물과 점검 기록을 안전하게 보관하세요.", color = Secondary, fontSize = 13.sp, lineHeight = 19.sp)
-        Spacer(Modifier.height(8.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("첫 자취를 위한\n안심 점검, 시작해 볼까요?", color = Green, fontSize = 24.sp, lineHeight = 29.sp, fontWeight = FontWeight.ExtraBold)
+        Text("내 매물과 점검 기록을 안전하게 보관하세요.", color = Secondary, fontSize = 12.sp, lineHeight = 17.sp)
+        Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
             Text("로그인", fontSize = 19.sp, fontWeight = FontWeight.ExtraBold, color = DeepGreen)
             Field("아이디 또는 이메일", email, { email = it }, false)
             Field("비밀번호", password, { password = it }, true)
             Text("아이디 찾기   비밀번호 찾기", Modifier.fillMaxWidth(), color = Secondary, fontSize = 10.sp, textAlign = TextAlign.End)
-            MainButton("로그인", Orange, enabled = email.isNotBlank() && password.isNotBlank()) { go("login") }
+            MainButton("로그인", Orange, enabled = email.isNotBlank() && password.isNotBlank()) { showUnregisteredDialog = true }
             Divider()
-            MainButton("메타로 로그인하기", Color(0xFFEEF1FF), text = Color(0xFF3655C9)) { go("login") }
+            MetaLoginButton(loading = openingMetaAi) { openingMetaAi = true }
             MainButton("게스트 모드로 로그인하기", Color.White, text = Secondary, bordered = true) { go("guest") }
             Text("처음 오셨나요? 회원가입", Modifier.fillMaxWidth().clickable { go("signup") }.padding(8.dp), color = Green, fontWeight = FontWeight.Bold, fontSize = 12.sp, textAlign = TextAlign.Center)
         }
+    }
+
+    if (showUnregisteredDialog) {
+        AlertDialog(
+            onDismissRequest = { showUnregisteredDialog = false },
+            title = { Text("로그인할 수 없어요", color = DeepGreen, fontWeight = FontWeight.ExtraBold) },
+            text = { Text("등록되지 않은 아이디입니다.", color = Secondary) },
+            confirmButton = {
+                TextButton(onClick = { showUnregisteredDialog = false }) {
+                    Text("확인", color = Green, fontWeight = FontWeight.Bold)
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun MetaLoginButton(loading: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White)
+            .clickable(enabled = !loading, onClick = onClick)
+            .padding(horizontal = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        if (loading) {
+            CircularProgressIndicator(color = Green, strokeWidth = 2.dp, modifier = Modifier.size(22.dp))
+        } else {
+            Image(
+                painter = painterResource(R.drawable.meta_logo),
+                contentDescription = "Meta",
+                modifier = Modifier.size(width = 74.dp, height = 28.dp),
+                contentScale = ContentScale.Fit,
+            )
+        }
+        Spacer(Modifier.width(10.dp))
+        Text("로그인하기", color = Color(0xFF142A35), fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
 }
 

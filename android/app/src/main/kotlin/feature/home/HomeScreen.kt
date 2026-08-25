@@ -1099,7 +1099,7 @@ private fun InspectionTipCard() {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth()) { page ->
             Row(
-                modifier = Modifier.fillMaxWidth().height(70.dp).clip(RoundedCornerShape(16.dp)).background(PaleOrange).padding(14.dp),
+                modifier = Modifier.fillMaxWidth().height(78.dp).clip(RoundedCornerShape(16.dp)).background(PaleOrange).padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(modifier = Modifier.size(36.dp).clip(RoundedCornerShape(12.dp)).background(Color.White), contentAlignment = Alignment.Center) {
@@ -1107,8 +1107,20 @@ private fun InspectionTipCard() {
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("오늘의 점검 팁", color = Orange, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
-                    Text(InspectionTips[page], color = DeepGreen, fontSize = 10.sp, maxLines = 1)
+                    Text(
+                        "오늘의 점검 팁",
+                        color = Orange,
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                    Text(
+                        InspectionTips[page],
+                        color = DeepGreen,
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp,
+                        maxLines = 1,
+                    )
                 }
             }
         }
@@ -1196,4 +1208,3 @@ private fun CyberGlassStatusCardPreview() {
         )
     }
 }
-

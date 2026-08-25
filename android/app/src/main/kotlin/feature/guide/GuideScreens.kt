@@ -42,7 +42,11 @@ fun GuideZoneScreen(
     val zone = UiCatalog.zone(zoneId)
     val currentIndex = UiCatalog.guideZones.indexOfFirst { it.id == zoneId }.coerceAtLeast(0)
     val nextZone = UiCatalog.nextZone(zoneId)
-    val headline = if (zoneId == "entry") "첫 집 보기 전,\n현관부터 살펴봐요" else "${zone.title}을(를)\n살펴봐요"
+    val headline = if (zoneId == "entry") {
+        "첫 집 보기 전,\n현관부터 살펴봐요"
+    } else {
+        zoneGuideHeadline(zone.title)
+    }
     val description = if (zoneId == "entry") "안전과 생활 편의를 결정하는 네 가지예요." else zone.subtitle
     val nextLabel = if (nextZone != null) "${nextZone.title} 가이드 보기" else "홈으로 가기"
 
@@ -102,6 +106,15 @@ fun GuideZoneScreen(
         }
     }
 }
+
+private fun zoneGuideHeadline(title: String): String = when (title) {
+    "주방" -> "주방부터\n하나씩 볼까요?"
+    "창틀·환기" -> "창틀·환기도\n놓치지 말아요"
+    "거실·방" -> "거실·방은\n천천히 둘러봐요"
+    "화장실" -> "화장실도\n꼼꼼히 확인해요"
+    else -> "${title}부터\n하나씩 볼까요?"
+}
+
 @Composable
 fun GuideDetailScreen(
     zoneId: String,
