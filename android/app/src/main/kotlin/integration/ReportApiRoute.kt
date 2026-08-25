@@ -14,9 +14,12 @@ import com.seipseip.app.feature.report.ReportDetailUiModel
 import com.seipseip.app.feature.report.ReportEvidenceUiModel
 import com.seipseip.app.feature.report.ReportObservationUiModel
 import com.seipseip.app.feature.report.ReportZoneUiModel
+import com.seipseip.core.network.generated.api.ObservationsApi
+import com.seipseip.core.network.generated.api.PropertiesApi
 import com.seipseip.core.network.generated.api.ReportsApi
 import com.seipseip.core.network.generated.model.Observation
 import com.seipseip.core.network.generated.model.ReportDetail
+import com.seipseip.core.network.generated.model.UpdateObservationStatusRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -40,6 +43,8 @@ sealed interface ReportApiUiState {
 class ReportApiViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val reportsApi: ReportsApi,
+    private val propertiesApi: PropertiesApi,
+    private val observationsApi: ObservationsApi,
 ) : ViewModel() {
     private val inspectionId = savedStateHandle.get<String>("inspectionId")?.let {
         runCatching { UUID.fromString(it) }.getOrNull()
@@ -62,7 +67,10 @@ class ReportApiViewModel @Inject constructor(
                     onSuccess = { response ->
                         val body = response.body()
                         if (response.isSuccessful && body != null) {
-                            _state.value = ReportApiUiState.Ready(body.toUiModel(), body.propertyId.toString())
+                            val propertyAddress = runCatching {
+                                propertiesApi.getProperty(body.propertyId).body()?.addressSummary
+                            }.getOrNull()
+                            _state.value = ReportApiUiState.Ready(body.toUiModel(propertyAddress), body.propertyId.toString())
                             body.status.name in setOf("NOT_REQUESTED", "WAITING_FOR_ANALYSIS", "GENERATING")
                         } else {
                             _state.value = ReportApiUiState.Error("리포트를 불러오지 못했어요. (${response.code()})")
@@ -76,6 +84,20 @@ class ReportApiViewModel @Inject constructor(
                 )
                 if (keepPolling) delay(REPORT_POLL_INTERVAL_MS)
             } while (keepPolling && isActive)
+        }
+    }
+
+    fun markObservationViewed(observationId: String) {
+        val id = runCatching { UUID.fromString(observationId) }.getOrNull() ?: return
+        viewModelScope.launch {
+            runCatching {
+                observationsApi.updateObservationStatus(
+                    id,
+                    UpdateObservationStatusRequest(UpdateObservationStatusRequest.Status.VIEWED),
+                )
+            }.onSuccess { response ->
+                if (response.isSuccessful) refresh()
+            }
         }
     }
 }
@@ -105,6 +127,7 @@ fun ReportApiRoute(
             onOpenProperty = { onOpenProperty(current.propertyId) },
             uiModel = current.model,
             onRetry = viewModel::refresh,
+            onMarkObservationViewed = viewModel::markObservationViewed,
         )
         is ReportApiUiState.Error -> ReportDetailScreen(
             nickname = nickname,
@@ -121,7 +144,7 @@ fun ReportApiRoute(
     }
 }
 
-private fun ReportDetail.toUiModel(): ReportDetailUiModel {
+private fun ReportDetail.toUiModel(propertyAddress: String?): ReportDetailUiModel {
     val items = observations.map(Observation::toUiModel)
     val statusName = status.name
     val detailStatus = when {
@@ -135,6 +158,7 @@ private fun ReportDetail.toUiModel(): ReportDetailUiModel {
     return ReportDetailUiModel(
         status = detailStatus,
         propertyName = propertyDisplayName,
+        propertyAddress = propertyAddress,
         inspectionDate = inspectionEndedAt.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
         completedPhotoCount = successfulMediaCount,
         totalPhotoCount = totalMediaCount,
@@ -156,6 +180,12 @@ private fun Observation.toUiModel(): ReportObservationUiModel {
         label = title,
         confidencePercent = (confidence * 100).toInt().coerceIn(0, 100),
         description = description,
+        reviewLabel = when (status.name) {
+            "VIEWED" -> "확인 완료"
+            "DISMISSED" -> "리포트 제외"
+            else -> "검토 전"
+        },
+        reviewed = status.name == "VIEWED",
         evidence = ReportEvidenceUiModel(
             id = primaryEvidence.mediaId.toString(),
             imageUrl = primaryEvidence.viewUrl?.toString(),
@@ -180,9 +210,9 @@ private fun Observation.toUiModel(): ReportObservationUiModel {
 }
 
 private fun String.toZoneLabel(): String = when (this) {
-    "ENTRANCE_COMMON" -> "현관·공용"
+    "ENTRANCE_COMMON" -> "구역 확인 필요"
     "KITCHEN" -> "주방"
-    "WINDOW_VENTILATION" -> "창틀·환기"
+    "WINDOW_VENTILATION" -> "구역 확인 필요"
     "LIVING_ROOM" -> "거실·방"
     "BATHROOM" -> "화장실"
     else -> "구역 확인 필요"

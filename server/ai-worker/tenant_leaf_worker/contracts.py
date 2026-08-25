@@ -36,6 +36,23 @@ class DetectionResult:
     crop_height: int | None
 
 
+ROOM_TO_ZONE = {
+    "bathroom": "BATHROOM",
+    "kitchen": "KITCHEN",
+    "living_room": "LIVING_ROOM",
+    "unknown": "UNKNOWN",
+}
+
+
+@dataclass(frozen=True)
+class BatchImageResult:
+    media_id: UUID
+    zone: str
+    zone_uncertain: bool
+    zone_model_version: str
+    detections: tuple[DetectionResult, ...]
+
+
 def parse_result(payload: dict[str, Any], expected_media_id: UUID) -> tuple[str, list[DetectionResult]]:
     if payload.get("status") != "completed":
         raise ValueError("AI result status must be completed")
@@ -66,6 +83,78 @@ def parse_result(payload: dict[str, Any], expected_media_id: UUID) -> tuple[str,
         for item in raw_detections
     ]
     return model_version.strip(), detections
+
+
+def parse_batch_result(
+    payload: dict[str, Any],
+    expected_media_ids: set[UUID],
+) -> tuple[str, list[BatchImageResult]]:
+    if payload.get("status") != "completed":
+        raise ValueError("AI batch result status must be completed")
+
+    model_version = payload.get("modelVersion")
+    if not isinstance(model_version, str) or not model_version.strip():
+        raise ValueError("AI batch result modelVersion is required")
+
+    room_classification = payload.get("roomClassification")
+    default_zone_model = room_classification.get("model") if isinstance(room_classification, dict) else None
+    images = payload.get("images")
+    if not isinstance(images, list):
+        raise ValueError("AI batch result images must be an array")
+
+    parsed: list[BatchImageResult] = []
+    seen: set[UUID] = set()
+    for item in images:
+        if not isinstance(item, dict):
+            raise ValueError("Each AI batch image result must be an object")
+        try:
+            media_id = UUID(str(item.get("imageId")))
+        except (TypeError, ValueError) as error:
+            raise ValueError("AI batch imageId must be a media UUID") from error
+        if media_id not in expected_media_ids:
+            raise ValueError("AI batch result contains an unexpected mediaId")
+        if media_id in seen:
+            raise ValueError("AI batch result contains a duplicate mediaId")
+        seen.add(media_id)
+
+        image = item.get("image")
+        if not isinstance(image, dict):
+            raise ValueError("AI batch image metadata is required")
+        width, height = image.get("width"), image.get("height")
+        if not isinstance(width, int) or not isinstance(height, int) or width <= 0 or height <= 0:
+            raise ValueError("AI batch image dimensions are invalid")
+
+        room = item.get("room")
+        if not isinstance(room, dict):
+            raise ValueError("AI batch room metadata is required")
+        stable_room = room.get("stable")
+        if stable_room not in ROOM_TO_ZONE:
+            raise ValueError("AI batch stable room is unsupported")
+        uncertain = room.get("uncertain")
+        if not isinstance(uncertain, bool):
+            raise ValueError("AI batch room uncertain flag is required")
+        zone_model = room.get("model") or default_zone_model
+        if not isinstance(zone_model, str) or not zone_model.strip():
+            raise ValueError("AI batch room model is required")
+
+        raw_detections = item.get("detections")
+        if not isinstance(raw_detections, list):
+            raise ValueError("AI batch detections must be an array")
+        detections = tuple(
+            _parse_detection(detection, width, height, {})
+            for detection in raw_detections
+        )
+        parsed.append(BatchImageResult(
+            media_id=media_id,
+            zone=ROOM_TO_ZONE[stable_room],
+            zone_uncertain=uncertain or stable_room == "unknown",
+            zone_model_version=zone_model.strip(),
+            detections=detections,
+        ))
+
+    if seen != expected_media_ids:
+        raise ValueError("AI batch result does not contain every claimed mediaId")
+    return model_version.strip(), parsed
 
 
 def _parse_detection(
