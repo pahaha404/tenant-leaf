@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,6 +27,8 @@ import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Spa
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,64 +46,75 @@ import androidx.navigation.compose.rememberNavController
 
 @Composable
 internal fun Welcome(back: () -> Unit, next: () -> Unit) {
-    val slides = listOf(
-        "내 눈으로 확인하고,\n증거로 안심해요" to "스마트 글라스와 함께 방을 둘러보면\n체크리스트·사진·AI 관찰을 차곡차곡 기록해 드려요.",
-        "찍고, 듣고,\n놓치지 않아요" to "중요한 순간은 사진으로 남기고,\n음성 안내를 따라 차근차근 점검해요.",
-        "기록이 모이면,\n안심이 남아요" to "점검 결과를 한눈에 보는 리포트로 정리해\n계약 전에도, 이사 후에도 든든하게.",
+    val onboardingSlides = listOf(
+        R.drawable.onboarding_1,
+        R.drawable.onboarding_2,
+        R.drawable.onboarding_3,
     )
-    val pagerState = rememberPagerState(pageCount = { slides.size })
+    val pagerState = rememberPagerState(pageCount = { onboardingSlides.size })
     val scope = rememberCoroutineScope()
     val page = pagerState.currentPage
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF)).padding(horizontal = 24.dp, vertical = 16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF6F4EF))
+            .statusBarsPadding()
+            .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Row(
-                modifier = Modifier.background(PaleGreen, RoundedCornerShape(99.dp)).padding(horizontal = 11.dp, vertical = 7.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Outlined.Spa, null, tint = Green, modifier = Modifier.size(17.dp))
-                Spacer(Modifier.width(5.dp))
-                Text("세입세잎", color = Green, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
-            }
-            Spacer(Modifier.weight(1f))
-            Text("${page + 1} / ${slides.size}", color = Secondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-        }
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
         ) { index ->
-            val (title, description) = slides[index]
-            Column(
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                contentAlignment = Alignment.Center,
             ) {
-                Spacer(Modifier.height(28.dp))
-                Box(
-                    modifier = Modifier.size(230.dp).background(PaleGreen, RoundedCornerShape(115.dp)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    // UI.pen의 생성 캐릭터 이미지를 drawable로 추가하면 이 자리에 연결합니다.
-                    Icon(Icons.Outlined.Spa, null, tint = Green, modifier = Modifier.size(72.dp))
-                }
-                Spacer(Modifier.height(24.dp))
-                Text(title, modifier = Modifier.fillMaxWidth(), color = Green, fontSize = 25.sp, lineHeight = 32.sp, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.height(11.dp))
-                Text(description, modifier = Modifier.fillMaxWidth(), color = Secondary, fontSize = 13.sp, lineHeight = 20.sp)
-            }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            repeat(slides.size) { index ->
-                Box(
-                    modifier = Modifier.height(7.dp).width(if (index == page) 24.dp else 7.dp).background(if (index == page) Green else Color(0xFFD9E1DA), RoundedCornerShape(99.dp)),
+                Image(
+                    painter = painterResource(id = onboardingSlides[index]),
+                    contentDescription = "온보딩 화면 ${index + 1}",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
                 )
             }
         }
-        Spacer(Modifier.height(18.dp))
-        MainButton(if (page == slides.lastIndex) "서비스 시작하기" else "다음", Orange) {
-            if (page == slides.lastIndex) next() else scope.launch { pagerState.animateScrollToPage(page + 1) }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                repeat(onboardingSlides.size) { index ->
+                    Box(
+                        modifier = Modifier
+                            .height(6.dp)
+                            .width(if (index == page) 24.dp else 6.dp)
+                            .background(
+                                if (index == page) Orange else Color.Black.copy(alpha = 0.2f),
+                                RoundedCornerShape(99.dp),
+                            ),
+                    )
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            MainButton(
+                label = if (page == onboardingSlides.lastIndex) "서비스 시작하기" else "다음",
+                color = Orange,
+            ) {
+                if (page == onboardingSlides.lastIndex) {
+                    next()
+                } else {
+                    scope.launch { pagerState.animateScrollToPage(page + 1) }
+                }
+            }
         }
     }
 }
