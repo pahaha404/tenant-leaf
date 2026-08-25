@@ -9,6 +9,7 @@ interface MediaRepository : JpaRepository<MediaEntity, UUID> {
     fun findByIdAndOwnerIdAndDeletedAtIsNull(id: UUID, ownerId: UUID): MediaEntity?
     fun findByInspectionIdAndClientMediaId(inspectionId: UUID, clientMediaId: UUID): MediaEntity?
     fun findAllByInspectionIdAndDeletedAtIsNull(inspectionId: UUID): List<MediaEntity>
+    fun countByInspectionIdAndOwnerIdAndDeletedAtIsNull(inspectionId: UUID, ownerId: UUID): Long
     fun findAllByInspectionIdAndOwnerIdAndDeletedAtIsNull(inspectionId: UUID, ownerId: UUID, pageable: Pageable): Page<MediaEntity>
 }
 
@@ -23,4 +24,8 @@ interface ApiIdempotencyRecordRepository : JpaRepository<ApiIdempotencyRecordEnt
 
 interface MediaAnalysisJobRepository : JpaRepository<MediaAnalysisJobEntity, UUID> {
     fun findByMediaId(mediaId: UUID): MediaAnalysisJobEntity?
+}
+
+interface MediaAnalysisDetectionRepository : JpaRepository<MediaAnalysisDetectionEntity, UUID> {
+    fun findAllByMediaIdIn(mediaIds: Collection<UUID>): List<MediaAnalysisDetectionEntity>
 }

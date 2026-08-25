@@ -19,4 +19,6 @@ interface InspectionRepository : JpaRepository<InspectionEntity, UUID> {
     fun findAllByPropertyIdAndOwnerId(propertyId: UUID, ownerId: UUID, pageable: Pageable): Page<InspectionEntity>
 
     fun existsByPropertyIdAndOwnerId(propertyId: UUID, ownerId: UUID): Boolean
+
+    fun findAllByStatusAndMediaFinalizedAtIsNotNull(status: InspectionLifecycleStatus): List<InspectionEntity>
 }

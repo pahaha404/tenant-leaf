@@ -5,6 +5,9 @@ import com.tenantleaf.api.generated.model.CreateMediaUploadBatchRequest
 import com.tenantleaf.api.generated.model.CreateMediaUploadBatchResponse
 import com.tenantleaf.api.generated.model.CreateMediaUploadRequest
 import com.tenantleaf.api.generated.model.FrameOrigin
+import com.tenantleaf.api.generated.model.FinalizeInspectionMediaRequest
+import com.tenantleaf.api.generated.model.FinalizeInspectionMediaResponse
+import com.tenantleaf.api.generated.model.InspectionAnalysisStatus
 import com.tenantleaf.api.generated.model.Media
 import com.tenantleaf.api.generated.model.MediaAnalysisStatus
 import com.tenantleaf.api.generated.model.MediaPage
@@ -18,6 +21,7 @@ import com.tenantleaf.api.inspection.InspectionNotFoundException
 import com.tenantleaf.api.inspection.InspectionRepository
 import com.tenantleaf.api.inspection.InspectionStateTransitionException
 import com.tenantleaf.api.property.DemoUserContext
+import com.tenantleaf.api.report.ReportGenerationCoordinator
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
@@ -35,6 +39,7 @@ class MediaService(
     private val inspectionRepository: InspectionRepository,
     private val storage: ObjectStorageGateway,
     private val userContext: DemoUserContext,
+    private val reportCoordinator: ReportGenerationCoordinator,
 ) {
     @Transactional
     fun createUploadRequests(
@@ -44,6 +49,7 @@ class MediaService(
     ): CreateMediaUploadBatchResponse {
         val ownerId = userContext.requireUserId()
         val inspection = requireEndedInspection(inspectionId, ownerId)
+        if (inspection.mediaFinalizedAt != null) throw MediaSetFinalizedException()
         val requestHash = hash(request.items.joinToString("\n") { it.fingerprint() })
         checkAndRecordIdempotency(ownerId, "CREATE_MEDIA_UPLOADS", inspectionId.toString(), idempotencyKey, requestHash)
 
@@ -60,7 +66,6 @@ class MediaService(
                 inspectionId = inspectionId,
                 ownerId = ownerId,
                 clientMediaId = item.clientMediaId,
-                zone = MediaZone.valueOf(item.zone.name),
                 declaredFileSize = item.fileSize,
                 width = item.width,
                 height = item.height,
@@ -141,6 +146,37 @@ class MediaService(
         return MediaPage(result.number, result.size, result.totalElements, result.totalPages, result.content.map { it.toApi() })
     }
 
+    @Transactional
+    fun finalizeMedia(
+        inspectionId: UUID,
+        idempotencyKey: UUID,
+        request: FinalizeInspectionMediaRequest,
+    ): FinalizeInspectionMediaResponse {
+        val ownerId = userContext.requireUserId()
+        val inspection = requireEndedInspection(inspectionId, ownerId)
+        val requestHash = hash(request.expectedMediaCount.toString())
+        checkAndRecordIdempotency(ownerId, "FINALIZE_INSPECTION_MEDIA", inspectionId.toString(), idempotencyKey, requestHash)
+
+        val registeredMediaCount = mediaRepository.countByInspectionIdAndOwnerIdAndDeletedAtIsNull(inspectionId, ownerId).toInt()
+        if (registeredMediaCount != request.expectedMediaCount) throw MediaSetCountMismatchException()
+
+        val finalizedAt = inspection.mediaFinalizedAt ?: OffsetDateTime.now().also {
+            inspection.mediaFinalizedAt = it
+            inspection.expectedMediaCount = request.expectedMediaCount
+        }
+        if (inspection.expectedMediaCount != request.expectedMediaCount) throw MediaSetCountMismatchException()
+
+        refreshInspectionAnalysisStatus(inspectionId, ownerId)
+        reportCoordinator.evaluate(inspectionId)
+        return FinalizeInspectionMediaResponse(
+            inspectionId = inspectionId,
+            expectedMediaCount = request.expectedMediaCount,
+            registeredMediaCount = registeredMediaCount,
+            mediaFinalizedAt = finalizedAt,
+            analysisStatus = InspectionAnalysisStatus.valueOf(inspection.analysisStatus.name),
+        )
+    }
+
     private fun requireEndedInspection(inspectionId: UUID, ownerId: UUID) =
         inspectionRepository.findByIdAndOwnerId(inspectionId, ownerId)?.also {
             if (it.status != InspectionLifecycleStatus.ENDED) throw InspectionStateTransitionException()
@@ -150,9 +186,13 @@ class MediaService(
         val inspection = requireEndedInspection(inspectionId, ownerId)
         val media = mediaRepository.findAllByInspectionIdAndDeletedAtIsNull(inspectionId)
         inspection.analysisStatus = when {
-            media.isEmpty() -> InspectionAggregateStatus.NOT_STARTED
+            media.isEmpty() && inspection.mediaFinalizedAt == null -> InspectionAggregateStatus.NOT_STARTED
+            media.isEmpty() -> InspectionAggregateStatus.FAILED
             media.any { it.uploadStatus != MediaUploadState.UPLOADED } -> InspectionAggregateStatus.UPLOADING
             media.any { it.analysisStatus == MediaAnalysisState.ANALYZING } -> InspectionAggregateStatus.ANALYZING
+            media.any { it.analysisStatus == MediaAnalysisState.QUEUED || it.analysisStatus == MediaAnalysisState.NOT_REQUESTED } ->
+                InspectionAggregateStatus.QUEUED
+            inspection.mediaFinalizedAt == null -> InspectionAggregateStatus.UPLOADING
             media.all { it.analysisStatus == MediaAnalysisState.COMPLETED } -> InspectionAggregateStatus.COMPLETED
             media.any { it.analysisStatus == MediaAnalysisState.COMPLETED } && media.any { it.analysisStatus == MediaAnalysisState.FAILED } ->
                 InspectionAggregateStatus.PARTIAL_COMPLETED
@@ -214,12 +254,12 @@ class MediaService(
     }
 
     private fun CreateMediaUploadRequest.fingerprint() = listOf(
-        clientMediaId, zone.name, contentType.value, fileSize, width, height, sourceVideoId,
+        clientMediaId, contentType.value, fileSize, width, height, sourceVideoId,
         sourceVideoOffsetMs, frameOrigin.value, captureSource.name, capturedAt.toInstant(),
     ).joinToString("|")
 
     private fun MediaEntity.matches(item: CreateMediaUploadRequest) =
-        zone.name == item.zone.name && contentType == item.contentType.value && declaredFileSize == item.fileSize &&
+        contentType == item.contentType.value && declaredFileSize == item.fileSize &&
             width == item.width && height == item.height && sourceVideoId == item.sourceVideoId &&
             sourceVideoOffsetMs == item.sourceVideoOffsetMs && frameOrigin == item.frameOrigin.value &&
             captureSource.name == item.captureSource.name && capturedAt.toInstant() == item.capturedAt.toInstant()
@@ -229,7 +269,13 @@ class MediaService(
         clientMediaId = clientMediaId,
         inspectionId = inspectionId,
         mediaType = MediaType.PHOTO,
-        zone = Zone.valueOf(zone.name),
+        zone = (userCorrectedZone ?: aiZone ?: zone)?.let { Zone.valueOf(it.name) },
+        aiZone = aiZone?.let { Zone.valueOf(it.name) },
+        zoneConfidence = zoneConfidence,
+        zoneUncertain = zoneUncertain,
+        zoneModelVersion = zoneModelVersion,
+        userCorrectedZone = userCorrectedZone?.let { Zone.valueOf(it.name) },
+        correctedAt = correctedAt,
         contentType = Media.ContentType.imageSlashJpeg,
         fileSize = actualFileSize ?: declaredFileSize,
         width = width,

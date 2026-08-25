@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Card
@@ -25,6 +26,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
@@ -33,14 +35,27 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.MyLocation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,10 +67,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.doOnAttach
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.kakao.vectormap.GestureType
+import com.kakao.vectormap.KakaoMap
+import com.kakao.vectormap.KakaoMapReadyCallback
+import com.kakao.vectormap.LatLng
+import com.kakao.vectormap.MapLifeCycleCallback
+import com.kakao.vectormap.MapView
+import com.seipseip.app.feature.property.location.KakaoAddressSearch
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
@@ -100,18 +128,112 @@ fun PropertyListScreen(
     onAddProperty: () -> Unit,
     onOpenProperty: (String) -> Unit,
     onDeleteProperty: (String) -> Unit,
+    onDeleteMultipleProperties: ((List<String>) -> Unit)? = null,
     onRetry: () -> Unit,
+    onOpenMapOverview: (() -> Unit)? = null,
     onTabSelected: (String) -> Unit,
 ) {
+    var isSelectionMode by rememberSaveable { mutableStateOf(false) }
+    var selectedIds by rememberSaveable { mutableStateOf(setOf<String>()) }
+    var showBatchDeleteDialog by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(properties) {
+        if (properties.isEmpty()) {
+            isSelectionMode = false
+            selectedIds = emptySet()
+        } else {
+            selectedIds = selectedIds.filter { id -> properties.any { it.id == id } }.toSet()
+        }
+    }
+
     AppPageScaffold(
-        title = "매물",
+        title = if (isSelectionMode) "매물 삭제 (${selectedIds.size})" else "매물",
         selectedTab = AppTab.Property,
-        bottomAction = {
-            Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                InfoCard(title = "방문 전 확인", description = "방문 일정과 주소를 미리 확인하면 점검 준비가 쉬워요.", accent = PaleGreen)
-                PrimaryButton("새 매물 등록", onAddProperty)
+        isRefreshing = loading,
+        onRefresh = onRetry,
+        topTrailingAction = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (properties.isNotEmpty()) {
+                    IconButton(
+                        onClick = {
+                            isSelectionMode = !isSelectionMode
+                            selectedIds = emptySet()
+                        },
+                    ) {
+                        Icon(
+                            imageVector = if (isSelectionMode) Icons.Outlined.Close else Icons.Outlined.DeleteOutline,
+                            contentDescription = if (isSelectionMode) "선택 모드 종료" else "매물 다중 삭제",
+                            tint = if (isSelectionMode) Color(0xFFC93B2B) else DeepGreen,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                }
+                if (onOpenMapOverview != null && !isSelectionMode) {
+                    IconButton(onClick = onOpenMapOverview) {
+                        Icon(
+                            imageVector = Icons.Outlined.Map,
+                            contentDescription = "매물 지도 보기",
+                            tint = DeepGreen,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                }
             }
         },
+        floatingActionButton = if (!isSelectionMode) {
+            {
+                FloatingActionButton(
+                    onClick = onAddProperty,
+                    containerColor = Green,
+                    contentColor = Color.White,
+                    shape = CircleShape,
+                    modifier = Modifier.size(56.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = "새 매물 등록",
+                        modifier = Modifier.size(28.dp),
+                    )
+                }
+            }
+        } else null,
+        bottomAction = if (isSelectionMode && properties.isNotEmpty()) {
+            {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 10.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(if (selectedIds.isNotEmpty()) Color(0xFFB42318) else Color(0xFFE0E0E0))
+                            .clickable(enabled = selectedIds.isNotEmpty()) {
+                                showBatchDeleteDialog = true
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = null,
+                                tint = if (selectedIds.isNotEmpty()) Color.White else Secondary,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = if (selectedIds.isEmpty()) "삭제할 매물을 선택해 주세요" else "선택한 ${selectedIds.size}개 매물 삭제하기",
+                                color = if (selectedIds.isNotEmpty()) Color.White else Secondary,
+                                fontSize = 13.5.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                        }
+                    }
+                }
+            }
+        } else null,
         onTabSelected = { tab ->
             onTabSelected(
                 when (tab) {
@@ -123,12 +245,95 @@ fun PropertyListScreen(
             )
         },
     ) {
-        Text("점검할 매물을 관리해요", color = Secondary, fontSize = 13.sp)
-        StateBadge("등록 매물 ${properties.size}개")
+        if (isSelectionMode && properties.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "${selectedIds.size}개 선택됨",
+                    color = if (selectedIds.isNotEmpty()) Green else Secondary,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                TextButton(
+                    onClick = {
+                        selectedIds = if (selectedIds.size == properties.size) emptySet() else properties.map { it.id }.toSet()
+                    },
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                ) {
+                    Text(
+                        text = if (selectedIds.size == properties.size) "전체 해제" else "전체 선택",
+                        color = Green,
+                        fontSize = 12.5.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+
         when {
             loading -> Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
             errorMessage != null -> InfoCard("서버 연결 확인 필요", errorMessage, onClick = onRetry)
-            properties.isEmpty() -> InfoCard("등록된 매물이 없어요", "아래 버튼으로 첫 매물을 등록해 주세요.")
+            properties.isEmpty() -> InfoCard("등록된 매물이 없어요", "우측 하단 + 버튼으로 첫 매물을 등록해 주세요.", onClick = onAddProperty)
+            isSelectionMode -> properties.forEach { property ->
+                val isSelected = property.id in selectedIds
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            selectedIds = if (isSelected) selectedIds - property.id else selectedIds + property.id
+                        },
+                    colors = CardDefaults.cardColors(containerColor = if (isSelected) PaleGreen else Color.White),
+                    shape = RoundedCornerShape(14.dp),
+                    border = if (isSelected) BorderStroke(1.5.dp, Green) else null,
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 11.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(22.dp)
+                                .clip(CircleShape)
+                                .background(if (isSelected) Green else Color.Transparent)
+                                .border(1.5.dp, if (isSelected) Green else Color(0xFFC0C0C0), CircleShape),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Check,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp),
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text(
+                                text = property.name,
+                                color = DeepGreen,
+                                fontSize = 14.5.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                            Text(
+                                text = property.address,
+                                color = Secondary,
+                                fontSize = 11.5.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
+            }
             else -> properties.forEach { property ->
                 SwipeToDeletePropertyCard(
                     property = property,
@@ -139,6 +344,37 @@ fun PropertyListScreen(
         }
         deleteErrorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
 
+        if (showBatchDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showBatchDeleteDialog = false },
+                title = { Text("선택 매물 삭제", fontWeight = FontWeight.Bold) },
+                text = { Text("선택한 ${selectedIds.size}개의 매물을 삭제하시겠습니까?\n임장 기록이 있는 매물은 상태가 정리됩니다.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val idsToDelete = selectedIds.toList()
+                            if (onDeleteMultipleProperties != null) {
+                                onDeleteMultipleProperties(idsToDelete)
+                            } else {
+                                idsToDelete.forEach(onDeleteProperty)
+                            }
+                            selectedIds = emptySet()
+                            isSelectionMode = false
+                            showBatchDeleteDialog = false
+                        },
+                    ) {
+                        Text("삭제", color = Color(0xFFB42318), fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showBatchDeleteDialog = false }) {
+                        Text("취소", color = Secondary)
+                    }
+                },
+                shape = RoundedCornerShape(18.dp),
+                containerColor = Color.White,
+            )
+        }
     }
 }
 
@@ -158,7 +394,7 @@ private fun SwipeToDeletePropertyCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp)),
+            .clip(RoundedCornerShape(14.dp)),
     ) {
         Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.CenterEnd) {
             Box(
@@ -233,12 +469,13 @@ fun PropertyFormScreen(
     onOpenAddressPicker: () -> Unit,
     onOpenLocationPicker: () -> Unit,
     selectedAddress: String,
+    initialProperty: PropertyUiModel? = null,
 ) {
-    var propertyName by rememberSaveable { mutableStateOf("") }
-    var address by rememberSaveable { mutableStateOf("") }
+    var propertyName by rememberSaveable { mutableStateOf(initialProperty?.name ?: "") }
+    var address by rememberSaveable { mutableStateOf(initialProperty?.address ?: "") }
     var addressDetail by rememberSaveable { mutableStateOf("") }
-    var deposit by rememberSaveable { mutableStateOf("") }
-    var monthlyRent by rememberSaveable { mutableStateOf("") }
+    var deposit by rememberSaveable { mutableStateOf(initialProperty?.depositAmount?.toString() ?: "") }
+    var monthlyRent by rememberSaveable { mutableStateOf(initialProperty?.monthlyRentAmount?.toString() ?: "") }
     var housingType by remember { mutableStateOf("원룸") }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
@@ -246,6 +483,16 @@ fun PropertyFormScreen(
     var visitHour by rememberSaveable { mutableStateOf(14) }
     var visitMinute by rememberSaveable { mutableStateOf(0) }
     var visitTimeSelected by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(initialProperty) {
+        if (initialProperty != null) {
+            if (propertyName.isBlank()) propertyName = initialProperty.name
+            if (address.isBlank()) address = initialProperty.address
+            if (deposit.isBlank()) deposit = initialProperty.depositAmount?.toString() ?: ""
+            if (monthlyRent.isBlank()) monthlyRent = initialProperty.monthlyRentAmount?.toString() ?: ""
+        }
+    }
+
     LaunchedEffect(selectedAddress) {
         if (selectedAddress.isNotBlank() && selectedAddress != address) {
             address = selectedAddress
@@ -256,9 +503,15 @@ fun PropertyFormScreen(
         SimpleDateFormat("yyyy. MM. dd (EEE)", Locale.KOREAN).format(Date(millis)) + "  %02d:%02d".format(visitHour, visitMinute)
     } ?: "방문 날짜와 시간 선택"
 
-    AppPageScaffold(title = "매물 등록", onBack = onBack) {
+    val isEditing = initialProperty != null
+    AppPageScaffold(title = if (isEditing) "매물 수정" else "매물 등록", onBack = onBack) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("점검할 방을 알려주세요", color = Green, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold)
+            Text(
+                if (isEditing) "매물 정보를 수정해요" else "점검할 방을 알려주세요",
+                color = Green,
+                fontSize = 23.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
         }
         Text("기본 정보는 리포트 제목과 증거 정리에 사용돼요.", color = Secondary, fontSize = 13.sp)
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -297,7 +550,7 @@ fun PropertyFormScreen(
         }
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
         PrimaryButton(
-            if (saving) "저장 중..." else "매물 등록하기",
+            if (saving) "저장 중..." else if (isEditing) "수정 완료" else "매물 등록하기",
             { onSaved(PropertyFormSubmission(propertyName, addressWithDetail(address, addressDetail), deposit, monthlyRent)) },
             enabled = propertyName.isNotBlank() && !saving,
         )
@@ -431,13 +684,44 @@ fun PropertyDetailScreen(
     onBack: () -> Unit,
     onStartInspection: () -> Unit,
     onOpenReport: () -> Unit,
-    onOpenBasicInfo: () -> Unit,
+    onOpenBasicInfo: () -> Unit = {},
+    onEditProperty: (() -> Unit)? = null,
+    onDeleteProperty: (() -> Unit)? = null,
+    onRefresh: (() -> Unit)? = null,
     onTabSelected: (String) -> Unit,
 ) {
+    var showDeleteDialog by rememberSaveable(property?.id) { mutableStateOf(false) }
+
     AppPageScaffold(
         title = "매물 상세",
         onBack = onBack,
         selectedTab = AppTab.Property,
+        isRefreshing = loading,
+        onRefresh = onRefresh,
+        topTrailingAction = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (property != null && onEditProperty != null) {
+                    IconButton(onClick = onEditProperty) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = "매물 수정",
+                            tint = DeepGreen,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                }
+                if (property != null && onDeleteProperty != null) {
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Outlined.Delete,
+                            contentDescription = "매물 삭제",
+                            tint = Color(0xFFC93B2B),
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                }
+            }
+        },
         onTabSelected = { tab ->
             onTabSelected(
                 when (tab) {
@@ -449,22 +733,266 @@ fun PropertyDetailScreen(
             )
         },
     ) {
+        if (showDeleteDialog && property != null && onDeleteProperty != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("매물을 삭제할까요?") },
+                text = { Text("${property.name} 매물 정보가 삭제됩니다.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showDeleteDialog = false
+                        onDeleteProperty()
+                    }) { Text("삭제", color = Color(0xFFC93B2B)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) { Text("취소") }
+                },
+            )
+        }
+
         if (loading) Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
-        Text(property?.name ?: "매물 정보", color = DeepGreen, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
-        Text(property?.address ?: "주소 미입력", color = Secondary, fontSize = 13.sp)
+
+        // 1. Hero Title & Address
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = property?.name ?: "매물 정보",
+                color = DeepGreen,
+                fontSize = 19.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.MyLocation,
+                    contentDescription = null,
+                    tint = Green,
+                    modifier = Modifier.size(14.dp),
+                )
+                Text(
+                    text = property?.address ?: "주소 미입력",
+                    color = Secondary,
+                    fontSize = 12.sp,
+                )
+            }
+        }
+
+        // 2. Financial KPI Metric Stat Grid (보증금 · 월세 · 관리비 3단 타일)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            FinancialMetricTile(
+                modifier = Modifier.weight(1f),
+                label = "보증금",
+                value = property?.depositAmount?.let(::formatWon) ?: "미입력",
+                isHighlight = true,
+            )
+            FinancialMetricTile(
+                modifier = Modifier.weight(1f),
+                label = "월세",
+                value = property?.monthlyRentAmount?.let(::formatWon) ?: "미입력",
+            )
+            FinancialMetricTile(
+                modifier = Modifier.weight(1f),
+                label = "관리비",
+                value = property?.maintenanceFeeAmount?.let(::formatWon) ?: "미입력",
+            )
+        }
+
+        // 3. Report Action Card
         InfoCard(
-            title = "기본 정보",
-            description = "보증금 ${property?.depositAmount?.let(::formatWon) ?: "미입력"} · 월세 ${property?.monthlyRentAmount?.let(::formatWon) ?: "미입력"} · 관리비 ${property?.maintenanceFeeAmount?.let(::formatWon) ?: "미입력"}",
-            onClick = onOpenBasicInfo,
-        )
-        InfoCard(
-            title = "리포트",
-            description = "2026.08.18 · 점검 결과 리포트를 확인해요.",
+            title = "점검 결과 리포트",
+            description = "촬영한 현장 기록과 AI 분석 결과를 확인해요.",
+            accent = PaleGreen,
             onClick = onOpenReport,
         )
-        PrimaryButton("이 매물 임장 시작", onStartInspection)
 
+        // 4. Kakao Map with Pinpoint at Address (해당 주소 핀포인트 카카오 지도)
+        PropertyKakaoMapCard(
+            propertyName = property?.name ?: "매물 위치",
+            address = property?.address ?: "주소 미입력",
+        )
+
+        // 5. Start Inspection CTA Button
+        PrimaryButton("이 매물 임장 시작", onStartInspection)
+    }
+}
+
+@Composable
+private fun PropertyKakaoMapCard(
+    propertyName: String,
+    address: String,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    var coordinates by remember(address) { mutableStateOf<Pair<Double, Double>?>(null) }
+    var loading by remember(address) { mutableStateOf(true) }
+
+    LaunchedEffect(address) {
+        loading = true
+        coordinates = KakaoAddressSearch.resolveAddressLocation(context, address)
+        loading = false
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF3F4F6)),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Color(0xFFEBE8E1)),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(170.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            val coords = coordinates
+            if (coords != null) {
+                PropertyKakaoMapView(
+                    latitude = coords.first,
+                    longitude = coords.second,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                // Pinpoint Marker with Property Name Callout
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset(y = (-18).dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = DeepGreen,
+                        shadowElevation = 3.dp,
+                    ) {
+                        Text(
+                            text = propertyName,
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Filled.LocationOn,
+                        contentDescription = "매물 위치 핀",
+                        tint = Color(0xFFE11D48),
+                        modifier = Modifier.size(32.dp),
+                    )
+                }
+            } else if (loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Green,
+                    strokeWidth = 2.5.dp,
+                )
+            } else {
+                Text(
+                    text = if (address.isBlank() || address == "주소 미입력") "등록된 주소가 없습니다." else "지도를 불러올 수 없습니다.",
+                    color = Secondary,
+                    fontSize = 12.sp,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PropertyKakaoMapView(
+    latitude: Double,
+    longitude: Double,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var mapView by remember { mutableStateOf<MapView?>(null) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> mapView?.resume()
+                Lifecycle.Event.ON_PAUSE -> mapView?.pause()
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    AndroidView(
+        factory = {
+            MapView(context).also { view ->
+                mapView = view
+                view.start(
+                    object : MapLifeCycleCallback() {
+                        override fun onMapDestroy() = Unit
+                        override fun onMapError(error: Exception) = Unit
+                    },
+                    object : KakaoMapReadyCallback() {
+                        override fun getPosition(): LatLng = LatLng.from(latitude, longitude)
+                        override fun getZoomLevel(): Int = 18
+                        override fun onMapReady(kakaoMap: KakaoMap) {
+                            GestureType.entries.forEach { gesture ->
+                                kakaoMap.setGestureEnable(gesture, false)
+                            }
+                        }
+                    },
+                )
+                view.doOnAttach {
+                    view.post {
+                        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            view.resume()
+                        }
+                    }
+                }
+            }
+        },
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun FinancialMetricTile(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String,
+    isHighlight: Boolean = false,
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = if (isHighlight) PaleGreen.copy(alpha = 0.55f) else Color.White,
+        ),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, if (isHighlight) Green.copy(alpha = 0.3f) else Color(0xFFEBE8E1)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 11.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = label,
+                color = Secondary,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = value,
+                color = if (isHighlight) DeepGreen else Color(0xFF234B38),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.ExtraBold,
+                maxLines = 1,
+            )
+        }
     }
 }
 @Composable
@@ -488,41 +1016,93 @@ fun PropertySelectScreen(
     onSelected: (String) -> Unit,
     onAddProperty: () -> Unit,
 ) {
-    AppPageScaffold(title = "점검할 매물 선택", onBack = onBack) {
+    AppPageScaffold(
+        title = "점검할 매물 선택",
+        onBack = onBack,
+        bottomAction = {
+            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
+                PrimaryButton(
+                    label = "선택한 매물로 계속하기",
+                    onClick = { selectedId?.let(onSelected) },
+                    enabled = selectedId != null,
+                )
+            }
+        },
+    ) {
         SectionTitle("어느 매물을 점검할까요?", "점검 기록은 선택한 매물에 저장돼요.")
         if (loading) Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
-        properties.forEach { property ->
-            PropertyCard(property, selected = property.id == selectedId) { onPropertySelected(property.id) }
+        if (properties.isEmpty() && !loading) {
+            InfoCard(
+                title = "다른 매물이 없나요?",
+                description = "새 매물을 등록하면 방문 준비와 점검을 바로 시작할 수 있어요.",
+                onClick = onAddProperty,
+            )
+        } else {
+            properties.forEach { property ->
+                PropertyCard(property, selected = property.id == selectedId) { onPropertySelected(property.id) }
+            }
         }
-        InfoCard(
-            title = "다른 매물이 없나요?",
-            description = "새 매물을 등록하면 방문 준비와 점검을 바로 시작할 수 있어요.",
-            onClick = onAddProperty,
-        )
-        PrimaryButton("선택한 매물로 계속하기", { selectedId?.let(onSelected) }, enabled = selectedId != null)
     }
 }
 
 @Composable
 private fun PropertyCard(property: PropertyUiModel, selected: Boolean = false, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = if (selected) PaleGreen else Color.White),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(14.dp),
     ) {
         Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(7.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(property.name, color = DeepGreen, fontWeight = FontWeight.ExtraBold)
-                Spacer(Modifier.weight(1f))
-                StateBadge("점검 예정", Green)
-            }
-            Text(property.address, color = Secondary, fontSize = 12.sp)
-            Text(if (selected) "이 매물 선택됨" else "눌러서 상세 보기", color = Orange, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = property.name,
+                color = DeepGreen,
+                fontSize = 14.5.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
+            Text(
+                text = property.address,
+                color = Secondary,
+                fontSize = 11.5.sp,
+                maxLines = 1,
+            )
         }
     }
 }
 
-private fun formatWon(value: Long): String = "%,d원".format(value)
+internal fun formatWon(value: Long): String {
+    if (value <= 0) return "0원"
+    val eok = value / 100_000_000L
+    val remainderEok = value % 100_000_000L
+    val man = remainderEok / 10_000L
+    val remainderMan = remainderEok % 10_000L
+
+    return when {
+        eok > 0 -> {
+            if (remainderMan == 0L && man % 1000L == 0L && man > 0) {
+                val decimal = eok.toDouble() + man / 10000.0
+                "%.1f억".format(Locale.KOREAN, decimal).replace(".0", "")
+            } else if (man > 0) {
+                if (remainderMan == 0L) {
+                    "${eok}억 %,d만".format(Locale.KOREAN, man)
+                } else {
+                    "${eok}억 %,d만 %,d원".format(Locale.KOREAN, man, remainderMan)
+                }
+            } else {
+                "${eok}억"
+            }
+        }
+        man > 0 -> {
+            if (remainderMan == 0L) {
+                "%,d만".format(Locale.KOREAN, man)
+            } else {
+                "%,d만 %,d원".format(Locale.KOREAN, man, remainderMan)
+            }
+        }
+        else -> "%,d원".format(Locale.KOREAN, value)
+    }
+}

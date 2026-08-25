@@ -18,8 +18,9 @@ class DirectJpegUploader @Inject constructor(
 ) {
     suspend fun put(uploadUrl: String, file: File): AppResult<Unit> = withContext(Dispatchers.IO) {
         try {
+            val resolvedUrl = resolveUploadUrl(uploadUrl)
             val request = Request.Builder()
-                .url(uploadUrl)
+                .url(resolvedUrl)
                 .put(file.asRequestBody(JPEG_MEDIA_TYPE))
                 .build()
             okHttpClient.newCall(request).execute().use { response ->
@@ -40,6 +41,26 @@ class DirectJpegUploader @Inject constructor(
         } catch (_: Exception) {
             AppResult.Failure(AppError.Unexpected)
         }
+    }
+
+    private fun resolveUploadUrl(uploadUrl: String): String {
+        return runCatching {
+            val uri = java.net.URI(uploadUrl)
+            val apiHost = java.net.URI(com.seipseip.core.BuildConfig.API_BASE_URL).host
+            if (uri.host in setOf("localhost", "127.0.0.1", "10.0.2.2") && !apiHost.isNullOrBlank()) {
+                java.net.URI(
+                    uri.scheme,
+                    uri.userInfo,
+                    apiHost,
+                    uri.port,
+                    uri.path,
+                    uri.query,
+                    uri.fragment,
+                ).toASCIIString()
+            } else {
+                uploadUrl
+            }
+        }.getOrDefault(uploadUrl)
     }
 
     private companion object {

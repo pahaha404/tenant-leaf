@@ -3,6 +3,10 @@ package com.tenantleaf.api
 import com.tenantleaf.api.generated.api.PropertiesApi
 import com.tenantleaf.api.generated.api.InspectionsApi
 import com.tenantleaf.api.generated.api.MediaApi
+import com.tenantleaf.api.generated.api.ObservationsApi
+import com.tenantleaf.api.generated.api.ReportsApi
+import com.tenantleaf.api.generated.model.Bbox
+import com.tenantleaf.api.generated.model.BboxCoordinateSystem
 import com.tenantleaf.api.generated.model.AiLabel
 import com.tenantleaf.api.generated.model.CaptureSource
 import com.tenantleaf.api.generated.model.CreatePropertyRequest
@@ -12,6 +16,7 @@ import com.tenantleaf.api.generated.model.InspectionStatus
 import com.tenantleaf.api.generated.model.MediaAnalysisStatus
 import com.tenantleaf.api.generated.model.MediaUploadStatus
 import com.tenantleaf.api.generated.model.ObservationStatus
+import com.tenantleaf.api.generated.model.ObservationType
 import com.tenantleaf.api.generated.model.ReportStatus
 import com.tenantleaf.api.generated.model.Zone
 import com.tenantleaf.api.generated.model.ZoneAnalysisStatus
@@ -31,6 +36,17 @@ class OpenApiGeneratedContractTests {
 		assertEquals("/api/v1", PropertiesApi.BASE_PATH)
 		assertEquals("/api/v1", InspectionsApi.BASE_PATH)
 		assertEquals("/api/v1", MediaApi.BASE_PATH)
+		assertEquals("/api/v1", ObservationsApi.BASE_PATH)
+		assertEquals("/api/v1", ReportsApi.BASE_PATH)
+	}
+
+	@Test
+	fun `근거 영역은 원본 JPEG 픽셀 xyxy 계약을 생성한다`() {
+		val box = Bbox(left = 10.0, top = 20.0, right = 110.0, bottom = 220.0)
+
+		assertEquals(10.0, box.left)
+		assertEquals(220.0, box.bottom)
+		assertEquals(listOf("PIXEL_XYXY"), BboxCoordinateSystem.entries.map { it.value })
 	}
 
 	@Test
@@ -82,7 +98,7 @@ class OpenApiGeneratedContractTests {
 	@Test
 	fun `구역과 미디어 상태 공통 타입을 생성한다`() {
 		assertEquals(
-			listOf("ENTRANCE_COMMON", "KITCHEN", "WINDOW_VENTILATION", "LIVING_ROOM", "BATHROOM", "UNKNOWN"),
+			listOf("KITCHEN", "LIVING_ROOM", "BATHROOM", "UNKNOWN"),
 			Zone.entries.map { it.value },
 		)
 		assertEquals(
@@ -104,6 +120,9 @@ class OpenApiGeneratedContractTests {
 	@Test
 	fun `관찰과 리포트 상태 공통 타입을 생성한다`() {
 		assertEquals(listOf("ACTIVE", "VIEWED", "DISMISSED"), ObservationStatus.entries.map { it.value })
+		assertEquals(13, ObservationType.entries.size)
+		assertEquals("CRACK_CHECK_NEEDED", ObservationType.entries.first().value)
+		assertEquals("OTHER_CHECK_NEEDED", ObservationType.entries.last().value)
 		assertEquals(
 			listOf("NOT_REQUESTED", "WAITING_FOR_ANALYSIS", "GENERATING", "COMPLETED", "PARTIAL_COMPLETED", "FAILED"),
 			ReportStatus.entries.map { it.value },
@@ -111,7 +130,7 @@ class OpenApiGeneratedContractTests {
 	}
 
 	@Test
-	fun `미확정 또는 폐기된 HTTP 계약은 명세에서 제외한다`() {
+	fun `확정된 미디어 관찰 리포트 계약과 폐기된 계약을 구분한다`() {
 		val specification = File("../shared-types/openapi/openapi.yaml").readText()
 
 		assertFalse(specification.contains("/checklist"))
@@ -119,13 +138,20 @@ class OpenApiGeneratedContractTests {
 		assertTrue(specification.contains("/inspections/{inspectionId}/media/upload-requests"))
 		assertTrue(specification.contains("/media/{mediaId}/upload-complete"))
 		assertTrue(specification.contains("/media/{mediaId}/upload-retry"))
+		assertTrue(specification.contains("/inspections/{inspectionId}/media/finalize"))
+		assertTrue(specification.contains("/inspections/{inspectionId}/observations"))
+		assertTrue(specification.contains("/observations/{observationId}"))
+		assertTrue(specification.contains("/properties/{propertyId}/reports"))
+		assertTrue(specification.contains("/inspections/{inspectionId}/report"))
+		assertTrue(specification.contains("coordinateSystem:"))
+		assertTrue(specification.contains("PIXEL_XYXY"))
+		assertTrue(specification.contains("scoreIsProvisional"))
+		assertTrue(specification.contains("totalMediaCount"))
 		assertTrue(specification.contains("maxItems: 20"))
 		assertTrue(specification.contains("maximum: 2097152"))
 		assertFalse(specification.contains("maximum: 1048576"))
 		assertFalse(specification.contains("/analyses/"))
 		assertFalse(specification.contains("/detections/"))
-		assertFalse(specification.contains("/observations"))
-		assertFalse(specification.contains("/report"))
 		assertFalse(specification.contains("checklistItemId"))
 		assertFalse(specification.contains("CreateFrameUploadRequest"))
 	}
