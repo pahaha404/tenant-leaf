@@ -1212,8 +1212,8 @@ private fun HomeBottomNavigation(selectedTab: AppTab, onTabSelected: (String) ->
 @Composable
 private fun HomeTab(icon: ImageVector, label: String, selected: Boolean, onClick: () -> Unit) {
     Column(modifier = Modifier.width(58.dp).clip(RoundedCornerShape(14.dp)).clickable(enabled = !selected, onClick = onClick).padding(vertical = 4.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Icon(icon, null, tint = if (selected) Green else Secondary, modifier = Modifier.size(20.dp))
-        Text(label, color = if (selected) Green else Secondary, fontSize = 9.sp, fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Normal)
+        Icon(icon, null, tint = if (selected) Orange else Secondary, modifier = Modifier.size(20.dp))
+        Text(label, color = if (selected) Orange else Secondary, fontSize = 9.sp, fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Normal)
     }
 }
 
