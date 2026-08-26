@@ -295,7 +295,13 @@ fun AppNavGraph(
             }
         }
         composable(Route.Home) {
-            MainTabsPagerScreen(navController = navController, initialTab = AppTab.Home, nickname = nickname, sessionPreferences = sessionPreferences)
+            MainTabsPagerScreen(
+                navController = navController,
+                initialTab = AppTab.Home,
+                nickname = nickname,
+                onNicknameChanged = onNicknameChanged,
+                sessionPreferences = sessionPreferences,
+            )
         }
         composable(Route.ChecklistOverview) {
             ChecklistOverviewScreen(
@@ -321,7 +327,13 @@ fun AppNavGraph(
             )
         }
         composable(Route.PropertyList) {
-            MainTabsPagerScreen(navController = navController, initialTab = AppTab.Property, nickname = nickname, sessionPreferences = sessionPreferences)
+            MainTabsPagerScreen(
+                navController = navController,
+                initialTab = AppTab.Property,
+                nickname = nickname,
+                onNicknameChanged = onNicknameChanged,
+                sessionPreferences = sessionPreferences,
+            )
         }
         composable(Route.PropertyMap) {
             PropertyMapApiRoute(
@@ -603,7 +615,13 @@ fun AppNavGraph(
             )
         }
         composable(Route.Reports) {
-            MainTabsPagerScreen(navController = navController, initialTab = AppTab.Report, nickname = nickname, sessionPreferences = sessionPreferences)
+            MainTabsPagerScreen(
+                navController = navController,
+                initialTab = AppTab.Report,
+                nickname = nickname,
+                onNicknameChanged = onNicknameChanged,
+                sessionPreferences = sessionPreferences,
+            )
         }
         composable(
             route = Route.InspectionReport,
@@ -617,7 +635,13 @@ fun AppNavGraph(
             )
         }
         composable(Route.Profile) {
-            MainTabsPagerScreen(navController = navController, initialTab = AppTab.Profile, nickname = nickname, sessionPreferences = sessionPreferences)
+            MainTabsPagerScreen(
+                navController = navController,
+                initialTab = AppTab.Profile,
+                nickname = nickname,
+                onNicknameChanged = onNicknameChanged,
+                sessionPreferences = sessionPreferences,
+            )
         }
         composable(Route.Magazine) {
             MagazineScreen(
@@ -640,6 +664,7 @@ private fun MainTabsPagerScreen(
     navController: NavHostController,
     initialTab: AppTab = AppTab.Home,
     nickname: String,
+    onNicknameChanged: (String) -> Unit = {},
     sessionPreferences: android.content.SharedPreferences,
 ) {
     val initialPage = when (initialTab) {
@@ -727,12 +752,22 @@ private fun MainTabsPagerScreen(
                 3 -> {
                     ProfileScreen(
                         nickname = nickname,
+                        onNicknameChanged = onNicknameChanged,
                         onLogout = {
                             sessionPreferences.edit().putBoolean(KEY_LOGGED_IN, false).apply()
                             navController.navigate(Route.Login) {
                                 popUpTo(0) { inclusive = true }
                             }
                         },
+                        onOpenProperties = {
+                            coroutineScope.launch { pagerState.animateScrollToPage(1) }
+                        },
+                        onOpenReports = {
+                            coroutineScope.launch { pagerState.animateScrollToPage(2) }
+                        },
+                        onOpenGuide = { navController.navigate(Route.ChecklistOverview) },
+                        onOpenMagazine = { navController.navigate(Route.Magazine) },
+                        onOpenMap = { navController.navigate(Route.PropertyMap) },
                         onTabSelected = {},
                         showBottomBar = false,
                     )
