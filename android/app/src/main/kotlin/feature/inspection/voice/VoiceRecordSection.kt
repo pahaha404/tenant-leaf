@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -219,9 +220,9 @@ fun PropertyVoiceRecordCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
-            .border(1.dp, Color(0xFFD9E1DA), RoundedCornerShape(16.dp))
+            .shadow(1.5.dp, RoundedCornerShape(18.dp))
+            .background(Color.White, RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(18.dp))
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -233,18 +234,7 @@ fun PropertyVoiceRecordCard(
                 Icon(Icons.Outlined.Mic, contentDescription = null, tint = Green, modifier = Modifier.size(18.dp))
             }
             Spacer(Modifier.width(9.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("점검 음성 기록", color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
-                Text(
-                    when {
-                        record != null -> "최근 점검에서 저장한 음성 기록이에요."
-                        importingLegacyRecord -> "이전 점검의 녹음 파일을 확인하고 있어요."
-                        else -> "이 매물에서 저장된 음성 기록이 없어요."
-                    },
-                    color = Secondary,
-                    fontSize = 10.sp,
-                )
-            }
+            Text("점검 음성 기록", color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
         }
 
         if (record != null) {

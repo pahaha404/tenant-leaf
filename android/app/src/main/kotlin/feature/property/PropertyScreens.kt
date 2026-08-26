@@ -59,6 +59,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.HomeWork
 import androidx.compose.material.icons.outlined.LocationOn
@@ -292,13 +293,14 @@ fun PropertyListScreen(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(if (isSelected) 0.5.dp else 1.5.dp, RoundedCornerShape(20.dp))
+                        .shadow(if (isSelected) 0.5.dp else 1.5.dp, RoundedCornerShape(18.dp))
                         .clickable {
                             selectedIds = if (isSelected) selectedIds - property.id else selectedIds + property.id
                         },
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(18.dp),
                     color = if (isSelected) PaleGreen else Color.White,
                     border = if (isSelected) BorderStroke(1.5.dp, Green) else null,
+                    shadowElevation = if (isSelected) 0.5.dp else 1.5.dp,
                 ) {
                     Row(
                         modifier = Modifier
@@ -403,9 +405,7 @@ private fun SwipeToDeletePropertyCard(
     val closeSwipe = { scope.launch { swipeState.animateTo(PropertySwipePosition.Closed) } }
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp)),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         val currentOffset = runCatching { swipeState.requireOffset() }.getOrDefault(0f)
         if (currentOffset < -1f) {
@@ -414,7 +414,8 @@ private fun SwipeToDeletePropertyCard(
                     modifier = Modifier
                         .fillMaxHeight()
                         .fillMaxWidth(0.25f)
-                        .background(Color(0xFFC93B2B), RoundedCornerShape(topEnd = 18.dp, bottomEnd = 18.dp))
+                        .background(Color(0xFFC93B2B), RoundedCornerShape(18.dp))
+                        .clip(RoundedCornerShape(18.dp))
                         .clickable { showDeleteDialog = true }
                         .padding(horizontal = 20.dp),
                     contentAlignment = Alignment.Center,
@@ -735,32 +736,44 @@ fun PropertyDetailScreen(
 
     AppPageScaffold(
         title = "매물 상세",
+        titleContent = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = "매물 상세",
+                    color = DeepGreen,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+                Box(
+                    modifier = Modifier
+                        .width(1.2.dp)
+                        .height(16.dp)
+                        .background(Color(0xFFD1D5DB)),
+                )
+                Text(
+                    text = property?.name ?: "매물 정보",
+                    color = DeepGreen,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        },
         onBack = onBack,
+        scrollable = false,
         selectedTab = AppTab.Property,
         isRefreshing = loading,
         onRefresh = onRefresh,
         topTrailingAction = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (property != null && onEditProperty != null) {
-                    IconButton(onClick = onEditProperty) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = "매물 수정",
-                            tint = DeepGreen,
-                            modifier = Modifier.size(22.dp),
-                        )
-                    }
-                }
-                if (property != null && onDeleteProperty != null) {
-                    IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = "매물 삭제",
-                            tint = Color(0xFFC93B2B),
-                            modifier = Modifier.size(22.dp),
-                        )
-                    }
-                }
+            if (property != null && (onEditProperty != null || onDeleteProperty != null)) {
+                EditTrashDualPillButton(
+                    onEditClick = onEditProperty,
+                    onTrashClick = onDeleteProperty?.let { { showDeleteDialog = true } },
+                )
             }
         },
         onTabSelected = { tab ->
@@ -794,30 +807,24 @@ fun PropertyDetailScreen(
         if (loading) Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
 
-        // 1. Hero Title & Address
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = property?.name ?: "매물 정보",
-                color = DeepGreen,
-                fontSize = 19.sp,
-                fontWeight = FontWeight.ExtraBold,
+        // 1. Address Row (매물 이름은 상단 타이틀 바 | 옆에 연동)
+        Row(
+            modifier = Modifier.padding(bottom = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.MyLocation,
+                contentDescription = null,
+                tint = Green,
+                modifier = Modifier.size(16.dp),
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.MyLocation,
-                    contentDescription = null,
-                    tint = Green,
-                    modifier = Modifier.size(14.dp),
-                )
-                Text(
-                    text = property?.address ?: "주소 미입력",
-                    color = Secondary,
-                    fontSize = 12.sp,
-                )
-            }
+            Text(
+                text = property?.address ?: "주소 미입력",
+                color = Secondary,
+                fontSize = 13.5.sp,
+                fontWeight = FontWeight.Medium,
+            )
         }
 
         // 2. Financial KPI Metric Stat Grid (보증금 · 월세 · 관리비 3단 타일)
@@ -843,11 +850,9 @@ fun PropertyDetailScreen(
             )
         }
 
-        // 3. Report Action Card
-        InfoCard(
+        // 3. Report Action Card (시그니처 오렌지 3D 카드로 변경 - 설명 텍스트 제거)
+        ReportActionOrangeCard(
             title = "점검 결과 리포트",
-            description = "촬영한 현장 기록과 AI 분석 결과를 확인해요.",
-            accent = PaleGreen,
             onClick = onOpenReport,
         )
 
@@ -863,6 +868,76 @@ fun PropertyDetailScreen(
             propertyName = property?.name ?: "매물 위치",
             address = property?.address ?: "주소 미입력",
         )
+
+        // 하단 플로팅 뒤로가기 버튼과 지도가 겹치거나 짤리지 않도록 하단 여백 추가
+        Spacer(Modifier.height(84.dp))
+    }
+}
+
+@Composable
+private fun ReportActionOrangeCard(
+    title: String,
+    description: String? = null,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(18.dp),
+        color = Color(0xFFF28A3A),
+        shadowElevation = 1.5.dp,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 11.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.White.copy(alpha = 0.22f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.Article,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+
+            Spacer(Modifier.width(12.dp))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = title,
+                    color = Color.White,
+                    fontSize = 14.5.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                if (!description.isNullOrBlank()) {
+                    Text(
+                        text = description,
+                        color = Color.White.copy(alpha = 0.90f),
+                        fontSize = 12.sp,
+                    )
+                }
+            }
+
+            Spacer(Modifier.width(8.dp))
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(18.dp),
+            )
+        }
     }
 }
 
@@ -883,15 +958,17 @@ private fun PropertyKakaoMapCard(
     }
 
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(1.5.dp, RoundedCornerShape(18.dp)),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF3F4F6)),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, Color(0xFFEBE8E1)),
+        shape = RoundedCornerShape(18.dp),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(170.dp),
+                .height(210.dp)
+                .clip(RoundedCornerShape(18.dp)),
             contentAlignment = Alignment.Center,
         ) {
             val coords = coordinates
@@ -1011,29 +1088,29 @@ private fun FinancialMetricTile(
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = if (isHighlight) PaleGreen.copy(alpha = 0.55f) else Color.White,
+            containerColor = if (isHighlight) PaleGreen else Color.White,
         ),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, if (isHighlight) Green.copy(alpha = 0.3f) else Color(0xFFEBE8E1)),
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.5.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 11.dp),
+                .padding(horizontal = 8.dp, vertical = 13.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = label,
                 color = Secondary,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = value,
                 color = if (isHighlight) DeepGreen else Color(0xFF234B38),
-                fontSize = 13.sp,
+                fontSize = 14.5.sp,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
             )
@@ -1179,6 +1256,15 @@ private fun PropertyCard(property: PropertyUiModel, selected: Boolean = false, o
                 overflow = TextOverflow.Ellipsis,
             )
         }
+
+        Spacer(Modifier.width(8.dp))
+
+        Icon(
+            imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+            contentDescription = null,
+            tint = Green,
+            modifier = Modifier.size(18.dp),
+        )
     }
 }
 
@@ -1290,6 +1376,83 @@ private fun MapTrashDualPillButton(
                     tint = if (isSelectionMode) Color(0xFFC93B2B) else DeepGreen,
                     modifier = Modifier.size(20.dp),
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EditTrashDualPillButton(
+    onEditClick: (() -> Unit)?,
+    onTrashClick: (() -> Unit)?,
+) {
+    Surface(
+        shape = CircleShape,
+        color = Color.White,
+        shadowElevation = 1.5.dp,
+        modifier = Modifier.height(44.dp),
+    ) {
+        Row(
+            modifier = Modifier.height(44.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (onEditClick != null) {
+                val editInteraction = remember { MutableInteractionSource() }
+                val isEditPressed by editInteraction.collectIsPressedAsState()
+
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(if (onTrashClick != null) RoundedCornerShape(topStart = 22.dp, bottomStart = 22.dp) else CircleShape)
+                        .background(if (isEditPressed) Color(0xFFF2F4F7) else Color.White)
+                        .clickable(
+                            interactionSource = editInteraction,
+                            indication = null,
+                            onClick = onEditClick,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = "매물 수정",
+                        tint = DeepGreen,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+
+            if (onEditClick != null && onTrashClick != null) {
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(18.dp)
+                        .background(Color(0xFFE5E7EB)),
+                )
+            }
+
+            if (onTrashClick != null) {
+                val trashInteraction = remember { MutableInteractionSource() }
+                val isTrashPressed by trashInteraction.collectIsPressedAsState()
+
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(if (onEditClick != null) RoundedCornerShape(topEnd = 22.dp, bottomEnd = 22.dp) else CircleShape)
+                        .background(if (isTrashPressed) Color(0xFFF2F4F7) else Color.White)
+                        .clickable(
+                            interactionSource = trashInteraction,
+                            indication = null,
+                            onClick = onTrashClick,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.DeleteOutline,
+                        contentDescription = "매물 삭제",
+                        tint = Color(0xFFC93B2B),
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
             }
         }
     }
