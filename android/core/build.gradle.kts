@@ -26,11 +26,16 @@ val localProperties = Properties().apply {
 fun localDemoSetting(name: String, fallback: String) = providers.gradleProperty(name)
     .orElse(localProperties.getProperty(name) ?: fallback)
 
-val debugApiBaseUrl = localDemoSetting("TENANT_LEAF_DEBUG_API_BASE_URL", "http://127.0.0.1:8080/api/v1/")
+// 발표 기간에는 팀원이 local.properties를 따로 만들지 않아도 공용 시연 서버에 연결한다.
+// Quick Tunnel 주소가 바뀌면 이 기본값도 함께 갱신해야 한다.
+val debugApiBaseUrl = localDemoSetting(
+    "TENANT_LEAF_DEBUG_API_BASE_URL",
+    "https://stat-fashion-picture-volvo.trycloudflare.com/api/v1/",
+)
     .map { it.asApiBaseUrl("TENANT_LEAF_DEBUG_API_BASE_URL") }
 val releaseApiBaseUrl = localDemoSetting("TENANT_LEAF_RELEASE_API_BASE_URL", "https://api.tenant-leaf.invalid/api/v1/")
     .map { it.asApiBaseUrl("TENANT_LEAF_RELEASE_API_BASE_URL") }
-val demoUser = localDemoSetting("TENANT_LEAF_DEMO_USER", "local")
+val demoUser = localDemoSetting("TENANT_LEAF_DEMO_USER", "judge-a")
     .map { it.trim().lowercase() }
 
 android {
