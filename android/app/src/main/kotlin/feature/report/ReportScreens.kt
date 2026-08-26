@@ -200,7 +200,8 @@ fun ReportListScreen(
     errorMessage: String?,
     onOpenReport: (String) -> Unit,
     onRetry: () -> Unit,
-    onTabSelected: (String) -> Unit,
+    onTabSelected: (String) -> Unit = {},
+    showBottomBar: Boolean = true,
 ) {
     var selectedInspectionId by rememberSaveable(items) {
         mutableStateOf(items.firstOrNull { it.inspectionId != null }?.inspectionId)
@@ -210,6 +211,7 @@ fun ReportListScreen(
     AppPageScaffold(
         title = "리포트 선택",
         selectedTab = AppTab.Report,
+        showBottomBar = showBottomBar,
         bottomAction = {
             Box(Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
                 PrimaryButton(

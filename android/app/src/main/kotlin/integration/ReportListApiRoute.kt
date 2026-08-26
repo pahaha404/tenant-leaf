@@ -72,7 +72,8 @@ class ReportListApiViewModel @Inject constructor(
 @Composable
 fun ReportListApiRoute(
     onOpenReport: (String) -> Unit,
-    onTabSelected: (String) -> Unit,
+    onTabSelected: (String) -> Unit = {},
+    showBottomBar: Boolean = true,
     viewModel: ReportListApiViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -87,6 +88,7 @@ fun ReportListApiRoute(
             onOpenReport = onOpenReport,
             onRetry = viewModel::refresh,
             onTabSelected = onTabSelected,
+            showBottomBar = showBottomBar,
         )
         is ReportListApiUiState.Ready -> ReportListScreen(
             items = current.items,
@@ -95,6 +97,7 @@ fun ReportListApiRoute(
             onOpenReport = onOpenReport,
             onRetry = viewModel::refresh,
             onTabSelected = onTabSelected,
+            showBottomBar = showBottomBar,
         )
         is ReportListApiUiState.Error -> ReportListScreen(
             items = emptyList(),
@@ -103,6 +106,7 @@ fun ReportListApiRoute(
             onOpenReport = onOpenReport,
             onRetry = viewModel::refresh,
             onTabSelected = onTabSelected,
+            showBottomBar = showBottomBar,
         )
     }
 }

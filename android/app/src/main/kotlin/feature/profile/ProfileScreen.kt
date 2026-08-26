@@ -43,13 +43,15 @@ import com.seipseip.app.feature.common.StateBadge
 fun ProfileScreen(
     nickname: String,
     onLogout: () -> Unit = {},
-    onTabSelected: (String) -> Unit,
+    onTabSelected: (String) -> Unit = {},
+    showBottomBar: Boolean = true,
 ) {
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
 
     AppPageScaffold(
         title = "내 정보",
         selectedTab = AppTab.Profile,
+        showBottomBar = showBottomBar,
         onTabSelected = { tab ->
             onTabSelected(
                 when (tab) {

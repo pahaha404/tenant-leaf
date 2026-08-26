@@ -151,7 +151,8 @@ fun PropertyListScreen(
     onDeleteMultipleProperties: ((List<String>) -> Unit)? = null,
     onRetry: () -> Unit,
     onOpenMapOverview: (() -> Unit)? = null,
-    onTabSelected: (String) -> Unit,
+    onTabSelected: (String) -> Unit = {},
+    showBottomBar: Boolean = true,
 ) {
     var isSelectionMode by rememberSaveable { mutableStateOf(false) }
     var selectedIds by rememberSaveable { mutableStateOf(setOf<String>()) }
@@ -169,6 +170,7 @@ fun PropertyListScreen(
     AppPageScaffold(
         title = if (isSelectionMode) "매물 삭제 (${selectedIds.size})" else "매물",
         selectedTab = AppTab.Property,
+        showBottomBar = showBottomBar,
         isRefreshing = loading,
         onRefresh = onRetry,
         topTrailingAction = {

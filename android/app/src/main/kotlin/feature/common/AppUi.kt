@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +43,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
@@ -63,6 +66,44 @@ enum class AppTab(val label: String) {
 }
 
 @Composable
+fun Modifier.swipeToChangeTab(
+    currentTab: AppTab?,
+    onTabSelected: ((AppTab) -> Unit)?,
+): Modifier {
+    if (currentTab == null || onTabSelected == null) return this
+    val density = LocalDensity.current
+    return this.pointerInput(currentTab) {
+        var totalDragX = 0f
+        detectHorizontalDragGestures(
+            onDragStart = { totalDragX = 0f },
+            onDragEnd = {
+                val threshold = with(density) { 100.dp.toPx() }
+                if (totalDragX < -threshold) {
+                    val nextTab = when (currentTab) {
+                        AppTab.Home -> AppTab.Property
+                        AppTab.Property -> AppTab.Report
+                        AppTab.Report -> AppTab.Profile
+                        AppTab.Profile -> null
+                    }
+                    nextTab?.let { onTabSelected(it) }
+                } else if (totalDragX > threshold) {
+                    val prevTab = when (currentTab) {
+                        AppTab.Profile -> AppTab.Report
+                        AppTab.Report -> AppTab.Property
+                        AppTab.Property -> AppTab.Home
+                        AppTab.Home -> null
+                    }
+                    prevTab?.let { onTabSelected(it) }
+                }
+            },
+            onHorizontalDrag = { _, dragAmount ->
+                totalDragX += dragAmount
+            },
+        )
+    }
+}
+
+@Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun AppPageScaffold(
     title: String,
@@ -70,6 +111,7 @@ fun AppPageScaffold(
     scrollable: Boolean = true,
     selectedTab: AppTab? = null,
     onTabSelected: ((AppTab) -> Unit)? = null,
+    showBottomBar: Boolean = true,
     bottomAction: (@Composable () -> Unit)? = null,
     topTrailingAction: (@Composable () -> Unit)? = null,
     floatingActionButton: (@Composable () -> Unit)? = null,
@@ -82,7 +124,7 @@ fun AppPageScaffold(
         bottomBar = {
             Column {
                 bottomAction?.invoke()
-                if (selectedTab != null && onTabSelected != null) {
+                if (showBottomBar && selectedTab != null && onTabSelected != null) {
                     AppBottomNavigation(selectedTab, onTabSelected)
                 }
             }
@@ -207,6 +249,8 @@ fun AppBottomNavigation(
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Orange,
                     selectedTextColor = Orange,
+                    unselectedIconColor = Secondary,
+                    unselectedTextColor = Secondary,
                     indicatorColor = Color.Transparent,
                 ),
             )
