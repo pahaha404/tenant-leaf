@@ -325,7 +325,7 @@ fun PropertyMapOverviewScreen(
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = 20.dp, bottom = if (selectedProperty != null) 210.dp else 24.dp)
+                .padding(start = 20.dp, bottom = if (selectedProperty != null) 250.dp else 24.dp)
                 .size(56.dp)
                 .shadow(3.dp, CircleShape)
                 .background(Green, CircleShape)
@@ -346,7 +346,7 @@ fun PropertyMapOverviewScreen(
             onClick = moveToMyLocation,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = if (selectedProperty != null) 210.dp else 24.dp)
+                .padding(end = 16.dp, bottom = if (selectedProperty != null) 250.dp else 24.dp)
                 .size(46.dp),
             containerColor = Color.White,
             contentColor = DeepGreen,

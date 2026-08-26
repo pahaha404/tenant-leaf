@@ -44,6 +44,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -174,7 +175,7 @@ fun PropertyListScreen(
     }
 
     AppPageScaffold(
-        title = if (isSelectionMode) "매물 삭제 (${selectedIds.size})" else "매물",
+        title = if (isSelectionMode) "매물 삭제 (${selectedIds.size})" else "매물 목록",
         selectedTab = AppTab.Property,
         showBottomBar = showBottomBar,
         isRefreshing = loading,
@@ -258,7 +259,9 @@ fun PropertyListScreen(
     ) {
         if (isSelectionMode && properties.isNotEmpty()) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -298,8 +301,8 @@ fun PropertyListScreen(
                             selectedIds = if (isSelected) selectedIds - property.id else selectedIds + property.id
                         },
                     shape = RoundedCornerShape(18.dp),
-                    color = if (isSelected) PaleGreen else Color.White,
-                    border = if (isSelected) BorderStroke(1.5.dp, Green) else null,
+                    color = if (isSelected) Color(0xFFEDEFEF) else Color.White,
+                    border = if (isSelected) BorderStroke(1.5.dp, DeepGreen) else null,
                     shadowElevation = if (isSelected) 0.5.dp else 1.5.dp,
                 ) {
                     Row(
