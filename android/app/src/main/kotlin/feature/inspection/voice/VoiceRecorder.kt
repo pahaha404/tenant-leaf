@@ -6,10 +6,10 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
 
-data class VoiceRecordFile(val pcmFile: File, val wavFile: File, val durationMillis: Long)
+data class VoiceRecordFile(val wavFile: File, val durationMillis: Long)
 
 /**
- * MP4 녹화기가 이미 읽은 PCM을 STT 입력용 WAV로 저장한다.
+ * MP4 녹화기가 이미 읽은 PCM을 기기에서 재생할 WAV로 저장한다.
  * 이 클래스는 AudioRecord를 만들지 않으므로 영상 AAC 오디오와 마이크를 경쟁하지 않는다.
  */
 class VoiceRecorder(context: Context) {
@@ -48,12 +48,12 @@ class VoiceRecorder(context: Context) {
         if (pcm.length() == 0L) { pcm.delete(); return null }
         val wav = File(pcm.parentFile, "${pcm.nameWithoutExtension}.wav")
         writeWav(pcm, wav)
-        return VoiceRecordFile(pcm, wav, System.currentTimeMillis() - startedAt)
+        pcm.delete()
+        return VoiceRecordFile(wav, System.currentTimeMillis() - startedAt)
     }
 
     fun discard() {
         val file = stop()
-        file?.pcmFile?.delete()
         file?.wavFile?.delete()
     }
 

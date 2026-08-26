@@ -100,6 +100,7 @@ import com.seipseip.app.feature.common.AppTab
 import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SecondaryButton
 import com.seipseip.app.feature.common.StateBadge
+import com.seipseip.app.feature.inspection.voice.PropertyVoiceRecordCard
 import java.net.URL
 import java.net.HttpURLConnection
 import kotlin.math.max
@@ -300,6 +301,8 @@ fun ReportDetailScreen(
     uiModel: ReportDetailUiModel,
     onRetry: () -> Unit = {},
     onMarkObservationViewed: (String) -> Unit = {},
+    propertyId: String? = null,
+    onOpenVoiceRecord: (String) -> Unit = {},
 ) {
     var selectedObservationId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedRepresentativePhotoId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -360,6 +363,15 @@ fun ReportDetailScreen(
                 onPhotoClick = { selectedRepresentativePhotoId = it.id },
             )
             ReportDetailStatus.ERROR -> ErrorReport(uiModel)
+        }
+        if (
+            propertyId != null &&
+            uiModel.status in setOf(ReportDetailStatus.COMPLETED, ReportDetailStatus.EMPTY, ReportDetailStatus.PARTIAL)
+        ) {
+            PropertyVoiceRecordCard(
+                propertyId = propertyId,
+                onOpenSummary = onOpenVoiceRecord,
+            )
         }
     }
 }
@@ -690,7 +702,6 @@ private fun ObservationCard(observation: ReportObservationUiModel, onClick: () -
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(formatVideoOffset(observation.evidence.sourceVideoOffsetMs), color = Secondary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
             Text(observation.label, color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
-            StateBadge("AI 신뢰도 ${observation.confidencePercent}%", Orange)
             Text(observation.description, color = Secondary, fontSize = 10.sp, lineHeight = 14.sp, maxLines = 3)
             Text("근거 사진 분석", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
@@ -812,7 +823,7 @@ private fun EvidenceWithBboxes(observation: ReportObservationUiModel, modifier: 
                 )
                 if (showLabels) {
                     Text(
-                        "${box.displayLabel} ${box.confidencePercent}%${if (isSelected) " (선택됨)" else ""}",
+                        "${box.displayLabel}${if (isSelected) " (선택됨)" else ""}",
                         color = Color.White,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.ExtraBold,

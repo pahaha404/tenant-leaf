@@ -115,7 +115,7 @@ import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SectionTitle
 import com.seipseip.app.feature.common.StateBadge
 import com.seipseip.app.feature.property.location.addressWithDetail
-import com.seipseip.app.feature.inspection.voice.PropertyVoiceRecordCard
+import com.seipseip.app.feature.property.location.splitAddressForEditing
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
@@ -133,6 +133,7 @@ data class PropertyFormSubmission(
     val address: String,
     val depositAmount: String,
     val monthlyRentAmount: String,
+    val maintenanceFeeAmount: String,
 )
 
 internal fun propertyDeleteRevealOffset(cardWidthPx: Int): Float = -cardWidthPx / 4f
@@ -491,11 +492,15 @@ fun PropertyFormScreen(
     selectedAddress: String,
     initialProperty: PropertyUiModel? = null,
 ) {
+    val initialAddress = remember(initialProperty?.address) {
+        splitAddressForEditing(initialProperty?.address.orEmpty())
+    }
     var propertyName by rememberSaveable { mutableStateOf(initialProperty?.name ?: "") }
-    var address by rememberSaveable { mutableStateOf(initialProperty?.address ?: "") }
-    var addressDetail by rememberSaveable { mutableStateOf("") }
-    var deposit by rememberSaveable { mutableStateOf(initialProperty?.depositAmount?.toString() ?: "") }
-    var monthlyRent by rememberSaveable { mutableStateOf(initialProperty?.monthlyRentAmount?.toString() ?: "") }
+    var address by rememberSaveable { mutableStateOf(initialAddress.address) }
+    var addressDetail by rememberSaveable { mutableStateOf(initialAddress.detail) }
+    var deposit by rememberSaveable { mutableStateOf(wonToManwonInput(initialProperty?.depositAmount)) }
+    var monthlyRent by rememberSaveable { mutableStateOf(wonToManwonInput(initialProperty?.monthlyRentAmount)) }
+    var maintenanceFee by rememberSaveable { mutableStateOf(wonToManwonInput(initialProperty?.maintenanceFeeAmount)) }
     var housingType by remember { mutableStateOf("원룸") }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
@@ -507,13 +512,17 @@ fun PropertyFormScreen(
     val addressDetailFocus = remember { FocusRequester() }
     val depositFocus = remember { FocusRequester() }
     val monthlyRentFocus = remember { FocusRequester() }
+    val maintenanceFeeFocus = remember { FocusRequester() }
 
     LaunchedEffect(initialProperty) {
         if (initialProperty != null) {
+            val editAddress = splitAddressForEditing(initialProperty.address)
             if (propertyName.isBlank()) propertyName = initialProperty.name
-            if (address.isBlank()) address = initialProperty.address
-            if (deposit.isBlank()) deposit = initialProperty.depositAmount?.toString() ?: ""
-            if (monthlyRent.isBlank()) monthlyRent = initialProperty.monthlyRentAmount?.toString() ?: ""
+            if (address.isBlank()) address = editAddress.address
+            if (addressDetail.isBlank()) addressDetail = editAddress.detail
+            if (deposit.isBlank()) deposit = wonToManwonInput(initialProperty.depositAmount)
+            if (monthlyRent.isBlank()) monthlyRent = wonToManwonInput(initialProperty.monthlyRentAmount)
+            if (maintenanceFee.isBlank()) maintenanceFee = wonToManwonInput(initialProperty.maintenanceFeeAmount)
         }
     }
 
@@ -554,13 +563,18 @@ fun PropertyFormScreen(
                 nextFocusRequester = depositFocus,
             )
             FormTextField(
-                "보증금(원)", "예: 5000000", deposit, { deposit = it },
+                "보증금(만원)", "예: 5000", deposit, { deposit = it },
                 focusRequester = depositFocus,
                 nextFocusRequester = monthlyRentFocus,
             )
             FormTextField(
-                "월세(원)", "예: 450000", monthlyRent, { monthlyRent = it },
+                "월세(만원)", "예: 45", monthlyRent, { monthlyRent = it },
                 focusRequester = monthlyRentFocus,
+                nextFocusRequester = maintenanceFeeFocus,
+            )
+            FormTextField(
+                "관리비(만원)", "예: 8", maintenanceFee, { maintenanceFee = it },
+                focusRequester = maintenanceFeeFocus,
             )
             Text("주거 형태", color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -581,7 +595,17 @@ fun PropertyFormScreen(
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
         PrimaryButton(
             if (saving) "저장 중..." else if (isEditing) "수정 완료" else "매물 등록하기",
-            { onSaved(PropertyFormSubmission(propertyName, addressWithDetail(address, addressDetail), deposit, monthlyRent)) },
+            {
+                onSaved(
+                    PropertyFormSubmission(
+                        name = propertyName,
+                        address = addressWithDetail(address, addressDetail),
+                        depositAmount = manwonInputToWon(deposit),
+                        monthlyRentAmount = manwonInputToWon(monthlyRent),
+                        maintenanceFeeAmount = manwonInputToWon(maintenanceFee),
+                    ),
+                )
+            },
             enabled = propertyName.isNotBlank() && !saving,
         )
     }
@@ -730,7 +754,6 @@ fun PropertyDetailScreen(
     onBack: () -> Unit,
     onStartInspection: () -> Unit,
     onOpenReport: () -> Unit,
-    onOpenVoiceSummary: (String) -> Unit = {},
     onOpenBasicInfo: () -> Unit = {},
     onEditProperty: (() -> Unit)? = null,
     onDeleteProperty: (() -> Unit)? = null,
@@ -856,13 +879,6 @@ fun PropertyDetailScreen(
             accent = PaleGreen,
             onClick = onOpenReport,
         )
-
-        property?.let {
-            PropertyVoiceRecordCard(
-                propertyId = it.id,
-                onOpenSummary = onOpenVoiceSummary,
-            )
-        }
 
         // 4. Kakao Map with Pinpoint at Address (해당 주소 핀포인트 카카오 지도)
         PropertyKakaoMapCard(
@@ -1198,4 +1214,16 @@ internal fun formatWon(value: Long): String {
         }
         else -> "%,d원".format(Locale.KOREAN, value)
     }
+}
+
+internal fun wonToManwonInput(value: Long?): String = value?.let { amount ->
+    if (amount % 10_000L == 0L) (amount / 10_000L).toString()
+    else java.math.BigDecimal.valueOf(amount).movePointLeft(4).stripTrailingZeros().toPlainString()
+}.orEmpty()
+
+internal fun manwonInputToWon(value: String): String {
+    if (value.isBlank()) return ""
+    return runCatching {
+        java.math.BigDecimal(value.trim()).movePointRight(4).toBigIntegerExact().toString()
+    }.getOrElse { value }
 }

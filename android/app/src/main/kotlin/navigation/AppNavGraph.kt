@@ -428,7 +428,6 @@ fun AppNavGraph(
                 onBack = navController::popBackStack,
                 onStartInspection = { navController.navigate(Route.inspectionPrep(it)) },
                 onOpenReport = { navController.navigate(Route.Reports) },
-                onOpenVoiceSummary = { propertyId -> navController.navigate(Route.voiceSummary(propertyId)) },
                 onOpenBasicInfo = { property -> property?.id?.let { navController.navigate(Route.propertyInfo(it)) } },
                 onEditProperty = { propertyId -> navController.navigate(Route.propertyEdit(propertyId)) },
                 onTabSelected = { tab ->
@@ -660,6 +659,7 @@ fun AppNavGraph(
                 nickname = nickname,
                 onBack = navController::popBackStack,
                 onOpenProperty = { propertyId -> navController.navigate(Route.propertyDetail(propertyId)) },
+                onOpenVoiceRecord = { propertyId -> navController.navigate(Route.voiceSummary(propertyId)) },
             )
         }
         composable(Route.Profile) {

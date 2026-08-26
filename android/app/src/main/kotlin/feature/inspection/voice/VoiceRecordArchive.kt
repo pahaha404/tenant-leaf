@@ -8,14 +8,11 @@ import org.json.JSONObject
 import java.io.File
 
 /**
- * 음성 원본과 STT 결과는 서버로 보내지 않고, 매물별 최근 점검 기록만 기기 내부에 연결한다.
+ * 음성 원본은 서버로 보내지 않고, 매물별 최근 점검 기록만 기기 내부에 연결한다.
  */
 data class PropertyVoiceRecord(
     val inspectionId: String,
     val audioPath: String,
-    val transcript: String,
-    val summary: String,
-    val transcribing: Boolean,
     val savedAt: Long,
 )
 
@@ -24,7 +21,7 @@ object VoiceRecordArchive {
     private const val inspectionPropertyPrefix = "inspection_property_"
     private const val propertyRecordPrefix = "property_record_"
 
-    /** 저장 완료 뒤 매물 상세와 요약 화면이 최신 STT 결과를 다시 읽게 하는 변경 번호다. */
+    /** 저장 완료 뒤 매물 상세와 음성 기록 화면이 최신 파일을 다시 읽게 하는 변경 번호다. */
     var version by mutableIntStateOf(0)
         private set
 
@@ -40,9 +37,6 @@ object VoiceRecordArchive {
         val payload = JSONObject().apply {
             put("inspectionId", inspectionId)
             put("audioPath", audioPath)
-            put("transcript", result.transcript)
-            put("summary", result.summary)
-            put("transcribing", result.transcribing)
             put("savedAt", System.currentTimeMillis())
         }
         preferences(context).edit().putString(propertyRecordPrefix + propertyId, payload.toString()).apply()
@@ -56,9 +50,6 @@ object VoiceRecordArchive {
                 PropertyVoiceRecord(
                     inspectionId = entry.getString("inspectionId"),
                     audioPath = entry.getString("audioPath"),
-                    transcript = entry.optString("transcript"),
-                    summary = entry.optString("summary"),
-                    transcribing = entry.optBoolean("transcribing", false),
                     savedAt = entry.getLong("savedAt"),
                 )
             }

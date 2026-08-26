@@ -170,6 +170,7 @@ fun ReportApiRoute(
     nickname: String,
     onBack: () -> Unit,
     onOpenProperty: (String) -> Unit,
+    onOpenVoiceRecord: (String) -> Unit,
     viewModel: ReportApiViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -191,6 +192,8 @@ fun ReportApiRoute(
             uiModel = current.model,
             onRetry = viewModel::refresh,
             onMarkObservationViewed = viewModel::markObservationViewed,
+            propertyId = current.propertyId,
+            onOpenVoiceRecord = onOpenVoiceRecord,
         )
         is ReportApiUiState.Error -> ReportDetailScreen(
             nickname = nickname,

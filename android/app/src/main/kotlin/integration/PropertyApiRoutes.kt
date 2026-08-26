@@ -94,6 +94,7 @@ fun PropertyFormApiRoute(
                 address = state.fields.addressSummary,
                 depositAmount = state.fields.depositAmount?.toLongOrNull(),
                 monthlyRentAmount = state.fields.monthlyRentAmount?.toLongOrNull(),
+                maintenanceFeeAmount = state.fields.maintenanceFeeAmount?.toLongOrNull(),
             )
         } else null
     }
@@ -112,6 +113,7 @@ fun PropertyFormApiRoute(
                     addressSummary = input.address,
                     depositAmount = input.depositAmount,
                     monthlyRentAmount = input.monthlyRentAmount,
+                    maintenanceFeeAmount = input.maintenanceFeeAmount,
                 )
             }
             viewModel.save()
@@ -124,7 +126,6 @@ fun PropertyDetailApiRoute(
     onBack: () -> Unit,
     onStartInspection: (String) -> Unit,
     onOpenReport: () -> Unit,
-    onOpenVoiceSummary: (String) -> Unit,
     onOpenBasicInfo: (PropertyUiModel?) -> Unit,
     onEditProperty: ((String) -> Unit)? = null,
     onTabSelected: (String) -> Unit,
@@ -144,7 +145,6 @@ fun PropertyDetailApiRoute(
         onBack = onBack,
         onStartInspection = { property?.id?.let(onStartInspection) },
         onOpenReport = onOpenReport,
-        onOpenVoiceSummary = onOpenVoiceSummary,
         onOpenBasicInfo = { onOpenBasicInfo(property) },
         onEditProperty = onEditProperty?.let { edit -> { property?.id?.let(edit) } },
         onDeleteProperty = viewModel::delete,
