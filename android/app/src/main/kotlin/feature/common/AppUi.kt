@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -42,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,6 +51,7 @@ import com.seipseip.app.Border
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
+import com.seipseip.app.PageBackground
 import com.seipseip.app.PaleGreen
 import com.seipseip.app.Secondary
 
@@ -89,7 +92,7 @@ fun AppPageScaffold(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White)
+                    .background(PageBackground)
                     .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                     .imePadding()
                     .padding(horizontal = 20.dp, vertical = 12.dp),
@@ -102,12 +105,21 @@ fun AppPageScaffold(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.ArrowBack,
-                                contentDescription = "뒤로",
-                                modifier = Modifier.clickable(onClick = onBack),
-                                tint = Green,
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .shadow(1.dp, CircleShape)
+                                    .background(Color.White, CircleShape)
+                                    .clickable(onClick = onBack)
+                                    .padding(8.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ArrowBack,
+                                    contentDescription = "뒤로",
+                                    tint = DeepGreen,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
                             Text(
                                 text = title,
                                 modifier = Modifier.padding(start = 12.dp),
@@ -173,7 +185,7 @@ fun AppBottomNavigation(
     onTabSelected: (AppTab) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    NavigationBar(modifier = modifier, containerColor = Color.White) {
+    NavigationBar(modifier = modifier.shadow(3.dp), containerColor = Color.White) {
         AppTab.entries.forEach { tab ->
             NavigationBarItem(
                 selected = tab == selectedTab,

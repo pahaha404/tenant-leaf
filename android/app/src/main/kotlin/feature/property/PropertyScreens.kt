@@ -1146,6 +1146,7 @@ private fun PropertyCard(property: PropertyUiModel, selected: Boolean = false, o
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = if (selected) PaleGreen else Color.White),
         shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (selected) 0.5.dp else 1.5.dp),
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),

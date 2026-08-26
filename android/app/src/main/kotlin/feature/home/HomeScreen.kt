@@ -18,6 +18,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -71,10 +73,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.seipseip.app.Border
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
@@ -173,8 +178,8 @@ fun TenantLeafHomeLayout(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(scrollState)
-                .padding(start = 20.dp, top = 18.dp, end = 20.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(13.dp),
+                .padding(start = 20.dp, top = 36.dp, end = 20.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             HomeHeader(processing)
             GlassStatusCard(glassState, onGlassClick)
@@ -189,13 +194,23 @@ fun TenantLeafHomeLayout(
 
 @Composable
 private fun HomeHeader(processing: Boolean) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(if (processing) "리포트를 정리 중이에요" else "오늘도 안심되는 자취", color = Secondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(if (processing) "리포트를 정리 중이에요" else "오늘도 안심되는 자취", color = Secondary, fontSize = 14.3.sp, fontWeight = FontWeight.Bold)
             Text(if (processing) "잠시만 기다려 주세요" else "세입세잎", color = DeepGreen, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold)
         }
-        Box(modifier = Modifier.size(42.dp).clip(RoundedCornerShape(14.dp)).background(PaleGreen), contentAlignment = Alignment.Center) {
-            Icon(Icons.Outlined.NotificationsNone, null, tint = Green, modifier = Modifier.size(21.dp))
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .shadow(1.5.dp, CircleShape)
+                .background(Color.White, CircleShape)
+                .clip(CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.Outlined.NotificationsNone, "알림", tint = DeepGreen, modifier = Modifier.size(22.dp))
         }
     }
 }
@@ -986,6 +1001,10 @@ private fun StartInspectionCard(onClick: () -> Unit) = HomeHeroCard(
     background = StartInspectionOrange,
     contentColor = Color.White,
     iconBackground = Color.White.copy(alpha = .18f),
+    verticalPadding = 24.dp,
+    iconBoxSize = 44.dp,
+    iconSize = 24.dp,
+    titleFontSize = 17.sp,
 )
 
 @Composable
@@ -1005,20 +1024,25 @@ private fun HomeHeroCard(
     background: Color = PaleGreen,
     contentColor: Color = DeepGreen,
     iconBackground: Color = Color.White,
+    verticalPadding: Dp = 9.dp,
+    iconBoxSize: Dp = 38.dp,
+    iconSize: Dp = 20.dp,
+    titleFontSize: TextUnit = 14.5.sp,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(15.dp))
-            .background(background)
+            .shadow(1.5.dp, RoundedCornerShape(18.dp))
+            .background(background, RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(18.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 9.dp),
+            .padding(horizontal = 16.dp, vertical = verticalPadding),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
             modifier = Modifier
-                .size(38.dp)
-                .clip(RoundedCornerShape(11.dp))
+                .size(iconBoxSize)
+                .clip(RoundedCornerShape(12.dp))
                 .background(iconBackground),
             contentAlignment = Alignment.Center,
         ) {
@@ -1026,10 +1050,10 @@ private fun HomeHeroCard(
                 imageVector = icon,
                 contentDescription = null,
                 tint = if (contentColor == Color.White) Color.White else Orange,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(iconSize),
             )
         }
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(14.dp))
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -1037,14 +1061,14 @@ private fun HomeHeroCard(
             Text(
                 text = title,
                 color = contentColor,
-                fontSize = 14.5.sp,
+                fontSize = titleFontSize,
                 fontWeight = FontWeight.ExtraBold,
             )
             if (description.isNotBlank()) {
                 Text(
                     text = description,
                     color = if (contentColor == Color.White) Color.White.copy(alpha = .85f) else Secondary,
-                    fontSize = 11.sp,
+                    fontSize = 14.3.sp,
                 )
             }
         }
@@ -1052,7 +1076,7 @@ private fun HomeHeroCard(
             imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
             contentDescription = null,
             tint = if (contentColor == Color.White) Color.White else Green,
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(20.dp),
         )
     }
 }
@@ -1065,11 +1089,24 @@ private fun RecentReportCard(
     recentReportDate: String?,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Color.White).clickable(onClick = onClick).padding(15.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(1.5.dp, RoundedCornerShape(18.dp))
+            .background(Color.White, RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .padding(15.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(modifier = Modifier.size(41.dp).clip(RoundedCornerShape(13.dp)).background(PaleOrange), contentAlignment = Alignment.Center) {
-            Icon(Icons.AutoMirrored.Outlined.Article, null, tint = Orange, modifier = Modifier.size(21.dp))
+        Box(
+            modifier = Modifier
+                .size(41.dp)
+                .clip(RoundedCornerShape(13.dp))
+                .background(Color.White)
+                .border(1.dp, Border, RoundedCornerShape(13.dp)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.AutoMirrored.Outlined.Article, null, tint = Green, modifier = Modifier.size(21.dp))
         }
         Spacer(Modifier.width(11.dp))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -1079,7 +1116,7 @@ private fun RecentReportCard(
                 else if (recentReportTitle != null && recentReportDate != null) "$recentReportTitle · $recentReportDate 점검"
                 else "아직 점검 리포트가 없어요",
                 color = Secondary,
-                fontSize = 10.sp,
+                fontSize = 13.sp,
             )
         }
         Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, tint = Green, modifier = Modifier.size(18.dp))
@@ -1088,9 +1125,9 @@ private fun RecentReportCard(
 
 @Composable
 private fun HomeQuickActions(onAddProperty: () -> Unit, onOpenChecklist: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        QuickAction(Modifier.weight(1f), Icons.Outlined.AddHome, "매물 등록하기", "", PaleGreen, onAddProperty)
-        QuickAction(Modifier.weight(1f), Icons.Outlined.Checklist, "체크리스트 확인", "", PaleOrange, onOpenChecklist)
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        QuickAction(Modifier.weight(1f), Icons.Outlined.AddHome, "매물 등록하기", "", Color.White, onAddProperty)
+        QuickAction(Modifier.weight(1f), Icons.Outlined.Checklist, "체크리스트 확인", "", Color.White, onOpenChecklist)
     }
 }
 
@@ -1106,8 +1143,9 @@ private fun QuickAction(
     Column(
         modifier = modifier
             .height(142.dp)
+            .shadow(1.5.dp, RoundedCornerShape(24.dp))
+            .background(background, RoundedCornerShape(24.dp))
             .clip(RoundedCornerShape(24.dp))
-            .background(background)
             .clickable(onClick = onClick)
             .padding(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -1115,7 +1153,7 @@ private fun QuickAction(
     ) {
         Icon(icon, null, tint = Green, modifier = Modifier.size(31.dp))
         Spacer(Modifier.height(8.dp))
-        Text(title, color = Green, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        Text(title, color = DeepGreen, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         Spacer(Modifier.height(5.dp))
         if (description.isNotBlank()) {
             Text(description, color = Secondary, fontSize = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
@@ -1130,7 +1168,12 @@ private fun InspectionTipCard() {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth()) { page ->
             Row(
-                modifier = Modifier.fillMaxWidth().height(78.dp).clip(RoundedCornerShape(16.dp)).background(PaleOrange).padding(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(78.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFFF2F3F5))
+                    .padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(modifier = Modifier.size(36.dp).clip(RoundedCornerShape(12.dp)).background(Color.White), contentAlignment = Alignment.Center) {
@@ -1141,15 +1184,15 @@ private fun InspectionTipCard() {
                     Text(
                         "오늘의 점검 팁",
                         color = Orange,
-                        fontSize = 10.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 13.sp,
+                        lineHeight = 16.sp,
                         fontWeight = FontWeight.ExtraBold,
                     )
                     Text(
                         InspectionTips[page],
                         color = DeepGreen,
-                        fontSize = 10.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 13.sp,
+                        lineHeight = 17.sp,
                         maxLines = 1,
                     )
                 }
