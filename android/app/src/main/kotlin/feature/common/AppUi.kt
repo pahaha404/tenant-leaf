@@ -21,6 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Article
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
@@ -39,11 +41,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.shadow
@@ -66,47 +74,10 @@ enum class AppTab(val label: String) {
 }
 
 @Composable
-fun Modifier.swipeToChangeTab(
-    currentTab: AppTab?,
-    onTabSelected: ((AppTab) -> Unit)?,
-): Modifier {
-    if (currentTab == null || onTabSelected == null) return this
-    val density = LocalDensity.current
-    return this.pointerInput(currentTab) {
-        var totalDragX = 0f
-        detectHorizontalDragGestures(
-            onDragStart = { totalDragX = 0f },
-            onDragEnd = {
-                val threshold = with(density) { 100.dp.toPx() }
-                if (totalDragX < -threshold) {
-                    val nextTab = when (currentTab) {
-                        AppTab.Home -> AppTab.Property
-                        AppTab.Property -> AppTab.Report
-                        AppTab.Report -> AppTab.Profile
-                        AppTab.Profile -> null
-                    }
-                    nextTab?.let { onTabSelected(it) }
-                } else if (totalDragX > threshold) {
-                    val prevTab = when (currentTab) {
-                        AppTab.Profile -> AppTab.Report
-                        AppTab.Report -> AppTab.Property
-                        AppTab.Property -> AppTab.Home
-                        AppTab.Home -> null
-                    }
-                    prevTab?.let { onTabSelected(it) }
-                }
-            },
-            onHorizontalDrag = { _, dragAmount ->
-                totalDragX += dragAmount
-            },
-        )
-    }
-}
-
-@Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun AppPageScaffold(
     title: String,
+    titleContent: (@Composable () -> Unit)? = null,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     scrollable: Boolean = true,
@@ -141,62 +112,34 @@ fun AppPageScaffold(
                     .imePadding()
                     .padding(
                         start = 20.dp,
-                        top = if (onBack == null) 36.dp else 12.dp,
+                        top = 36.dp,
                         end = 20.dp,
                         bottom = 12.dp,
                     ),
-                verticalArrangement = Arrangement.spacedBy(if (onBack == null) 16.dp else 10.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                if (onBack != null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 0.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .shadow(1.dp, CircleShape)
-                                    .background(Color.White, CircleShape)
-                                    .clickable(onClick = onBack)
-                                    .padding(8.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.ArrowBack,
-                                    contentDescription = "뒤로",
-                                    tint = DeepGreen,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                            }
+                        if (subtitle != null) {
                             Text(
-                                text = title,
-                                modifier = Modifier.padding(start = 12.dp),
-                                color = DeepGreen,
+                                text = subtitle,
+                                color = Secondary,
+                                fontSize = 14.3.sp,
                                 fontWeight = FontWeight.Bold,
                             )
+                        } else if (onBack == null && titleContent == null) {
+                            Spacer(modifier = Modifier.height(18.dp))
                         }
-                        topTrailingAction?.invoke()
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(3.dp),
-                        ) {
-                            if (subtitle != null) {
-                                Text(
-                                    text = subtitle,
-                                    color = Secondary,
-                                    fontSize = 14.3.sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                            } else {
-                                Spacer(modifier = Modifier.height(18.dp))
-                            }
+                        if (titleContent != null) {
+                            titleContent()
+                        } else {
                             Text(
                                 text = title,
                                 color = DeepGreen,
@@ -204,8 +147,8 @@ fun AppPageScaffold(
                                 fontWeight = FontWeight.ExtraBold,
                             )
                         }
-                        topTrailingAction?.invoke()
                     }
+                    topTrailingAction?.invoke()
                 }
                 content()
             }
@@ -237,6 +180,27 @@ fun AppPageScaffold(
                 }
             } else {
                 pageContent()
+            }
+
+            if (onBack != null) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(start = 20.dp, bottom = 20.dp)
+                        .size(56.dp)
+                        .shadow(3.dp, CircleShape)
+                        .background(Green, CircleShape)
+                        .clip(CircleShape)
+                        .clickable(onClick = onBack),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                        contentDescription = "뒤로가기",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
             }
         }
     }
@@ -288,7 +252,7 @@ fun PrimaryButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(50.dp),
+        modifier = modifier.fillMaxWidth().height(50.dp).shadow(1.5.dp, RoundedCornerShape(12.dp)),
         enabled = enabled,
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
@@ -307,7 +271,7 @@ fun SecondaryButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(50.dp),
+        modifier = Modifier.fillMaxWidth().height(50.dp).shadow(1.5.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.White,
@@ -331,7 +295,8 @@ fun InfoCard(
             if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
         ),
         colors = CardDefaults.cardColors(containerColor = accent),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.5.dp),
     ) {
         Column(
             modifier = Modifier.padding(13.dp),

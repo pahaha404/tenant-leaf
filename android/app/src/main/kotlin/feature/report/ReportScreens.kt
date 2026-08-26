@@ -71,6 +71,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -233,7 +234,13 @@ fun ReportListScreen(
             )
         },
     ) {
-        Text("어느 매물의 리포트를 볼까요?", color = Green, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+        Text(
+            text = "어느 매물의 리포트를 볼까요?",
+            color = Green,
+            fontSize = 16.5.sp,
+            fontWeight = FontWeight.ExtraBold,
+            modifier = Modifier.offset(y = (-5).dp),
+        )
         StateBadge("완료 리포트 ${completedReportCount}개", Green)
         when {
             loading -> Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), contentAlignment = Alignment.Center) {
@@ -271,25 +278,74 @@ private fun ReportPropertyCard(item: ReportListItemUiModel, selected: Boolean, o
         ReportListStatus.NONE -> Secondary
         else -> Green
     }
-    Card(
-        modifier = Modifier.fillMaxWidth().height(78.dp).clickable(enabled = available, onClick = onClick),
-        shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(containerColor = if (selected) PaleGreen else Color.White),
-        border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) Green else Border),
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(if (selected) 0.5.dp else 1.5.dp, RoundedCornerShape(18.dp))
+            .clickable(enabled = available, onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
+        color = if (selected) Color(0xFFEDEFEF) else Color.White,
+        border = if (selected) BorderStroke(1.5.dp, DeepGreen) else null,
+        shadowElevation = if (selected) 0.5.dp else 1.5.dp,
     ) {
-        Row(Modifier.fillMaxSize().padding(horizontal = 11.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(42.dp).background(PaleGreen, RoundedCornerShape(13.dp)), contentAlignment = Alignment.Center) {
-                Icon(if (available) Icons.Outlined.Home else Icons.Outlined.RealEstateAgent, null, tint = Green, modifier = Modifier.size(21.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 15.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(13.dp))
+                    .background(PaleGreen),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = if (available) Icons.Outlined.Home else Icons.Outlined.RealEstateAgent,
+                    contentDescription = null,
+                    tint = Green,
+                    modifier = Modifier.size(22.dp),
+                )
             }
-            Spacer(Modifier.width(10.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Row(Modifier.fillMaxWidth()) {
-                    Text(item.propertyName, color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+            Spacer(Modifier.width(12.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(1.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = item.propertyName,
+                        color = DeepGreen,
+                        fontSize = 14.5.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
                     Spacer(Modifier.weight(1f))
-                    Text(statusLabel, color = statusColor, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(
+                        text = statusLabel,
+                        color = statusColor,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
                 }
-                Text(item.address, color = Secondary, fontSize = 10.sp)
-                Text(item.detail, color = Secondary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = item.address,
+                    color = Secondary,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (item.detail.isNotBlank()) {
+                    Text(
+                        text = item.detail,
+                        color = Secondary,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
     }

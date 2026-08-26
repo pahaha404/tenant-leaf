@@ -90,7 +90,6 @@ import com.seipseip.app.R
 import com.seipseip.app.Secondary
 import com.seipseip.app.feature.common.AppTab
 import com.seipseip.app.feature.common.AppBottomNavigation
-import com.seipseip.app.feature.common.swipeToChangeTab
 
 private val HomeBackground = Color.White
 private val StartInspectionOrange = Color(0xFFF28A3A)
@@ -206,7 +205,7 @@ private fun HomeHeader(processing: Boolean, onNotificationClick: () -> Unit = {}
     val context = LocalContext.current
     Row(
         modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Bottom,
     ) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
             Text(if (processing) "리포트를 정리 중이에요" else "오늘도 안심되는 자취", color = Secondary, fontSize = 14.3.sp, fontWeight = FontWeight.Bold)
