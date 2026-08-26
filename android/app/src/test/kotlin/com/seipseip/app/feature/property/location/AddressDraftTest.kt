@@ -28,6 +28,26 @@ class AddressDraftTest {
     }
 
     @Test
+    fun splitAddressForEditing_restoresBuildingAndUnitDetail() {
+        assertEquals(
+            EditableAddress("가상시 새주소 1", "101동 202호"),
+            splitAddressForEditing("가상시 새주소 1 101동 202호"),
+        )
+        assertEquals(
+            EditableAddress("가상시 새주소 1", "202호"),
+            splitAddressForEditing("가상시 새주소 1 202호"),
+        )
+    }
+
+    @Test
+    fun splitAddressForEditing_doesNotTreatLegalDongNameAsDetail() {
+        assertEquals(
+            EditableAddress("서울시 마포구 망원동", ""),
+            splitAddressForEditing("서울시 마포구 망원동"),
+        )
+    }
+
+    @Test
     fun preferredLocationProvider_usesGpsForPrecisePermission() {
         assertEquals("gps", preferredLocationProvider(precise = true, gpsEnabled = true, networkEnabled = true))
         assertEquals("network", preferredLocationProvider(precise = false, gpsEnabled = true, networkEnabled = true))
