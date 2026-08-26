@@ -25,6 +25,8 @@
 
 ## 진행 기록
 
+- 2026-08-26 — 점검 음성 기록에서 Android STT 변환·재시도·원문/요약 UI를 제거하고, 로컬 WAV 재생/일시정지·탐색 슬라이더·현재/전체 시간 표시를 종료 확인·매물 상세·음성 기록 화면에 공통 적용함. 재생 시간 포맷 단위 테스트를 추가하고 정적 검사를 통과했으나, 현재 브랜치의 신규 Android Gradle Plugin `9.3.2`가 로컬 캐시에 없어 오프라인 빌드·단위 테스트·실기기 검증은 미완료 상태다.
+
 - 2026-08-26 — 하단 내비게이션 바(`AppBottomNavigation`, `NavigationBarItem`) 포커싱 스타일 수정. 선택 시 표시되던 보라색 배경 인디케이터를 제거(`indicatorColor = Color.Transparent`)하고, 포커싱된 탭의 아이콘과 텍스트 라벨 색상을 주황색(`Orange`)으로 변경함.
 
 - 2026-08-25 — 모바일 데이터 임시 시연용 Cloudflare Quick Tunnel 시작·종료 및 Android APK 생성 스크립트를 추가했다. 외부 HTTPS API·MinIO health 응답과 `judge-a` APK의 외부 API 주소 포함 빌드는 확인했으나, 실제 휴대전화에서 Wi-Fi를 끄고 모바일 데이터만 사용하는 종단 간 임장·JPEG 업로드·리포트는 아직 미검증이다.
