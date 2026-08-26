@@ -29,6 +29,12 @@
 
 - 2026-08-25 — 점검 리포트에 촬영 순서 기반 대표 사진 가로 목록과 전체 화면 좌우 넘김 뷰어를 추가했다. 확인 필요 관찰은 불확실한 AI 구역명으로 묶지 않고 근거 사진의 영상 시점 순으로 표시하며, 서버 진행 수치가 한 번에 증가해도 화면에서는 사진 단위로 순차 반영하도록 보완했다. 구현과 정적 검사는 완료했으나 Kotlin `2.3.21`·Android Gradle Plugin `9.3.2` 의존성을 오프라인 환경에서 해석하지 못해 Android 빌드·단위 테스트·실기기 검증은 미완료 상태다.
 
+- 2026-08-25 — `InspectionCountdownScreen`에서 기존 `3초 뒤 촬영이 시작됩니다` 안내 후 신발장 곰팡이·습기·천장/벽지 하자·주방 누수/배수·화장실 누수/곰팡이·창틀 결로/방충망 체크리스트를 이어서 TTS 발화하도록 구현함. 화면의 `3→2→1` 카운트다운은 유지하되 숫자는 발화하지 않고, Android TTS 무음 큐를 사용해 각 안내 문장 사이에 2초 간격을 적용함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과했으며 실기기 TTS 발화 순서·간격·음량은 미검증임.
+
+- 2026-08-25 — `MainActivity`의 앱 시작 시 주변 기기 권한 자동 요청을 제거하고 `Permissions` 화면 진입 시 `BLUETOOTH_SCAN`·`BLUETOOTH_CONNECT`를 포함한 미허용 권한만 요청하도록 수정함. `MediaUploadApiRoute`도 분석 화면 진입 시 Android 13 이상의 사진·동영상 권한과 Android 14의 `READ_MEDIA_VISUAL_USER_SELECTED`를 처리하며, 콜백 맵 대신 실제 승인 상태를 재확인하도록 보완함. SDK별 회귀 테스트를 추가했고 `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과함. 실기기 시스템 권한 팝업 위치는 미검증임.
+
+- 2026-08-25 — 신규 사용자의 3단 온보딩을 로그인 화면보다 먼저 표시하도록 시작 라우팅을 `Welcome → Login → Consent` 순서로 변경함. 온보딩 완료 상태는 저장해 재실행 시 건너뛰고, 로그인 성공 후에는 동의 화면으로 이동하도록 `initialRouteFor` 회귀 테스트를 보강함. 실기기 화면 흐름은 미검증임.
+
 - 2026-08-25 — 실시간 점검의 `점검 나가기 (취소)` 간헐적 무반응을 수정함. 초기 임장 조회 완료 전에도 취소 요청을 허용하고, 취소 성공 후에만 음성 녹음을 폐기하며, 처리 중 중복 입력 잠금·취소 오류 표시를 추가함. `:feature:inspection:testDebugUnitTest`, `:app:compileDebugKotlin` 통과.
 - 2026-08-25 — 홈 화면(`HomeScreen`) 레이아웃을 `Scaffold` 구조로 리팩터링하여 세로 스크롤 먹통 현상 해결. 기존 `Box` + `align(BottomCenter)` 하단바 오버레이 구조에서 발생하던 스크롤 제스처 충돌 및 뷰포트 측정 오류를 `Scaffold(bottomBar = { AppBottomNavigation(...) })`와 `padding(innerPadding)` 기반의 독립 스크롤 컨테이너로 정돈하여 상하단 부드러운 스크롤을 복구함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-25 — 점검할 매물 선택 화면(`PropertySelectScreen`) 상단 여백 및 제목·소제목 레이아웃 정돈. 상단바와의 시각적 간격을 위해 상단 패딩(`top = 12.dp`)을 추가하고, "어느 매물을 점검할까요?" 제목과 "점검 기록은 선택한 매물에 저장돼요." 소제목을 하나의 그룹(`Column`, `spacedBy(4.dp)`)으로 묶어 전체적인 위치를 하단으로 자연스럽게 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).

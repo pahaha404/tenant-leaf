@@ -15,6 +15,10 @@ class AppNavGraphTest {
             initialRouteFor(isLoggedIn = false, isTutorialCompleted = false, isOnboardingCompleted = true),
         )
         assertEquals(
+            Route.Welcome,
+            initialRouteFor(isLoggedIn = true, isTutorialCompleted = false, isOnboardingCompleted = false),
+        )
+        assertEquals(
             Route.Consent,
             initialRouteFor(isLoggedIn = true, isTutorialCompleted = false, isOnboardingCompleted = true),
         )
