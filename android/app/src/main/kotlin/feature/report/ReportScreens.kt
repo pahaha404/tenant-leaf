@@ -1,6 +1,7 @@
 package com.seipseip.app.feature.report
 
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
@@ -100,12 +101,13 @@ import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SecondaryButton
 import com.seipseip.app.feature.common.StateBadge
 import java.net.URL
+import java.net.HttpURLConnection
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private val ReportBackground = Color(0xFFFCFBF8)
+private val ReportBackground = Color.White
 private val SuccessGreen = Color(0xFF28B264)
 private val MutedGreen = Color(0xFF73877B)
 private val DarkViewer = Color(0xFF0C2B1D)
@@ -217,7 +219,7 @@ fun ReportListScreen(
         bottomAction = {
             Box(Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
                 PrimaryButton(
-                    "선택한 매물 리포트 확인하기",
+                    "리포트 확인하기",
                     onClick = { selectedReport?.inspectionId?.let(onOpenReport) },
                     enabled = selectedReport?.inspectionId != null,
                 )
@@ -235,7 +237,6 @@ fun ReportListScreen(
         },
     ) {
         Text("어느 매물의 리포트를 볼까요?", color = Green, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
-        Text("점검을 마친 매물을 선택하면 결과를 확인할 수 있어요.", color = Secondary, fontSize = 12.sp)
         StateBadge("완료 리포트 ${completedReportCount}개", Green)
         when {
             loading -> Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), contentAlignment = Alignment.Center) {
@@ -468,7 +469,6 @@ private fun EmptyReport(
     RepresentativePhotoGallery(uiModel.representativePhotos, onPhotoClick)
     ReportSummaryCard(uiModel, "확인 필요 관찰이 생성되지 않았어요")
     ReportMetrics(uiModel)
-    InfoNotice("이 결과는 하자가 없음을 보장하지 않아요. 촬영되지 않은 부분과 작은 흔적은 직접 확인해 주세요.", PaleOrange, Orange)
 }
 
 @Composable
@@ -493,11 +493,6 @@ private fun ReportSummaryCard(uiModel: ReportDetailUiModel, title: String) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text("리포트 요약", color = Green, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
             Text(title, color = DeepGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-            Text(
-                if (uiModel.scoreIsProvisional) "일부 사진 분석 실패로 현재 점수는 잠정값이에요."
-                else "참고 점수는 확인 필요 관찰 1건당 5점씩 차감해 계산해요.",
-                color = Secondary, fontSize = 9.sp, lineHeight = 13.sp,
-            )
         }
         Column(horizontalAlignment = Alignment.End) {
             Text("${uiModel.referenceScore}", color = Green, fontSize = 30.sp, fontWeight = FontWeight.Black)
@@ -509,8 +504,8 @@ private fun ReportSummaryCard(uiModel: ReportDetailUiModel, title: String) {
 @Composable
 private fun ReportMetrics(uiModel: ReportDetailUiModel) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        ReportMetric(uiModel.observations.size.toString(), "확인 필요\n관찰", PaleOrange, Orange, Modifier.weight(1f))
         ReportMetric(uiModel.completedPhotoCount.toString(), "분석 완료\n사진", PaleGreen, Green, Modifier.weight(1f))
+        ReportMetric(uiModel.observations.size.toString(), "확인 필요\n관찰", PaleOrange, Orange, Modifier.weight(1f))
         ReportMetric(uiModel.failedPhotoCount.toString(), "분석 실패\n사진", Color.White, if (uiModel.failedPhotoCount > 0) Orange else DeepGreen, Modifier.weight(1f))
     }
 }
@@ -525,8 +520,6 @@ private fun RepresentativePhotoGallery(
         if (photo.zoneUncertain) "공간 확인 필요" else photo.zoneLabel
     }.toSortedMap(compareBy<String> { representativeZoneOrder(it) }.thenBy { it })
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("촬영 공간 다시 보기", color = DeepGreen, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
-        Text("Gemini가 분류한 공간별 대표 사진이에요. 사진을 누르면 크게 보고 옆으로 넘길 수 있어요.", color = Secondary, fontSize = 11.sp, lineHeight = 16.sp)
         groupedPhotos.forEach { (zoneLabel, zonePhotos) ->
             Text(
                 if (zoneLabel == "공간 확인 필요") zoneLabel else "$zoneLabel 대표 사진",
@@ -640,10 +633,7 @@ private fun RepresentativePhotoImage(
     val remoteBitmap by produceState<ImageBitmap?>(initialValue = null, key1 = photo.imageUrl) {
         value = photo.imageUrl?.let { signedUrl ->
             withContext(Dispatchers.IO) {
-                runCatching {
-                    URL(signedUrl).openConnection().apply { connectTimeout = 8_000; readTimeout = 8_000 }
-                        .getInputStream().use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
-                }.getOrNull()
+                loadRemoteReportImage(signedUrl)
             }
         }
     }
@@ -845,10 +835,7 @@ private fun EvidenceImage(observation: ReportObservationUiModel, modifier: Modif
     val remoteBitmap by produceState<ImageBitmap?>(initialValue = null, key1 = observation.evidence.imageUrl) {
         value = observation.evidence.imageUrl?.let { signedUrl ->
             withContext(Dispatchers.IO) {
-                runCatching {
-                    URL(signedUrl).openConnection().apply { connectTimeout = 8_000; readTimeout = 8_000 }
-                        .getInputStream().use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
-                }.getOrNull()
+                loadRemoteReportImage(signedUrl)
             }
         }
     }
@@ -868,6 +855,35 @@ private fun EvidenceImage(observation: ReportObservationUiModel, modifier: Modif
             }
         }
     }
+}
+
+private fun loadRemoteReportImage(signedUrl: String): ImageBitmap? {
+    repeat(2) { attempt ->
+        runCatching {
+            val connection = (URL(signedUrl).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 12_000
+                readTimeout = 12_000
+                instanceFollowRedirects = true
+                setRequestProperty("User-Agent", "TenantLeaf-Android/1.0")
+            }
+            try {
+                val responseCode = connection.responseCode
+                check(responseCode in 200..299) { "image request returned HTTP $responseCode" }
+                connection.inputStream.use { input ->
+                    requireNotNull(BitmapFactory.decodeStream(input)) { "image decoder returned null" }.asImageBitmap()
+                }
+            } finally {
+                connection.disconnect()
+            }
+        }.onSuccess { return it }
+            .onFailure { error ->
+                Log.w(
+                    "ReportImage",
+                    "Report image attempt ${attempt + 1} failed from ${signedUrl.substringBefore('?')}: ${error.message}",
+                )
+            }
+    }
+    return null
 }
 
 @Composable

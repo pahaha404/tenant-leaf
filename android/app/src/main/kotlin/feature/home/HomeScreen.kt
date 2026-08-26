@@ -85,7 +85,7 @@ import com.seipseip.app.Secondary
 import com.seipseip.app.feature.common.AppTab
 import com.seipseip.app.feature.common.AppBottomNavigation
 
-private val HomeBackground = Color(0xFFF6F4EF)
+private val HomeBackground = Color.White
 private val StartInspectionOrange = Color(0xFFF28A3A)
 private val InspectionTips = listOf(
     "싱크대 아래 휴지로 누수를 확인해요.",
@@ -981,7 +981,7 @@ private fun CyberRayBanCanvas(
 private fun StartInspectionCard(onClick: () -> Unit) = HomeHeroCard(
     icon = Icons.Outlined.PlayArrow,
     title = "점검 시작하기",
-    description = "등록한 매물을 고르고 바로 시작해요",
+    description = "",
     onClick = onClick,
     background = StartInspectionOrange,
     contentColor = Color.White,
@@ -1040,11 +1040,13 @@ private fun HomeHeroCard(
                 fontSize = 14.5.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
-            Text(
-                text = description,
-                color = if (contentColor == Color.White) Color.White.copy(alpha = .85f) else Secondary,
-                fontSize = 11.sp,
-            )
+            if (description.isNotBlank()) {
+                Text(
+                    text = description,
+                    color = if (contentColor == Color.White) Color.White.copy(alpha = .85f) else Secondary,
+                    fontSize = 11.sp,
+                )
+            }
         }
         Icon(
             imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
@@ -1052,41 +1054,6 @@ private fun HomeHeroCard(
             tint = if (contentColor == Color.White) Color.White else Green,
             modifier = Modifier.size(18.dp),
         )
-    }
-}
-
-@Composable
-private fun HomeQuickActions(onAddProperty: () -> Unit, onOpenChecklist: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        QuickAction(Modifier.weight(1f), Icons.Outlined.AddHome, "매물 등록하기", "직접 정보 입력", PaleGreen, onAddProperty)
-        QuickAction(Modifier.weight(1f), Icons.Outlined.Checklist, "체크리스트 확인", "방문 전 미리 보기", PaleOrange, onOpenChecklist)
-    }
-}
-
-@Composable
-private fun QuickAction(
-    modifier: Modifier,
-    icon: ImageVector,
-    title: String,
-    description: String,
-    background: Color,
-    onClick: () -> Unit,
-) {
-    Column(
-        modifier = modifier
-            .height(142.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(background)
-            .clickable(onClick = onClick)
-            .padding(14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Icon(icon, null, tint = Green, modifier = Modifier.size(31.dp))
-        Spacer(Modifier.height(8.dp))
-        Text(title, color = Green, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-        Spacer(Modifier.height(5.dp))
-        Text(description, color = Secondary, fontSize = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }
 
@@ -1116,6 +1083,43 @@ private fun RecentReportCard(
             )
         }
         Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, tint = Green, modifier = Modifier.size(18.dp))
+    }
+}
+
+@Composable
+private fun HomeQuickActions(onAddProperty: () -> Unit, onOpenChecklist: () -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        QuickAction(Modifier.weight(1f), Icons.Outlined.AddHome, "매물 등록하기", "", PaleGreen, onAddProperty)
+        QuickAction(Modifier.weight(1f), Icons.Outlined.Checklist, "체크리스트 확인", "", PaleOrange, onOpenChecklist)
+    }
+}
+
+@Composable
+private fun QuickAction(
+    modifier: Modifier,
+    icon: ImageVector,
+    title: String,
+    description: String,
+    background: Color,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .height(142.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(background)
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Icon(icon, null, tint = Green, modifier = Modifier.size(31.dp))
+        Spacer(Modifier.height(8.dp))
+        Text(title, color = Green, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        Spacer(Modifier.height(5.dp))
+        if (description.isNotBlank()) {
+            Text(description, color = Secondary, fontSize = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        }
     }
 }
 
@@ -1213,7 +1217,7 @@ private fun HomeTab(icon: ImageVector, label: String, selected: Boolean, onClick
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFF6F4EF)
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 private fun CyberGlassStatusCardPreview() {
     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

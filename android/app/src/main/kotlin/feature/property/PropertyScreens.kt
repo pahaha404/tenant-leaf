@@ -18,9 +18,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.*
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.material3.Card
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
@@ -72,6 +80,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -97,6 +106,7 @@ import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
 import com.seipseip.app.PaleGreen
+import com.seipseip.app.R
 import com.seipseip.app.Secondary
 import com.seipseip.app.feature.common.AppPageScaffold
 import com.seipseip.app.feature.common.AppTab
@@ -527,7 +537,6 @@ fun PropertyFormScreen(
                 fontWeight = FontWeight.ExtraBold,
             )
         }
-        Text("기본 정보는 리포트 제목과 증거 정리에 사용돼요.", color = Secondary, fontSize = 13.sp)
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             FormTextField(
                 "매물 이름", "예: 연남동 햇살 원룸", propertyName, { propertyName = it },
@@ -568,14 +577,6 @@ fun PropertyFormScreen(
                 Spacer(Modifier.weight(1f))
                 Text("⌄", color = Secondary, fontSize = 18.sp)
             }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color(0xFFFFF0E4)).padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("✦", color = Orange, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.width(9.dp))
-            Text("점검 중 놓치기 쉬운 흔적은 AI가 함께 관찰해요.", color = Color(0xFF78472C), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
         }
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
         PrimaryButton(
@@ -1069,24 +1070,30 @@ fun PropertySelectScreen(
     AppPageScaffold(
         title = "점검할 매물 선택",
         onBack = onBack,
-        bottomAction = {
-            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
-                PrimaryButton(
-                    label = "선택한 매물로 계속하기",
-                    onClick = { selectedId?.let(onSelected) },
-                    enabled = selectedId != null,
-                )
+        bottomAction = if (!loading) {
+            {
+                Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
+                    PrimaryButton(
+                        label = "선택한 매물로 계속하기",
+                        onClick = { selectedId?.let(onSelected) },
+                        enabled = selectedId != null,
+                    )
+                }
             }
+        } else {
+            null
         },
     ) {
-        Column(
-            modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text("어느 매물을 점검할까요?", color = DeepGreen, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
-            Text("점검 기록은 선택한 매물에 저장돼요.", color = Secondary, fontSize = 12.5.sp)
+        if (loading) {
+            PropertySelectLoadingContent()
+        } else {
+            Column(
+                modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text("어느 매물을 점검할까요?", color = DeepGreen, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+            }
         }
-        if (loading) Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
         if (properties.isEmpty() && !loading) {
             InfoCard(
                 title = "다른 매물이 없나요?",
@@ -1098,6 +1105,36 @@ fun PropertySelectScreen(
                 PropertyCard(property, selected = property.id == selectedId) { onPropertySelected(property.id) }
             }
         }
+    }
+}
+
+@Composable
+private fun PropertySelectLoadingContent() {
+    val transition = rememberInfiniteTransition(label = "property_select_loading")
+    val rotation by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = LinearEasing), RepeatMode.Restart),
+        label = "property_select_loading_rotation",
+    )
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(top = 56.dp, bottom = 44.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(R.drawable.loading),
+                contentDescription = "매물 정보를 불러오는 중",
+                modifier = Modifier.size(190.dp),
+            )
+            CircularProgressIndicator(
+                color = Green,
+                strokeWidth = 4.dp,
+                modifier = Modifier.size(208.dp).rotate(rotation),
+            )
+        }
+        Text("매물 정보를 불러오고 있어요", color = DeepGreen, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
     }
 }
 

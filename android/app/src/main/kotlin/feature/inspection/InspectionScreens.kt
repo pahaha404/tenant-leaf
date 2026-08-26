@@ -252,7 +252,7 @@ fun TutorialScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFFCFBF8))
+                    .background(Color.White)
                     .padding(horizontal = 20.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -442,7 +442,7 @@ fun TutorialChecklistScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFFCFBF8))
+                    .background(Color.White)
                     .padding(horizontal = 20.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -610,9 +610,8 @@ fun LiveInspectionScreen(
         }
     }
     LaunchedEffect(inspectionId, microphonePermissionGranted, microphonePermissionResolved) {
-        when {
-            microphonePermissionGranted -> VoiceRecordSession.start(context, inspectionId)
-            !microphonePermissionResolved -> microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        if (!microphonePermissionGranted && !microphonePermissionResolved) {
+            microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
     }
     val coroutineScope = rememberCoroutineScope()
@@ -643,7 +642,11 @@ fun LiveInspectionScreen(
         }
     }
 
-    DisposableEffect(glassViewModel, cameraSource, microphonePermissionResolved) {
+    DisposableEffect(glassViewModel, cameraSource, inspectionId, microphonePermissionGranted, microphonePermissionResolved) {
+        // PCM 콜백보다 먼저 파일을 열어 두어 첫 음성 프레임부터 저장한다.
+        if (microphonePermissionGranted) {
+            VoiceRecordSession.start(context, inspectionId)
+        }
         if (microphonePermissionResolved && !recorder.isRecording) {
             recorder.startRecording()
         }
@@ -729,7 +732,7 @@ fun LiveInspectionScreen(
         label = "rec_alpha",
     )
 
-    Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
+    Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
                 modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp),
@@ -1601,7 +1604,7 @@ fun CaptureResultsScreen(
     onOpenObservation: (String) -> Unit,
     onHome: () -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
+    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Row(
             modifier = Modifier.fillMaxWidth().height(54.dp).padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -1710,7 +1713,7 @@ fun ObservationScreen(
     val zone = UiCatalog.zone(zoneId)
     val observations = observationItems(zoneId)
 
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
+    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Row(
             modifier = Modifier.fillMaxWidth().height(54.dp).padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,

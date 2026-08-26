@@ -88,7 +88,7 @@ fun AppPageScaffold(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFFCFBF8))
+                    .background(Color.White)
                     .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                     .imePadding()
                     .padding(horizontal = 20.dp, vertical = 12.dp),
