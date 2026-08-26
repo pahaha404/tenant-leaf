@@ -29,7 +29,8 @@ fun PropertyListApiRoute(
     onAddProperty: () -> Unit,
     onOpenProperty: (String) -> Unit,
     onOpenMapOverview: () -> Unit = {},
-    onTabSelected: (String) -> Unit,
+    onTabSelected: (String) -> Unit = {},
+    showBottomBar: Boolean = true,
     viewModel: PropertyListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -49,6 +50,7 @@ fun PropertyListApiRoute(
         onRetry = viewModel::refresh,
         onOpenMapOverview = onOpenMapOverview,
         onTabSelected = onTabSelected,
+        showBottomBar = showBottomBar,
     )
 }
 

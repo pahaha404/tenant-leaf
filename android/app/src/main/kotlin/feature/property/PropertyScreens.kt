@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.material3.Card
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
@@ -58,10 +59,14 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.HomeWork
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -152,7 +157,8 @@ fun PropertyListScreen(
     onDeleteMultipleProperties: ((List<String>) -> Unit)? = null,
     onRetry: () -> Unit,
     onOpenMapOverview: (() -> Unit)? = null,
-    onTabSelected: (String) -> Unit,
+    onTabSelected: (String) -> Unit = {},
+    showBottomBar: Boolean = true,
 ) {
     var isSelectionMode by rememberSaveable { mutableStateOf(false) }
     var selectedIds by rememberSaveable { mutableStateOf(setOf<String>()) }
@@ -170,35 +176,19 @@ fun PropertyListScreen(
     AppPageScaffold(
         title = if (isSelectionMode) "매물 삭제 (${selectedIds.size})" else "매물",
         selectedTab = AppTab.Property,
+        showBottomBar = showBottomBar,
         isRefreshing = loading,
         onRefresh = onRetry,
         topTrailingAction = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (properties.isNotEmpty()) {
-                    IconButton(
-                        onClick = {
-                            isSelectionMode = !isSelectionMode
-                            selectedIds = emptySet()
-                        },
-                    ) {
-                        Icon(
-                            imageVector = if (isSelectionMode) Icons.Outlined.Close else Icons.Outlined.DeleteOutline,
-                            contentDescription = if (isSelectionMode) "선택 모드 종료" else "매물 다중 삭제",
-                            tint = if (isSelectionMode) Color(0xFFC93B2B) else DeepGreen,
-                            modifier = Modifier.size(24.dp),
-                        )
-                    }
-                }
-                if (onOpenMapOverview != null && !isSelectionMode) {
-                    IconButton(onClick = onOpenMapOverview) {
-                        Icon(
-                            imageVector = Icons.Outlined.Map,
-                            contentDescription = "매물 지도 보기",
-                            tint = DeepGreen,
-                            modifier = Modifier.size(24.dp),
-                        )
-                    }
-                }
+            if (properties.isNotEmpty() || onOpenMapOverview != null) {
+                MapTrashDualPillButton(
+                    isSelectionMode = isSelectionMode,
+                    onMapClick = onOpenMapOverview,
+                    onTrashClick = {
+                        isSelectionMode = !isSelectionMode
+                        selectedIds = emptySet()
+                    },
+                )
             }
         },
         floatingActionButton = if (!isSelectionMode) {
@@ -300,20 +290,21 @@ fun PropertyListScreen(
             properties.isEmpty() -> InfoCard("등록된 매물이 없어요", "우측 하단 + 버튼으로 첫 매물을 등록해 주세요.", onClick = onAddProperty)
             isSelectionMode -> properties.forEach { property ->
                 val isSelected = property.id in selectedIds
-                Card(
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .shadow(if (isSelected) 0.5.dp else 1.5.dp, RoundedCornerShape(20.dp))
                         .clickable {
                             selectedIds = if (isSelected) selectedIds - property.id else selectedIds + property.id
                         },
-                    colors = CardDefaults.cardColors(containerColor = if (isSelected) PaleGreen else Color.White),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (isSelected) PaleGreen else Color.White,
                     border = if (isSelected) BorderStroke(1.5.dp, Green) else null,
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 11.dp),
+                            .padding(horizontal = 18.dp, vertical = 15.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(
@@ -333,21 +324,21 @@ fun PropertyListScreen(
                                 )
                             }
                         }
-                        Spacer(Modifier.width(12.dp))
+                        Spacer(Modifier.width(14.dp))
                         Column(
                             modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                            verticalArrangement = Arrangement.spacedBy(3.dp),
                         ) {
                             Text(
                                 text = property.name,
                                 color = DeepGreen,
-                                fontSize = 14.5.sp,
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.ExtraBold,
                             )
                             Text(
                                 text = property.address,
                                 color = Secondary,
-                                fontSize = 11.5.sp,
+                                fontSize = 13.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -415,22 +406,25 @@ private fun SwipeToDeletePropertyCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp)),
+            .clip(RoundedCornerShape(18.dp)),
     ) {
-        Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.CenterEnd) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(0.25f)
-                    .background(Color(0xFFC93B2B))
-                    .clickable { showDeleteDialog = true }
-                    .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.Delete, contentDescription = null, tint = Color.White)
-                    Spacer(Modifier.width(6.dp))
-                    Text("삭제", color = Color.White, fontWeight = FontWeight.ExtraBold)
+        val currentOffset = runCatching { swipeState.requireOffset() }.getOrDefault(0f)
+        if (currentOffset < -1f) {
+            Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.CenterEnd) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.25f)
+                        .background(Color(0xFFC93B2B), RoundedCornerShape(topEnd = 18.dp, bottomEnd = 18.dp))
+                        .clickable { showDeleteDialog = true }
+                        .padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.Delete, contentDescription = null, tint = Color.White)
+                        Spacer(Modifier.width(6.dp))
+                        Text("삭제", color = Color.White, fontWeight = FontWeight.ExtraBold)
+                    }
                 }
             }
         }
@@ -444,7 +438,7 @@ private fun SwipeToDeletePropertyCard(
                         },
                     )
                 }
-                .offset { IntOffset(swipeState.requireOffset().roundToInt(), 0) }
+                .offset { IntOffset(currentOffset.roundToInt(), 0) }
                 .anchoredDraggable(
                     state = swipeState,
                     orientation = Orientation.Horizontal,
@@ -1156,28 +1150,49 @@ private fun PropertySelectLoadingContent() {
 
 @Composable
 private fun PropertyCard(property: PropertyUiModel, selected: Boolean = false, onClick: () -> Unit) {
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = if (selected) PaleGreen else Color.White),
-        shape = RoundedCornerShape(14.dp),
+            .shadow(if (selected) 0.5.dp else 1.5.dp, RoundedCornerShape(18.dp))
+            .background(if (selected) PaleGreen else Color.White, RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 15.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(if (selected) Green.copy(alpha = 0.15f) else Color(0xFFF4F6F5)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.HomeWork,
+                contentDescription = null,
+                tint = Green,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+
+        Spacer(Modifier.width(14.dp))
+
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Text(
                 text = property.name,
                 color = DeepGreen,
-                fontSize = 14.5.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
             Text(
                 text = property.address,
                 color = Secondary,
-                fontSize = 11.5.sp,
+                fontSize = 13.sp,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -1226,4 +1241,84 @@ internal fun manwonInputToWon(value: String): String {
     return runCatching {
         java.math.BigDecimal(value.trim()).movePointRight(4).toBigIntegerExact().toString()
     }.getOrElse { value }
+}
+
+@Composable
+private fun MapTrashDualPillButton(
+    isSelectionMode: Boolean,
+    onMapClick: (() -> Unit)?,
+    onTrashClick: () -> Unit,
+) {
+    Surface(
+        shape = CircleShape,
+        color = Color.White,
+        shadowElevation = 1.5.dp,
+        modifier = Modifier.height(44.dp),
+    ) {
+        Row(
+            modifier = Modifier.height(44.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (onMapClick != null && !isSelectionMode) {
+                val mapInteraction = remember { MutableInteractionSource() }
+                val isMapPressed by mapInteraction.collectIsPressedAsState()
+
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(topStart = 22.dp, bottomStart = 22.dp))
+                        .background(if (isMapPressed) Color(0xFFF2F4F7) else Color.White)
+                        .clickable(
+                            interactionSource = mapInteraction,
+                            indication = null,
+                            onClick = onMapClick,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Map,
+                        contentDescription = "매물 지도 보기",
+                        tint = DeepGreen,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(18.dp)
+                        .background(Color(0xFFE5E7EB)),
+                )
+            }
+
+            val trashInteraction = remember { MutableInteractionSource() }
+            val isTrashPressed by trashInteraction.collectIsPressedAsState()
+
+            val trashShape = if (onMapClick != null && !isSelectionMode) {
+                RoundedCornerShape(topEnd = 22.dp, bottomEnd = 22.dp)
+            } else {
+                CircleShape
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(trashShape)
+                    .background(if (isTrashPressed) Color(0xFFF2F4F7) else Color.White)
+                    .clickable(
+                        interactionSource = trashInteraction,
+                        indication = null,
+                        onClick = onTrashClick,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = if (isSelectionMode) Icons.Outlined.Close else Icons.Outlined.DeleteOutline,
+                    contentDescription = if (isSelectionMode) "선택 모드 종료" else "매물 다중 삭제",
+                    tint = if (isSelectionMode) Color(0xFFC93B2B) else DeepGreen,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
+    }
 }

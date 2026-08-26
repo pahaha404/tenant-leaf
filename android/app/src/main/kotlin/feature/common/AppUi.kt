@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -41,7 +43,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,6 +54,7 @@ import com.seipseip.app.Border
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
+import com.seipseip.app.PageBackground
 import com.seipseip.app.PaleGreen
 import com.seipseip.app.Secondary
 
@@ -60,13 +66,53 @@ enum class AppTab(val label: String) {
 }
 
 @Composable
+fun Modifier.swipeToChangeTab(
+    currentTab: AppTab?,
+    onTabSelected: ((AppTab) -> Unit)?,
+): Modifier {
+    if (currentTab == null || onTabSelected == null) return this
+    val density = LocalDensity.current
+    return this.pointerInput(currentTab) {
+        var totalDragX = 0f
+        detectHorizontalDragGestures(
+            onDragStart = { totalDragX = 0f },
+            onDragEnd = {
+                val threshold = with(density) { 100.dp.toPx() }
+                if (totalDragX < -threshold) {
+                    val nextTab = when (currentTab) {
+                        AppTab.Home -> AppTab.Property
+                        AppTab.Property -> AppTab.Report
+                        AppTab.Report -> AppTab.Profile
+                        AppTab.Profile -> null
+                    }
+                    nextTab?.let { onTabSelected(it) }
+                } else if (totalDragX > threshold) {
+                    val prevTab = when (currentTab) {
+                        AppTab.Profile -> AppTab.Report
+                        AppTab.Report -> AppTab.Property
+                        AppTab.Property -> AppTab.Home
+                        AppTab.Home -> null
+                    }
+                    prevTab?.let { onTabSelected(it) }
+                }
+            },
+            onHorizontalDrag = { _, dragAmount ->
+                totalDragX += dragAmount
+            },
+        )
+    }
+}
+
+@Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun AppPageScaffold(
     title: String,
+    subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     scrollable: Boolean = true,
     selectedTab: AppTab? = null,
     onTabSelected: ((AppTab) -> Unit)? = null,
+    showBottomBar: Boolean = true,
     bottomAction: (@Composable () -> Unit)? = null,
     topTrailingAction: (@Composable () -> Unit)? = null,
     floatingActionButton: (@Composable () -> Unit)? = null,
@@ -75,11 +121,12 @@ fun AppPageScaffold(
     content: @Composable () -> Unit,
 ) {
     Scaffold(
+        containerColor = PageBackground,
         floatingActionButton = { floatingActionButton?.invoke() },
         bottomBar = {
             Column {
                 bottomAction?.invoke()
-                if (selectedTab != null && onTabSelected != null) {
+                if (showBottomBar && selectedTab != null && onTabSelected != null) {
                     AppBottomNavigation(selectedTab, onTabSelected)
                 }
             }
@@ -89,11 +136,16 @@ fun AppPageScaffold(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White)
+                    .background(PageBackground)
                     .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                     .imePadding()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                    .padding(
+                        start = 20.dp,
+                        top = if (onBack == null) 36.dp else 12.dp,
+                        end = 20.dp,
+                        bottom = 12.dp,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(if (onBack == null) 16.dp else 10.dp),
             ) {
                 if (onBack != null) {
                     Row(
@@ -102,12 +154,21 @@ fun AppPageScaffold(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.ArrowBack,
-                                contentDescription = "뒤로",
-                                modifier = Modifier.clickable(onClick = onBack),
-                                tint = Green,
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .shadow(1.dp, CircleShape)
+                                    .background(Color.White, CircleShape)
+                                    .clickable(onClick = onBack)
+                                    .padding(8.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ArrowBack,
+                                    contentDescription = "뒤로",
+                                    tint = DeepGreen,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
                             Text(
                                 text = title,
                                 modifier = Modifier.padding(start = 12.dp),
@@ -119,16 +180,30 @@ fun AppPageScaffold(
                     }
                 } else {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            text = title,
-                            color = DeepGreen,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(3.dp),
+                        ) {
+                            if (subtitle != null) {
+                                Text(
+                                    text = subtitle,
+                                    color = Secondary,
+                                    fontSize = 14.3.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            } else {
+                                Spacer(modifier = Modifier.height(18.dp))
+                            }
+                            Text(
+                                text = title,
+                                color = DeepGreen,
+                                fontSize = 23.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                        }
                         topTrailingAction?.invoke()
                     }
                 }
@@ -173,7 +248,7 @@ fun AppBottomNavigation(
     onTabSelected: (AppTab) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    NavigationBar(modifier = modifier, containerColor = Color.White) {
+    NavigationBar(modifier = modifier.shadow(3.dp), containerColor = Color.White) {
         AppTab.entries.forEach { tab ->
             NavigationBarItem(
                 selected = tab == selectedTab,
@@ -195,6 +270,8 @@ fun AppBottomNavigation(
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Orange,
                     selectedTextColor = Orange,
+                    unselectedIconColor = Secondary,
+                    unselectedTextColor = Secondary,
                     indicatorColor = Color.Transparent,
                 ),
             )

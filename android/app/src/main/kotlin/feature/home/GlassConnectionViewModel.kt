@@ -354,8 +354,13 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
             return
         }
         when (GlassConnectionAction.nextFor(Wearables.registrationState.value, Companion.session?.state?.value)) {
-            GlassConnectionAction.REGISTER -> Wearables.startRegistration(activity)
+            GlassConnectionAction.REGISTER -> {
+                Companion.update(GlassConnectionStatus.CONNECTING, "Meta AI 안경 등록 진행 중...")
+                Wearables.startRegistration(activity)
+            }
             GlassConnectionAction.START_SESSION -> {
+                Companion.stopRequested = false
+                Companion.retryOnStop = true
                 Companion.reconnectAttempt = 0
                 startSession()
             }
@@ -369,7 +374,7 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
 
     private fun startSession() {
         if (Companion.session != null) return
-        Companion.update(GlassConnectionStatus.CONNECTING)
+        Companion.update(GlassConnectionStatus.CONNECTING, "안경과 세션을 시작하고 있어요")
         Wearables.createSession(Companion.deviceSelector).fold(
             onSuccess = { created ->
                 Companion.session = created
@@ -418,16 +423,25 @@ class GlassConnectionViewModel(application: Application) : AndroidViewModel(appl
             Companion.stopRequested = false
             return
         }
-        val delayMs = GlassSessionReconnect.delayForAttempt(Companion.reconnectAttempt) ?: return
+        val delayMs = GlassSessionReconnect.delayForAttempt(Companion.reconnectAttempt)
+        if (delayMs == null) {
+            Companion.update(
+                GlassConnectionStatus.DISCONNECTED,
+                "안경 세션 연결에 실패했습니다. 탭하여 다시 연결하세요.",
+            )
+            return
+        }
         Companion.reconnectAttempt += 1
         Companion.update(
-            GlassConnectionStatus.DISCONNECTED,
-            "연결이 끊겨 ${delayMs / 1_000}초 뒤 다시 연결합니다",
+            GlassConnectionStatus.CONNECTING,
+            "안경 재연결 시도 중... (${delayMs / 1_000}초 뒤 재시도)",
         )
         Companion.reconnectJob = Companion.sessionScope.launch {
             delay(delayMs)
             if (Wearables.registrationState.value == RegistrationState.REGISTERED) {
                 startSession()
+            } else {
+                Companion.update(GlassConnectionStatus.DISCONNECTED)
             }
         }
     }

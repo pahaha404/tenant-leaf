@@ -18,6 +18,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -46,6 +48,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.RealEstateAgent
 import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -71,10 +74,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.seipseip.app.Border
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
@@ -84,6 +90,7 @@ import com.seipseip.app.R
 import com.seipseip.app.Secondary
 import com.seipseip.app.feature.common.AppTab
 import com.seipseip.app.feature.common.AppBottomNavigation
+import com.seipseip.app.feature.common.swipeToChangeTab
 
 private val HomeBackground = Color.White
 private val StartInspectionOrange = Color(0xFFF28A3A)
@@ -109,6 +116,7 @@ fun HomeScreen(
     processing: Boolean = false,
     recentReportTitle: String? = null,
     recentReportDate: String? = null,
+    showBottomBar: Boolean = true,
 ) {
     val activity = LocalContext.current as? ComponentActivity
     val glassViewModel: GlassConnectionViewModel = rememberGlassConnectionViewModel()
@@ -128,6 +136,7 @@ fun HomeScreen(
         recentReportDate = recentReportDate,
         glassState = glassState,
         onGlassClick = { activity?.let(glassViewModel::connect) },
+        showBottomBar = showBottomBar,
     )
 }
 
@@ -147,24 +156,28 @@ fun TenantLeafHomeLayout(
     recentReportDate: String? = null,
     glassState: GlassConnectionUiState = GlassConnectionUiState(),
     onGlassClick: () -> Unit = {},
+    onNotificationClick: () -> Unit = {},
+    showBottomBar: Boolean = true,
 ) {
     val scrollState = rememberScrollState()
 
     Scaffold(
         bottomBar = {
-            AppBottomNavigation(
-                selectedTab = selectedTab,
-                onTabSelected = { tab ->
-                    onTabSelected(
-                        when (tab) {
-                            AppTab.Home -> "home"
-                            AppTab.Property -> "property"
-                            AppTab.Report -> "report"
-                            AppTab.Profile -> "profile"
-                        },
-                    )
-                },
-            )
+            if (showBottomBar) {
+                AppBottomNavigation(
+                    selectedTab = selectedTab,
+                    onTabSelected = { tab ->
+                        onTabSelected(
+                            when (tab) {
+                                AppTab.Home -> "home"
+                                AppTab.Property -> "property"
+                                AppTab.Report -> "report"
+                                AppTab.Profile -> "profile"
+                            },
+                        )
+                    },
+                )
+            }
         },
         containerColor = HomeBackground,
     ) { innerPadding ->
@@ -173,29 +186,45 @@ fun TenantLeafHomeLayout(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(scrollState)
-                .padding(start = 20.dp, top = 18.dp, end = 20.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(13.dp),
+                .padding(start = 20.dp, top = 36.dp, end = 20.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            HomeHeader(processing)
+            HomeHeader(processing, onNotificationClick)
             GlassStatusCard(glassState, onGlassClick)
             if (processing) ReportProcessingCard(onOpenReports) else StartInspectionCard(onStartInspection)
             HomeQuickActions(onAddProperty, onOpenChecklist)
             RecentReportCard(onOpenRecentReport, processing, recentReportTitle, recentReportDate)
             InspectionTipCard()
+            HorizontalDivider(color = Border, thickness = 1.dp, modifier = Modifier.padding(vertical = 4.dp))
             MagazineSection(onOpenAll = onOpenMagazine, onOpenArticle = onOpenMagazineArticle)
         }
     }
 }
 
 @Composable
-private fun HomeHeader(processing: Boolean) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+private fun HomeHeader(processing: Boolean, onNotificationClick: () -> Unit = {}) {
+    val context = LocalContext.current
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(if (processing) "리포트를 정리 중이에요" else "오늘도 안심되는 자취", color = Secondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(if (processing) "리포트를 정리 중이에요" else "오늘도 안심되는 자취", color = Secondary, fontSize = 14.3.sp, fontWeight = FontWeight.Bold)
             Text(if (processing) "잠시만 기다려 주세요" else "세입세잎", color = DeepGreen, fontSize = 23.sp, fontWeight = FontWeight.ExtraBold)
         }
-        Box(modifier = Modifier.size(42.dp).clip(RoundedCornerShape(14.dp)).background(PaleGreen), contentAlignment = Alignment.Center) {
-            Icon(Icons.Outlined.NotificationsNone, null, tint = Green, modifier = Modifier.size(21.dp))
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .shadow(1.5.dp, CircleShape)
+                .background(Color.White, CircleShape)
+                .clip(CircleShape)
+                .clickable {
+                    onNotificationClick()
+                    android.widget.Toast.makeText(context, "새로운 알림이 없습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.Outlined.NotificationsNone, "알림", tint = DeepGreen, modifier = Modifier.size(22.dp))
         }
     }
 }
@@ -247,7 +276,7 @@ private fun GlassStatusCard(state: GlassConnectionUiState, onClick: () -> Unit) 
     val isConnecting = state.status == GlassConnectionStatus.CONNECTING
     val isError = state.status == GlassConnectionStatus.ERROR || state.status == GlassConnectionStatus.PAUSED
 
-    // 1. Rotating Neon Border Beam Angle (Connected: 2800ms, Connecting: 1400ms)
+    // 1. Rotating Neon Border Beam Angle
     val borderRotationAngle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -286,22 +315,21 @@ private fun GlassStatusCard(state: GlassConnectionUiState, onClick: () -> Unit) 
     val eq3 by infiniteTransition.animateFloat(0.4f, 1.0f, infiniteRepeatable(tween(360, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "eq3")
     val eq4 by infiniteTransition.animateFloat(0.9f, 0.45f, infiniteRepeatable(tween(650, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "eq4")
 
-    // Shader Color Arrays for Continuous Smooth Chromatic Gradient Border (초록 ➔ 파랑 ➔ 화이트 ➔ 노랑 ➔ 초록)
     val chromaticBorderColors = remember {
         intArrayOf(
-            0xFF00FF87.toInt(), // 1. 네온 초록 (Neon Green)
-            0xFF00F5C8.toInt(), // 2. 민트 시안 (Mint Cyan)
-            0xFF00D4FF.toInt(), // 3. 일렉트릭 블루 (Electric Cyan)
-            0xFF0091FF.toInt(), // 4. 비비드 블루 (Vivid Blue)
-            0xFF3B82F6.toInt(), // 5. 소프트 코발트 (Soft Cobalt)
-            0xFF93C5FD.toInt(), // 6. 아이스 블루 (Ice Blue)
-            0xFFFFFFFF.toInt(), // 7. 퓨어 화이트 코어 (Pure White Core)
-            0xFFFEF08A.toInt(), // 8. 페일 골드 (Pale Gold)
-            0xFFFFE600.toInt(), // 9. 사이버 옐로우 (Cyber Yellow)
-            0xFFF59E0B.toInt(), // 10. 웜 앰버 (Warm Amber)
-            0xFF84CC16.toInt(), // 11. 라임 그린 (Lime Green)
-            0xFF10B981.toInt(), // 12. 에메랄드 (Emerald)
-            0xFF00FF87.toInt(), // 13. 네온 초록 루프 (Seamless Loop)
+            0xFF00FF87.toInt(),
+            0xFF00F5C8.toInt(),
+            0xFF00D4FF.toInt(),
+            0xFF0091FF.toInt(),
+            0xFF3B82F6.toInt(),
+            0xFF93C5FD.toInt(),
+            0xFFFFFFFF.toInt(),
+            0xFFFEF08A.toInt(),
+            0xFFFFE600.toInt(),
+            0xFFF59E0B.toInt(),
+            0xFF84CC16.toInt(),
+            0xFF10B981.toInt(),
+            0xFF00FF87.toInt(),
         )
     }
     val chromaticPositions = remember {
@@ -316,13 +344,12 @@ private fun GlassStatusCard(state: GlassConnectionUiState, onClick: () -> Unit) 
         else -> null
     }
 
-    // 1. Deep Green Luxury Frosted Glass Base (진한 녹색 글래스모피즘 베이스)
     val glassBaseBrush = remember {
         Brush.linearGradient(
             colors = listOf(
-                Color(0xFF0F3828), // 딥 포레스트 에메랄드
-                Color(0xFF08261B), // 다크 파인 그린
-                Color(0xFF134533), // 리치 딥 그린
+                Color(0xFF0F3828),
+                Color(0xFF08261B),
+                Color(0xFF134533),
             ),
             start = Offset(0f, 0f),
             end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
@@ -342,7 +369,6 @@ private fun GlassStatusCard(state: GlassConnectionUiState, onClick: () -> Unit) 
                 val cornerRadiusPx = 15.dp.toPx()
                 val cr = androidx.compose.ui.geometry.CornerRadius(cornerRadiusPx, cornerRadiusPx)
 
-                // 1. Deep Green Glass Specular Surface Glare (진한 녹색 유리 대각선 반사광)
                 drawRoundRect(
                     brush = Brush.linearGradient(
                         colors = listOf(
@@ -358,7 +384,6 @@ private fun GlassStatusCard(state: GlassConnectionUiState, onClick: () -> Unit) 
                     cornerRadius = cr,
                 )
 
-                // 2. Top Bevel Glass Specular Light (유리 상단 모서리 빛 반사선)
                 drawLine(
                     brush = Brush.horizontalGradient(
                         colors = listOf(
@@ -374,7 +399,6 @@ private fun GlassStatusCard(state: GlassConnectionUiState, onClick: () -> Unit) 
                     strokeWidth = 1.2.dp.toPx(),
                 )
 
-                // 3. Inner Frosted Glass Chamfer Border (유리 내부 챔퍼 테두리)
                 drawRoundRect(
                     brush = Brush.linearGradient(
                         colors = listOf(
@@ -389,10 +413,8 @@ private fun GlassStatusCard(state: GlassConnectionUiState, onClick: () -> Unit) 
                     style = Stroke(width = 1.dp.toPx()),
                 )
 
-                // 4. Draw children content
                 drawContent()
 
-                // 5. Draw 4-Color Continuous Chromatic Rotating Neon Border (초록 ➔ 파랑 ➔ 화이트 ➔ 노랑 ➔ 초록)
                 val strokeWidth = 1.6.dp.toPx()
                 val halfStroke = strokeWidth / 2f
                 val borderSize = Size(size.width - strokeWidth, size.height - strokeWidth)
@@ -401,7 +423,6 @@ private fun GlassStatusCard(state: GlassConnectionUiState, onClick: () -> Unit) 
                 if (isConnected || isConnecting) {
                     val brush = rotatingBorderBrush
                     if (brush != null) {
-                        // Pass 1: Soft Outer Glowing Aura Bloom (그라데이션 외곽 아우라 발광)
                         drawRoundRect(
                             brush = brush,
                             topLeft = topLeft,
@@ -410,7 +431,6 @@ private fun GlassStatusCard(state: GlassConnectionUiState, onClick: () -> Unit) 
                             style = Stroke(width = 4.8.dp.toPx(), cap = StrokeCap.Round),
                             alpha = 0.55f * livePulseAlpha,
                         )
-                        // Pass 2: Continuous Luminous Gradient Border (연속 그라데이션 림)
                         drawRoundRect(
                             brush = brush,
                             topLeft = topLeft,
@@ -449,14 +469,13 @@ private fun GlassStatusCard(state: GlassConnectionUiState, onClick: () -> Unit) 
                 indication = null,
                 onClick = onClick,
             )
-            .padding(horizontal = 13.dp, vertical = 8.dp),
+            .padding(horizontal = 13.dp, vertical = 10.dp),
     ) {
-        // Horizontal Cyber HUD Layout (Left: 3D Claymorphism Viewport, Center: Title, Right: Live Equalizer)
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // 1. [LEFT] 3D Claymorphism Glass HUD Viewport
+            // 1. [LEFT] 3D Viewport
             CyberGlassHudViewport(
                 status = state.status,
                 livePulseAlpha = livePulseAlpha,
@@ -465,22 +484,63 @@ private fun GlassStatusCard(state: GlassConnectionUiState, onClick: () -> Unit) 
 
             Spacer(Modifier.width(12.dp))
 
-            // 2. [CENTER] Status Title (High-contrast Bright Crisp Typography on Deep Green)
-            Text(
-                text = "Ray-Ban Meta AI",
-                color = when {
-                    isConnected -> Color(0xFFF0FDF4)
-                    isConnecting -> Color(0xFFFEF3C7)
-                    isError -> Color(0xFFFFE4E6)
-                    else -> Color(0xFFE6FAF0)
-                },
-                fontSize = 14.5.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 0.2.sp,
+            // 2. [CENTER] Title + Status Dot & Text
+            Column(
                 modifier = Modifier.weight(1f),
-            )
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    text = "Ray-Ban Meta AI",
+                    color = when {
+                        isConnected -> Color(0xFFF0FDF4)
+                        isConnecting -> Color(0xFFFEF3C7)
+                        isError -> Color(0xFFFFE4E6)
+                        else -> Color(0xFFE6FAF0)
+                    },
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 0.2.sp,
+                )
 
-            // 3. [RIGHT] Right-Aligned Live Equalizer Bars (Vibrant Neon on Deep Green)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val dotColor = when {
+                        isConnected -> Color(0xFF00FF87)
+                        isConnecting -> Color(0xFFFFE600)
+                        isError -> Color(0xFFFF4D6D)
+                        else -> Color(0xFF7FA2B3)
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(7.dp)
+                            .clip(CircleShape)
+                            .background(dotColor),
+                    )
+
+                    Spacer(Modifier.width(5.dp))
+
+                    val statusText = when {
+                        isConnected -> "연결됨"
+                        isConnecting -> "연결 중..."
+                        isError -> "연결 오류"
+                        else -> "미연결"
+                    }
+
+                    Text(
+                        text = statusText,
+                        color = when {
+                            isConnected -> Color(0xFF00FF87)
+                            isConnecting -> Color(0xFFFFE600)
+                            isError -> Color(0xFFFF4D6D)
+                            else -> Color(0xFF7FA2B3)
+                        },
+                        fontSize = 12.5.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+
+            // 3. [RIGHT] Equalizer Bars
             if (isConnected || isConnecting) {
                 Canvas(
                     modifier = Modifier
@@ -532,7 +592,7 @@ private fun CyberGlassHudViewport(
             .background(
                 Brush.linearGradient(
                     colors = listOf(
-                        Color(0xFF072117), // Deep Clay Inset Base
+                        Color(0xFF072117),
                         Color(0xFF04150E),
                     ),
                 ),
@@ -550,7 +610,6 @@ private fun CyberGlassHudViewport(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        // Tech Corner Brackets Canvas: ⌜ ⌝ ⌞ ⌟ + Radar Ripple
         Canvas(modifier = Modifier.fillMaxSize()) {
             val w = size.width
             val h = size.height
@@ -568,13 +627,12 @@ private fun CyberGlassHudViewport(
 
             // Bottom-Left ⌞
             drawLine(bracketColor, Offset(2.dp.toPx(), h - 2.dp.toPx()), Offset(2.dp.toPx() + bracketLen, h - 2.dp.toPx()), strokeW)
-            drawLine(bracketColor, Offset(2.dp.toPx(), h - 2.dp.toPx()), Offset(2.dp.toPx(), h - 2.dp.toPx() - bracketLen), strokeW)
+            drawLine(bracketColor, Offset(2.dp.toPx(), h - 2.dp.toPx()), Offset(2.dp.toPx(), h - 2.dp.toPx() + bracketLen), strokeW)
 
             // Bottom-Right ⌟
             drawLine(bracketColor, Offset(w - 2.dp.toPx(), h - 2.dp.toPx()), Offset(w - 2.dp.toPx() - bracketLen, h - 2.dp.toPx()), strokeW)
             drawLine(bracketColor, Offset(w - 2.dp.toPx(), h - 2.dp.toPx()), Offset(w - 2.dp.toPx(), h - 2.dp.toPx() - bracketLen), strokeW)
 
-            // Radar Ripple when connecting
             if (isConnecting) {
                 val maxRadius = size.minDimension / 1.4f
                 val radius = maxRadius * sonarProgress
@@ -588,7 +646,6 @@ private fun CyberGlassHudViewport(
             }
         }
 
-        // 3D Claymorphism Ray-Ban AR Smart Glass Canvas
         CyberRayBanCanvas(
             status = status,
             livePulseAlpha = livePulseAlpha,
@@ -605,7 +662,6 @@ private fun CyberRayBanCanvas(
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "clayCanvasAnimation")
 
-    // Laser scanline sweeping
     val scanLineProgress by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
@@ -616,7 +672,6 @@ private fun CyberRayBanCanvas(
         label = "clayScanLineProgress",
     )
 
-    // HUD Reticle Rotation (360 degrees)
     val reticleRotation by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -627,17 +682,6 @@ private fun CyberRayBanCanvas(
         label = "clayReticleRotation",
     )
 
-    // Lens glare sheen offset
-    val glareOffset by infiniteTransition.animateFloat(
-        initialValue = -30f,
-        targetValue = 60f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "clayGlareOffset",
-    )
-
     val isConnected = status == GlassConnectionStatus.CONNECTED
     val isConnecting = status == GlassConnectionStatus.CONNECTING
     val isError = status == GlassConnectionStatus.ERROR || status == GlassConnectionStatus.PAUSED
@@ -646,7 +690,6 @@ private fun CyberRayBanCanvas(
         val w = size.width
         val h = size.height
 
-        // 3D Claymorphism Wayfarer Dimensions
         val lensW = w * 0.38f
         val lensH = h * 0.70f
         val lensTop = h * 0.16f
@@ -662,9 +705,6 @@ private fun CyberRayBanCanvas(
         val frameThickness = 2.4.dp.toPx()
         val thinStroke = 0.8.dp.toPx()
 
-        // -------------------------------------------------------------
-        // 1. 3D CLAY DROP SHADOW (클레이 모피즘 하단 부드러운 입체 그림자)
-        // -------------------------------------------------------------
         val shadowOffsetY = 1.8.dp.toPx()
         drawRoundRect(
             color = Color.Black.copy(alpha = 0.45f),
@@ -681,9 +721,6 @@ private fun CyberRayBanCanvas(
             style = Stroke(width = frameThickness * 1.3f, cap = StrokeCap.Round),
         )
 
-        // -------------------------------------------------------------
-        // 2. 3D CLAY LENS CAVITY & GLOSSY INSET (안쪽에 쏙 들어간 유광 렌즈)
-        // -------------------------------------------------------------
         val lensCavityColor = Color(0xFF03100B)
         drawRoundRect(
             color = lensCavityColor,
@@ -698,7 +735,6 @@ private fun CyberRayBanCanvas(
             cornerRadius = cornerRadius,
         )
 
-        // Glossy Lens Gradient Depth
         val lensGlowColor = when {
             isConnected -> Color(0xFF00FF87)
             isConnecting -> Color(0xFFFFE600)
@@ -733,7 +769,6 @@ private fun CyberRayBanCanvas(
             cornerRadius = cornerRadius,
         )
 
-        // 3D Specular Shiny Bubble Spot on Lenses (유광 하이라이트 물방울)
         drawCircle(
             color = Color.White.copy(alpha = 0.50f),
             radius = 1.4.dp.toPx(),
@@ -745,9 +780,6 @@ private fun CyberRayBanCanvas(
             center = Offset(rightOffset.x + 4.dp.toPx(), rightOffset.y + 4.dp.toPx()),
         )
 
-        // -------------------------------------------------------------
-        // 3. LASER SCANLINE & ACTIVE AR HUD (CONNECTED / CONNECTING)
-        // -------------------------------------------------------------
         if (isConnected || isConnecting) {
             val scanY = lensTop + lensH * scanLineProgress
             val laserBeamColor = if (isConnected) Color(0xFF00FFD5) else Color(0xFFFFE600)
@@ -770,7 +802,6 @@ private fun CyberRayBanCanvas(
         if (isConnected) {
             val hudColor = Color(0xFF00FF87).copy(alpha = 0.75f * livePulseAlpha)
 
-            // LEFT LENS: Rotating HUD Targeting Arc Reticle + Center Crosshair
             val reticleR = lensW * 0.28f
             drawArc(
                 color = hudColor,
@@ -790,11 +821,13 @@ private fun CyberRayBanCanvas(
                 size = Size(reticleR * 2, reticleR * 2),
                 style = Stroke(width = thinStroke, cap = StrokeCap.Round),
             )
-            val crossSize = 2.2.dp.toPx()
-            drawLine(hudColor, leftCenter - Offset(crossSize, 0f), leftCenter + Offset(crossSize, 0f), thinStroke)
-            drawLine(hudColor, leftCenter - Offset(0f, crossSize), leftCenter + Offset(0f, crossSize), thinStroke)
 
-            // RIGHT LENS: Spatial Depth Radar
+            drawCircle(
+                color = Color.White,
+                radius = 1.1.dp.toPx(),
+                center = leftCenter,
+            )
+
             val depthR1 = lensW * 0.22f
             val depthR2 = lensW * 0.35f
             drawCircle(
@@ -819,20 +852,16 @@ private fun CyberRayBanCanvas(
             )
         }
 
-        // -------------------------------------------------------------
-        // 4. 3D CLAY VOLUMETRIC FRAME (클레이 모피즘 입체 바디 프레임)
-        // -------------------------------------------------------------
         val clayFrameBrush = Brush.linearGradient(
             colors = listOf(
-                Color(0xFFE8FDF5), // Top-Left Soft Puffy Highlight
-                Color(0xFF34D399), // Mid Clay Body (Minty Emerald)
-                Color(0xFF065F46), // Bottom-Right Shaded Depth
+                Color(0xFFE8FDF5),
+                Color(0xFF34D399),
+                Color(0xFF065F46),
             ),
             start = Offset(0f, 0f),
             end = Offset(w, h),
         )
 
-        // Left & Right Clay Frame Rims
         drawRoundRect(
             brush = clayFrameBrush,
             topLeft = leftOffset,
@@ -848,32 +877,7 @@ private fun CyberRayBanCanvas(
             style = Stroke(width = frameThickness, cap = StrokeCap.Round),
         )
 
-        // Puffy Clay Crest Highlight (상단 림에 맺히는 부드러운 클레이 하이라이트)
-        val highlightStroke = 1.0.dp.toPx()
-        drawArc(
-            color = Color.White.copy(alpha = 0.70f),
-            startAngle = 190f,
-            sweepAngle = 130f,
-            useCenter = false,
-            topLeft = leftOffset,
-            size = lensSize,
-            style = Stroke(width = highlightStroke, cap = StrokeCap.Round),
-        )
-        drawArc(
-            color = Color.White.copy(alpha = 0.70f),
-            startAngle = 190f,
-            sweepAngle = 130f,
-            useCenter = false,
-            topLeft = rightOffset,
-            size = lensSize,
-            style = Stroke(width = highlightStroke, cap = StrokeCap.Round),
-        )
-
-        // -------------------------------------------------------------
-        // 5. 3D CLAY KEYHOLE BRIDGE & TEMPLES (도톰한 클레이 브릿지 & 힌지)
-        // -------------------------------------------------------------
         val bridgeY = lensTop + lensH * 0.30f
-        // Bridge Drop Shadow
         drawLine(
             color = Color.Black.copy(alpha = 0.40f),
             start = Offset(leftOffset.x + lensW, bridgeY + shadowOffsetY * 0.8f),
@@ -881,7 +885,6 @@ private fun CyberRayBanCanvas(
             strokeWidth = frameThickness * 1.2f,
             cap = StrokeCap.Round,
         )
-        // Bridge Clay Body
         drawLine(
             brush = clayFrameBrush,
             start = Offset(leftOffset.x + lensW, bridgeY),
@@ -889,41 +892,10 @@ private fun CyberRayBanCanvas(
             strokeWidth = frameThickness * 1.15f,
             cap = StrokeCap.Round,
         )
-        // Bridge Top Highlight
-        drawLine(
-            color = Color.White.copy(alpha = 0.70f),
-            start = Offset(leftOffset.x + lensW + 0.5.dp.toPx(), bridgeY - 0.5.dp.toPx()),
-            end = Offset(rightOffset.x - 0.5.dp.toPx(), bridgeY - 0.5.dp.toPx()),
-            strokeWidth = 0.9.dp.toPx(),
-            cap = StrokeCap.Round,
-        )
 
-        // Outer Temples (Chubby 3D Clay Hinge Tabs)
-        val hingeY = lensTop + lensH * 0.22f
-        // Left Temple
-        drawLine(
-            brush = clayFrameBrush,
-            start = Offset(leftOffset.x, hingeY),
-            end = Offset(0f, hingeY - h * 0.08f),
-            strokeWidth = frameThickness * 1.1f,
-            cap = StrokeCap.Round,
-        )
-        // Right Temple
-        drawLine(
-            brush = clayFrameBrush,
-            start = Offset(rightOffset.x + lensW, hingeY),
-            end = Offset(w, hingeY - h * 0.08f),
-            strokeWidth = frameThickness * 1.1f,
-            cap = StrokeCap.Round,
-        )
-
-        // -------------------------------------------------------------
-        // 6. 3D TACTILE CAMERA GEM & ACTIVE RECORDING LED
-        // -------------------------------------------------------------
         val cameraCenter = Offset(leftOffset.x + 3.2.dp.toPx(), lensTop + 3.2.dp.toPx())
         val ledCenter = Offset(rightOffset.x + lensW - 3.2.dp.toPx(), lensTop + 3.2.dp.toPx())
 
-        // Left 3D Camera Gem (Sapphire core + chrome rim + specular dot)
         drawCircle(
             color = Color(0xFF031A12),
             radius = 2.2.dp.toPx(),
@@ -934,21 +906,13 @@ private fun CyberRayBanCanvas(
             radius = 1.3.dp.toPx(),
             center = cameraCenter,
         )
-        drawCircle(
-            color = Color.White,
-            radius = 0.5.dp.toPx(),
-            center = cameraCenter - Offset(0.4.dp.toPx(), 0.4.dp.toPx()),
-        )
 
-        // Right 3D Active Capture LED (Luminous Gem on CONNECTED)
         if (isConnected) {
-            // LED Outer Halo Bloom
             drawCircle(
                 color = Color(0xFF00FF87).copy(alpha = 0.50f * livePulseAlpha),
                 radius = 3.8.dp.toPx(),
                 center = ledCenter,
             )
-            // LED Core
             drawCircle(
                 color = Color.White,
                 radius = 1.5.dp.toPx(),
@@ -986,6 +950,10 @@ private fun StartInspectionCard(onClick: () -> Unit) = HomeHeroCard(
     background = StartInspectionOrange,
     contentColor = Color.White,
     iconBackground = Color.White.copy(alpha = .18f),
+    verticalPadding = 24.dp,
+    iconBoxSize = 44.dp,
+    iconSize = 24.dp,
+    titleFontSize = 17.sp,
 )
 
 @Composable
@@ -1005,20 +973,25 @@ private fun HomeHeroCard(
     background: Color = PaleGreen,
     contentColor: Color = DeepGreen,
     iconBackground: Color = Color.White,
+    verticalPadding: Dp = 9.dp,
+    iconBoxSize: Dp = 38.dp,
+    iconSize: Dp = 20.dp,
+    titleFontSize: TextUnit = 14.5.sp,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(15.dp))
-            .background(background)
+            .shadow(1.5.dp, RoundedCornerShape(18.dp))
+            .background(background, RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(18.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 9.dp),
+            .padding(horizontal = 16.dp, vertical = verticalPadding),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
             modifier = Modifier
-                .size(38.dp)
-                .clip(RoundedCornerShape(11.dp))
+                .size(iconBoxSize)
+                .clip(RoundedCornerShape(12.dp))
                 .background(iconBackground),
             contentAlignment = Alignment.Center,
         ) {
@@ -1026,10 +999,10 @@ private fun HomeHeroCard(
                 imageVector = icon,
                 contentDescription = null,
                 tint = if (contentColor == Color.White) Color.White else Orange,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(iconSize),
             )
         }
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(14.dp))
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -1037,14 +1010,14 @@ private fun HomeHeroCard(
             Text(
                 text = title,
                 color = contentColor,
-                fontSize = 14.5.sp,
+                fontSize = titleFontSize,
                 fontWeight = FontWeight.ExtraBold,
             )
             if (description.isNotBlank()) {
                 Text(
                     text = description,
                     color = if (contentColor == Color.White) Color.White.copy(alpha = .85f) else Secondary,
-                    fontSize = 11.sp,
+                    fontSize = 14.3.sp,
                 )
             }
         }
@@ -1052,7 +1025,7 @@ private fun HomeHeroCard(
             imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
             contentDescription = null,
             tint = if (contentColor == Color.White) Color.White else Green,
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(20.dp),
         )
     }
 }
@@ -1065,11 +1038,23 @@ private fun RecentReportCard(
     recentReportDate: String?,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Color.White).clickable(onClick = onClick).padding(15.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(1.5.dp, RoundedCornerShape(18.dp))
+            .background(Color.White, RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .padding(15.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(modifier = Modifier.size(41.dp).clip(RoundedCornerShape(13.dp)).background(PaleOrange), contentAlignment = Alignment.Center) {
-            Icon(Icons.AutoMirrored.Outlined.Article, null, tint = Orange, modifier = Modifier.size(21.dp))
+        Box(
+            modifier = Modifier
+                .size(41.dp)
+                .clip(RoundedCornerShape(13.dp))
+                .background(Color.White),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(Icons.AutoMirrored.Outlined.Article, null, tint = Green, modifier = Modifier.size(21.dp))
         }
         Spacer(Modifier.width(11.dp))
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -1079,7 +1064,7 @@ private fun RecentReportCard(
                 else if (recentReportTitle != null && recentReportDate != null) "$recentReportTitle · $recentReportDate 점검"
                 else "아직 점검 리포트가 없어요",
                 color = Secondary,
-                fontSize = 10.sp,
+                fontSize = 13.sp,
             )
         }
         Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, tint = Green, modifier = Modifier.size(18.dp))
@@ -1088,9 +1073,9 @@ private fun RecentReportCard(
 
 @Composable
 private fun HomeQuickActions(onAddProperty: () -> Unit, onOpenChecklist: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        QuickAction(Modifier.weight(1f), Icons.Outlined.AddHome, "매물 등록하기", "", PaleGreen, onAddProperty)
-        QuickAction(Modifier.weight(1f), Icons.Outlined.Checklist, "체크리스트 확인", "", PaleOrange, onOpenChecklist)
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        QuickAction(Modifier.weight(1f), Icons.Outlined.AddHome, "매물 등록하기", "", Color.White, onAddProperty)
+        QuickAction(Modifier.weight(1f), Icons.Outlined.Checklist, "체크리스트 확인", "", Color.White, onOpenChecklist)
     }
 }
 
@@ -1106,8 +1091,9 @@ private fun QuickAction(
     Column(
         modifier = modifier
             .height(142.dp)
+            .shadow(1.5.dp, RoundedCornerShape(24.dp))
+            .background(background, RoundedCornerShape(24.dp))
             .clip(RoundedCornerShape(24.dp))
-            .background(background)
             .clickable(onClick = onClick)
             .padding(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -1115,7 +1101,7 @@ private fun QuickAction(
     ) {
         Icon(icon, null, tint = Green, modifier = Modifier.size(31.dp))
         Spacer(Modifier.height(8.dp))
-        Text(title, color = Green, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        Text(title, color = DeepGreen, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         Spacer(Modifier.height(5.dp))
         if (description.isNotBlank()) {
             Text(description, color = Secondary, fontSize = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
@@ -1130,7 +1116,12 @@ private fun InspectionTipCard() {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxWidth()) { page ->
             Row(
-                modifier = Modifier.fillMaxWidth().height(78.dp).clip(RoundedCornerShape(16.dp)).background(PaleOrange).padding(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(78.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFFF8F9FA))
+                    .padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(modifier = Modifier.size(36.dp).clip(RoundedCornerShape(12.dp)).background(Color.White), contentAlignment = Alignment.Center) {
@@ -1141,27 +1132,31 @@ private fun InspectionTipCard() {
                     Text(
                         "오늘의 점검 팁",
                         color = Orange,
-                        fontSize = 10.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 13.sp,
+                        lineHeight = 16.sp,
                         fontWeight = FontWeight.ExtraBold,
                     )
                     Text(
                         InspectionTips[page],
                         color = DeepGreen,
-                        fontSize = 10.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 13.sp,
+                        lineHeight = 17.sp,
                         maxLines = 1,
                     )
                 }
             }
         }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             repeat(InspectionTips.size) { index ->
                 Box(
                     modifier = Modifier
-                        .padding(horizontal = 2.dp)
+                        .padding(horizontal = 2.5.dp)
                         .size(if (pagerState.currentPage == index) 6.dp else 4.dp)
-                        .clip(RoundedCornerShape(10.dp))
+                        .clip(CircleShape)
                         .background(if (pagerState.currentPage == index) Orange else Color(0xFFFFD8B7)),
                 )
             }
@@ -1173,9 +1168,9 @@ private fun InspectionTipCard() {
 private fun MagazineSection(onOpenAll: () -> Unit, onOpenArticle: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("자취 매거진", color = DeepGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+            Text("자취 매거진", color = DeepGreen, fontSize = 19.2.sp, fontWeight = FontWeight.ExtraBold)
             Spacer(Modifier.weight(1f))
-            Text("전체보기  ›", modifier = Modifier.clickable(onClick = onOpenAll), color = Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text("전체보기  ›", modifier = Modifier.clickable(onClick = onOpenAll), color = Green, fontSize = 13.2.sp, fontWeight = FontWeight.Bold)
         }
         MagazineArticle(R.drawable.magazine_1, "생활 준비", "첫 자취생 필수템 체크리스트", onClick = { onOpenArticle("first_essentials") })
         MagazineArticle(R.drawable.magazine_2, "집 구하기", "집 볼 때 흔히 하는 5가지 실수", onClick = { onOpenArticle("home_viewing_mistakes") })
@@ -1185,14 +1180,40 @@ private fun MagazineSection(onOpenAll: () -> Unit, onOpenArticle: (String) -> Un
 
 @Composable
 private fun MagazineArticle(imageRes: Int, tag: String, title: String, onClick: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().height(74.dp).clip(RoundedCornerShape(15.dp)).background(Color.White).clickable(onClick = onClick).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Image(painter = painterResource(imageRes), contentDescription = null, modifier = Modifier.size(width = 76.dp, height = 58.dp).clip(RoundedCornerShape(10.dp)), contentScale = ContentScale.Crop)
-        Spacer(Modifier.width(10.dp))
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(tag, color = Orange, fontSize = 9.sp, fontWeight = FontWeight.ExtraBold)
-            Text(title, color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(78.dp)
+            .clip(RoundedCornerShape(15.dp))
+            .background(Color.White)
+            .clickable(onClick = onClick)
+            .padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Image(
+            painter = painterResource(imageRes),
+            contentDescription = null,
+            modifier = Modifier.size(width = 76.dp, height = 58.dp).clip(RoundedCornerShape(10.dp)),
+            contentScale = ContentScale.Crop,
+        )
+        Spacer(Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(
+                tag,
+                color = Orange,
+                fontSize = 13.sp,
+                lineHeight = 16.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
+            Text(
+                title,
+                color = DeepGreen,
+                fontSize = 13.sp,
+                lineHeight = 17.sp,
+                fontWeight = FontWeight.Normal,
+            )
         }
-        Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, tint = Green, modifier = Modifier.size(16.dp))
+        Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, tint = Green, modifier = Modifier.size(18.dp))
     }
 }
 
