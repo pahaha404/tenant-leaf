@@ -6,7 +6,10 @@ import org.junit.Test
 
 class DebugApiConfigurationTest {
     @Test
-    fun `debug app connects to the physical device loopback address`() {
-        assertEquals("http://127.0.0.1:8080/api/v1/", BuildConfig.API_BASE_URL)
+    fun `debug app connects to the shared presentation server by default`() {
+        assertEquals(
+            "https://stat-fashion-picture-volvo.trycloudflare.com/api/v1/",
+            BuildConfig.API_BASE_URL,
+        )
     }
 }
