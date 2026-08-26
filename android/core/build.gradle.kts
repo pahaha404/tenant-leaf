@@ -30,7 +30,7 @@ val debugApiBaseUrl = localDemoSetting("TENANT_LEAF_DEBUG_API_BASE_URL", "http:/
     .map { it.asApiBaseUrl("TENANT_LEAF_DEBUG_API_BASE_URL") }
 val releaseApiBaseUrl = localDemoSetting("TENANT_LEAF_RELEASE_API_BASE_URL", "https://api.tenant-leaf.invalid/api/v1/")
     .map { it.asApiBaseUrl("TENANT_LEAF_RELEASE_API_BASE_URL") }
-val demoUser = localDemoSetting("TENANT_LEAF_DEMO_USER", "local")
+val demoUser = localDemoSetting("TENANT_LEAF_DEMO_USER", "judge-a")
     .map { it.trim().lowercase() }
 
 android {
