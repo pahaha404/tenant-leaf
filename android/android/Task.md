@@ -28,16 +28,22 @@
 - 2026-08-25 — 모바일 데이터 임시 시연용 Cloudflare Quick Tunnel 시작·종료 및 Android APK 생성 스크립트를 추가했다. 외부 HTTPS API·MinIO health 응답과 `judge-a` APK의 외부 API 주소 포함 빌드는 확인했으나, 실제 휴대전화에서 Wi-Fi를 끄고 모바일 데이터만 사용하는 종단 간 임장·JPEG 업로드·리포트는 아직 미검증이다.
 
 - 2026-08-25 — 발표용 다중 휴대전화 LAN 시연을 위해 Debug APK가 `X-Demo-User` 헤더(`judge-a`~`judge-d`)를 전송하도록 추가하고, 노트북 LAN API 주소를 넣은 APK 4종을 생성했다. Core 컴파일·APK 패키징과 API의 A/B 매물 분리 호출을 확인했다. 실제 휴대전화 4대 동시 연결과 방화벽 허용은 발표 네트워크에서 확인이 남아 있다.
-
 - 2026-08-25 — 리포트의 촬영 공간 다시 보기를 Gemini 공간 분류 기반 갤러리로 보완했다. 대표 사진을 `주방`, `거실·방`, `화장실`, `공간 확인 필요`로 묶고 같은 공간의 여러 사진 및 전체화면 좌우 탐색을 지원한다. OpenAPI 응답의 공간·불확실 여부를 UI 모델로 연결하고 정적 검사를 통과했으나 Android Gradle Plugin `9.3.2`를 오프라인 환경에서 해석하지 못해 빌드·단위 테스트·실기기 확인은 미완료 상태다.
 
 - 2026-08-25 — 점검 리포트에 촬영 순서 기반 대표 사진 가로 목록과 전체 화면 좌우 넘김 뷰어를 추가했다. 확인 필요 관찰은 불확실한 AI 구역명으로 묶지 않고 근거 사진의 영상 시점 순으로 표시하며, 서버 진행 수치가 한 번에 증가해도 화면에서는 사진 단위로 순차 반영하도록 보완했다. 구현과 정적 검사는 완료했으나 Kotlin `2.3.21`·Android Gradle Plugin `9.3.2` 의존성을 오프라인 환경에서 해석하지 못해 Android 빌드·단위 테스트·실기기 검증은 미완료 상태다.
+
+- 2026-08-25 — `InspectionCountdownScreen`에서 기존 `3초 뒤 촬영이 시작됩니다` 안내 후 신발장 곰팡이·습기·천장/벽지 하자·주방 누수/배수·화장실 누수/곰팡이·창틀 결로/방충망 체크리스트를 이어서 TTS 발화하도록 구현함. 화면의 `3→2→1` 카운트다운은 유지하되 숫자는 발화하지 않고, Android TTS 무음 큐를 사용해 각 안내 문장 사이에 2초 간격을 적용함. `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과했으며 실기기 TTS 발화 순서·간격·음량은 미검증임.
+
+- 2026-08-25 — `MainActivity`의 앱 시작 시 주변 기기 권한 자동 요청을 제거하고 `Permissions` 화면 진입 시 `BLUETOOTH_SCAN`·`BLUETOOTH_CONNECT`를 포함한 미허용 권한만 요청하도록 수정함. `MediaUploadApiRoute`도 분석 화면 진입 시 Android 13 이상의 사진·동영상 권한과 Android 14의 `READ_MEDIA_VISUAL_USER_SELECTED`를 처리하며, 콜백 맵 대신 실제 승인 상태를 재확인하도록 보완함. SDK별 회귀 테스트를 추가했고 `:app:testDebugUnitTest`, `:app:assembleDebug`를 통과함. 실기기 시스템 권한 팝업 위치는 미검증임.
+
+- 2026-08-25 — 신규 사용자의 3단 온보딩을 로그인 화면보다 먼저 표시하도록 시작 라우팅을 `Welcome → Login → Consent` 순서로 변경함. 온보딩 완료 상태는 저장해 재실행 시 건너뛰고, 로그인 성공 후에는 동의 화면으로 이동하도록 `initialRouteFor` 회귀 테스트를 보강함. 실기기 화면 흐름은 미검증임.
 
 - 2026-08-25 — 실시간 점검의 `점검 나가기 (취소)` 간헐적 무반응을 수정함. 초기 임장 조회 완료 전에도 취소 요청을 허용하고, 취소 성공 후에만 음성 녹음을 폐기하며, 처리 중 중복 입력 잠금·취소 오류 표시를 추가함. `:feature:inspection:testDebugUnitTest`, `:app:compileDebugKotlin` 통과.
 - 2026-08-25 — 홈 화면(`HomeScreen`) 레이아웃을 `Scaffold` 구조로 리팩터링하여 세로 스크롤 먹통 현상 해결. 기존 `Box` + `align(BottomCenter)` 하단바 오버레이 구조에서 발생하던 스크롤 제스처 충돌 및 뷰포트 측정 오류를 `Scaffold(bottomBar = { AppBottomNavigation(...) })`와 `padding(innerPadding)` 기반의 독립 스크롤 컨테이너로 정돈하여 상하단 부드러운 스크롤을 복구함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-25 — 점검할 매물 선택 화면(`PropertySelectScreen`) 상단 여백 및 제목·소제목 레이아웃 정돈. 상단바와의 시각적 간격을 위해 상단 패딩(`top = 12.dp`)을 추가하고, "어느 매물을 점검할까요?" 제목과 "점검 기록은 선택한 매물에 저장돼요." 소제목을 하나의 그룹(`Column`, `spacedBy(4.dp)`)으로 묶어 전체적인 위치를 하단으로 자연스럽게 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-25 — 앱 전체 실행 주기(`MainActivity`) 동안 안드로이드 시스템 바(상단 상태바 및 하단 네비게이션바/제스처바 전체 `Type.systemBars()`) 전역 숨김(Full Immersive Mode) 적용. `onCreate`, `onResume`, `onWindowFocusChanged`에 `WindowInsetsControllerCompat`를 적용하여 앱 실행 중에는 항상 상단 상태창과 하단 네비게이션 토글바가 노출되지 않도록 처리함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 - 2026-08-25 — 홈 화면(`HomeScreen`, `AppNavGraph`) "매물 등록하기" 퀵 액션 버튼 내비게이션 경로 직결. 기존 매물 리스트(`Route.PropertyList`)로 이동하던 경로를 매물 등록 화면(`Route.PropertyForm`)으로 직접 이동하도록 수정하여 불필요한 뎁스를 단축함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
+- 2026-08-25 — 리포트 UI에서 참고 점수·/100·감점 설명과 관련 UI 모델 필드를 제거했다. JPEG 전송 완료 후에는 로딩 스피너를 멈추고 완료 안내와 리포트 진행 버튼을 표시하도록 보완했다. Android Gradle Plugin `9.3.2`를 오프라인에서 해석하지 못해 빌드·실기기 검증은 미완료다.
 - 2026-08-25 — 구역 명칭 간소화(현관·공용 ➔ 현관). `UiCatalog`, 실시간 점검(`LiveInspectionScreen`), 리포트(`ReportApiRoute`) 등 UI 전반에서 '현관·공용'으로 표기되던 명칭을 '현관'으로 간결하게 변경 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).
 
 - 2026-08-25 — 실시간 점검 화면(`LiveInspectionScreen`) UI/UX Best Practices 고도화. 1) 카메라 프리뷰 시인성 극대화(높이 230dp 확대, REC 펄스 애니메이션 뱃지, 실시간 경과 시간 및 소스 뱃지 오버레이), 2) 가로 스크롤 구역(Zone) 퀵 스위처 칩 바를 탑재하여 이동 동선에 맞춰 원하는 구역 가이드로 즉각 전환 지원, 3) 체크리스트를 번호 인덱스 기반 촬영 리마인더 카드로 재정돈, 4) 뒤로가기 터치 및 시스템 백 제스처 시 이탈 방지 안전 확인 다이얼로그(`showExitDialog`, `BackHandler`) 연동, 5) 하단 엄지 조작 영역의 일시정지/재개 및 점검 종료 액션바 인터랙션을 정돈함. `:app:testDebugUnitTest` 158개 태스크 전원 통과 (`BUILD SUCCESSFUL`).

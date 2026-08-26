@@ -1477,7 +1477,6 @@ components:
         - observationCount
         - propertyDisplayName
         - inspectionEndedAt
-        - scoreIsProvisional
         - templateVersion
         - createdAt
         - updatedAt
@@ -1513,18 +1512,6 @@ components:
         inspectionEndedAt:
           type: string
           format: date-time
-        referenceScore:
-          type: integer
-          minimum: 0
-          maximum: 100
-          nullable: true
-          description: 확인 필요 관찰 1건당 5점을 차감한 참고값이며 안전·계약 점수가 아닙니다.
-        scorePolicyVersion:
-          type: string
-          nullable: true
-        scoreIsProvisional:
-          type: boolean
-          description: 일부 사진 분석 실패로 점수가 잠정값이면 true입니다.
         failureCode:
           allOf:
             - $ref: "#/components/schemas/ReportFailureCode"

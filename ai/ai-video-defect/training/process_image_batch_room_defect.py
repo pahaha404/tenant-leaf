@@ -165,6 +165,7 @@ def process_image_batch(args: argparse.Namespace) -> dict[str, Any]:
                 "raw": room["room"],
                 "stable": room["stableRoom"],
                 "uncertain": room["uncertain"],
+                "containsPerson": room.get("containsPerson", True),
                 "provider": room["provider"],
                 "model": room["model"],
                 "roomSegmentId": room["roomSegmentId"],

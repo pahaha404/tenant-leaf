@@ -2,12 +2,14 @@ package com.seipseip.app
 
 import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -339,13 +341,32 @@ internal fun Permissions(
     onGranted: () -> Unit,
     onDenied: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val permissions = remember { tenantLeafRuntimePermissions() }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions(),
-    ) { results ->
-        if (results[Manifest.permission.CAMERA] == true) onGranted() else onDenied()
+    ) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            initializeDatWhenPermitted(context)
+            onGranted()
+        } else {
+            onDenied()
+        }
     }
+    fun requestMissingPermissions() {
+        val missing = permissions.filter {
+            ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isEmpty()) {
+            initializeDatWhenPermitted(context)
+            onGranted()
+        } else {
+            launcher.launch(missing.toTypedArray())
+        }
+    }
+    LaunchedEffect(Unit) { requestMissingPermissions() }
     PageWithBottomAction("권한 설정", back, action = {
-        MainButton("권한 설정 계속하기", Orange) { launcher.launch(tenantLeafRuntimePermissions()) }
+        MainButton("권한 설정 계속하기", Orange, click = ::requestMissingPermissions)
     }) {
         Text("점검에 필요한 권한을\n확인해 주세요", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = Green)
         Text("필수 권한은 점검 사진과 기록을 위해 사용돼요.", color = Secondary, fontSize = 12.sp)

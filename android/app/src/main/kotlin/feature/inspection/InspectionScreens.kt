@@ -163,7 +163,6 @@ fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit
                     enabled = canContinue,
                     onClick = {
                         if (canContinue) {
-                            VoiceGuideManager.speak(context, "3초 뒤 촬영이 시작됩니다.")
                             onContinue()
                         }
                     },
@@ -210,9 +209,11 @@ private fun ConsentCheckRow(
 }
 @Composable
 fun InspectionCountdownScreen(onFinished: () -> Unit) {
+    val context = LocalContext.current
     var count by remember { mutableStateOf(3) }
 
     LaunchedEffect(Unit) {
+        VoiceGuideManager.speakWithPauses(context, INSPECTION_START_VOICE_GUIDE, 2_000)
         count = 3
         kotlinx.coroutines.delay(1_000)
         count = 2
@@ -233,6 +234,14 @@ fun InspectionCountdownScreen(onFinished: () -> Unit) {
         }
     }
 }
+
+internal val INSPECTION_START_VOICE_GUIDE = listOf(
+    "3초 뒤 촬영이 시작됩니다.",
+    "현관과 복도에서는 신발장 곰팡이와 벽·바닥 습기를, 거실에서는 천장, 벽지의 하자를 확인해 주세요.",
+    "주방에서는 싱크대 아래 누수와 배수, 찬장 안쪽을 확인해 주세요.",
+    "화장실에서는 누수·곰팡이와 배수 상태를 확인해 주세요.",
+    "마지막으로 창틀에서는 창문 틈새와 결로, 곰팡이 흔적과 방충망을 확인해 주세요.",
+)
 
 @Composable
 fun TutorialScreen(
@@ -1374,7 +1383,8 @@ object VoiceGuideManager {
     private var tts: TextToSpeech? = null
     @Volatile
     private var isInitialized = false
-    private var pendingText: String? = null
+    private var pendingTexts: List<String>? = null
+    private var pendingPauseMillis = 0L
 
     fun warmUp(context: Context) {
         if (tts != null) return
@@ -1392,9 +1402,10 @@ object VoiceGuideManager {
                             tts?.setSpeechRate(1.05f)
                         } catch (_: Exception) {}
                         isInitialized = true
-                        pendingText?.let { text ->
-                            speakInternal(text)
-                            pendingText = null
+                        pendingTexts?.let { texts ->
+                            speakInternal(texts, pendingPauseMillis)
+                            pendingTexts = null
+                            pendingPauseMillis = 0L
                         }
                     }
                 }
@@ -1402,27 +1413,40 @@ object VoiceGuideManager {
         }
     }
 
-    private fun speakInternal(text: String) {
-        try {
-            val params = android.os.Bundle().apply {
-                putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, android.media.AudioManager.STREAM_MUSIC)
+    private fun speakInternal(texts: List<String>, pauseMillis: Long) {
+        val params = android.os.Bundle().apply {
+            putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, android.media.AudioManager.STREAM_MUSIC)
+        }
+        texts.forEachIndexed { index, text ->
+            val queueMode = if (index == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
+            val utteranceId = "voice_guide_${System.currentTimeMillis()}_$index"
+            try {
+                tts?.speak(text, queueMode, params, utteranceId)
+            } catch (_: Exception) {
+                tts?.speak(text, queueMode, null, utteranceId)
             }
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "voice_guide_${System.currentTimeMillis()}")
-        } catch (_: Exception) {
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "voice_guide_${System.currentTimeMillis()}")
+            if (index < texts.lastIndex && pauseMillis > 0) {
+                tts?.playSilentUtterance(pauseMillis, TextToSpeech.QUEUE_ADD, "${utteranceId}_pause")
+            }
         }
     }
 
     fun speak(context: Context, text: String) {
+        speakWithPauses(context, listOf(text), 0)
+    }
+
+    fun speakWithPauses(context: Context, texts: List<String>, pauseMillis: Long) {
         val appContext = context.applicationContext
         synchronized(lock) {
             if (tts == null) {
-                pendingText = text
+                pendingTexts = texts
+                pendingPauseMillis = pauseMillis
                 warmUp(appContext)
             } else if (isInitialized) {
-                speakInternal(text)
+                speakInternal(texts, pauseMillis)
             } else {
-                pendingText = text
+                pendingTexts = texts
+                pendingPauseMillis = pauseMillis
             }
         }
     }
@@ -1439,7 +1463,8 @@ object VoiceGuideManager {
             tts?.shutdown()
             tts = null
             isInitialized = false
-            pendingText = null
+            pendingTexts = null
+            pendingPauseMillis = 0L
         }
     }
 }
@@ -1539,6 +1564,7 @@ fun AnalysisProgressScreen(
     primaryActionLabel: String,
     onPrimaryAction: () -> Unit,
 ) {
+    val uploadCompleted = progress >= 1f && errorMessage == null
     AppPageScaffold(
         title = "분석 진행",
         onBack = onBackToHome,
@@ -1551,7 +1577,11 @@ fun AnalysisProgressScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                SectionTitle("촬영 내용을 분석하고 있어요", "촬영한 영상에서 분석할 사진을 준비하는 중이에요.")
+                SectionTitle(
+                    if (uploadCompleted) "사진 전송을 완료했어요" else "촬영 내용을 분석하고 있어요",
+                    if (uploadCompleted) "리포트에서 AI 분석 진행 상태를 확인할 수 있어요."
+                    else "촬영한 영상에서 분석할 사진을 준비하는 중이에요.",
+                )
                 LinearProgressIndicator(
                     progress = { progress.coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxWidth(),
@@ -1572,8 +1602,15 @@ fun AnalysisProgressScreen(
                 )
                 Spacer(Modifier.height(20.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CircularProgressIndicator(modifier = Modifier.size(28.dp), color = Green, strokeWidth = 3.dp)
-                    Text("촬영 내용을 준비하고 있어요", color = DeepGreen, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+                    if (!uploadCompleted) {
+                        CircularProgressIndicator(modifier = Modifier.size(28.dp), color = Green, strokeWidth = 3.dp)
+                    }
+                    Text(
+                        if (uploadCompleted) "사진 전송을 완료했어요" else "촬영 내용을 준비하고 있어요",
+                        color = DeepGreen,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
                 }
                 Spacer(Modifier.height(14.dp))
                 Text(statusMessage, color = Secondary, fontSize = 14.sp, lineHeight = 20.sp)
