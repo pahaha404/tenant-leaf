@@ -187,7 +187,7 @@ class MediaAnalysisWorker:
                         JOIN media m ON m.id = j.media_id
                         WHERE m.inspection_id = i.id
                           AND j.status = 'QUEUED'
-                    )
+                    ) DESC
                     FOR UPDATE OF i SKIP LOCKED
                     LIMIT 1
                     """,

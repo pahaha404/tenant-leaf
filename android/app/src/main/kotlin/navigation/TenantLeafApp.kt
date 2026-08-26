@@ -62,7 +62,7 @@ internal fun TenantLeafApp() {
     MaterialTheme {
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = Color(0xFFFCFBF8),
+            color = Color.White,
         ) {
             AppNavGraph(
                 navController = navController,

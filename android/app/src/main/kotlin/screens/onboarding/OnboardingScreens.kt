@@ -187,7 +187,7 @@ internal fun FirstUse(back: () -> Unit, next: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF6F4EF))
+            .background(Color.White)
             .statusBarsPadding()
             .navigationBarsPadding(),
     ) {

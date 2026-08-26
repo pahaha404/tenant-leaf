@@ -85,7 +85,7 @@ import com.seipseip.app.Secondary
 import com.seipseip.app.feature.common.AppTab
 import com.seipseip.app.feature.common.AppBottomNavigation
 
-private val HomeBackground = Color(0xFFF6F4EF)
+private val HomeBackground = Color.White
 private val StartInspectionOrange = Color(0xFFF28A3A)
 private val InspectionTips = listOf(
     "싱크대 아래 휴지로 누수를 확인해요.",
@@ -107,6 +107,8 @@ fun HomeScreen(
     onOpenChecklist: () -> Unit,
     onTabSelected: (String) -> Unit,
     processing: Boolean = false,
+    recentReportTitle: String? = null,
+    recentReportDate: String? = null,
 ) {
     val activity = LocalContext.current as? ComponentActivity
     val glassViewModel: GlassConnectionViewModel = rememberGlassConnectionViewModel()
@@ -122,6 +124,8 @@ fun HomeScreen(
         onOpenChecklist = onOpenChecklist,
         onTabSelected = onTabSelected,
         processing = processing,
+        recentReportTitle = recentReportTitle,
+        recentReportDate = recentReportDate,
         glassState = glassState,
         onGlassClick = { activity?.let(glassViewModel::connect) },
     )
@@ -139,6 +143,8 @@ fun TenantLeafHomeLayout(
     onStartInspection: () -> Unit = onAddProperty,
     onOpenChecklist: () -> Unit = onAddProperty,
     processing: Boolean = false,
+    recentReportTitle: String? = null,
+    recentReportDate: String? = null,
     glassState: GlassConnectionUiState = GlassConnectionUiState(),
     onGlassClick: () -> Unit = {},
 ) {
@@ -174,7 +180,7 @@ fun TenantLeafHomeLayout(
             GlassStatusCard(glassState, onGlassClick)
             if (processing) ReportProcessingCard(onOpenReports) else StartInspectionCard(onStartInspection)
             HomeQuickActions(onAddProperty, onOpenChecklist)
-            RecentReportCard(onOpenRecentReport, processing)
+            RecentReportCard(onOpenRecentReport, processing, recentReportTitle, recentReportDate)
             InspectionTipCard()
             MagazineSection(onOpenAll = onOpenMagazine, onOpenArticle = onOpenMagazineArticle)
         }
@@ -975,7 +981,7 @@ private fun CyberRayBanCanvas(
 private fun StartInspectionCard(onClick: () -> Unit) = HomeHeroCard(
     icon = Icons.Outlined.PlayArrow,
     title = "점검 시작하기",
-    description = "등록한 매물을 고르고 바로 시작해요",
+    description = "",
     onClick = onClick,
     background = StartInspectionOrange,
     contentColor = Color.White,
@@ -1034,11 +1040,13 @@ private fun HomeHeroCard(
                 fontSize = 14.5.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
-            Text(
-                text = description,
-                color = if (contentColor == Color.White) Color.White.copy(alpha = .85f) else Secondary,
-                fontSize = 11.sp,
-            )
+            if (description.isNotBlank()) {
+                Text(
+                    text = description,
+                    color = if (contentColor == Color.White) Color.White.copy(alpha = .85f) else Secondary,
+                    fontSize = 11.sp,
+                )
+            }
         }
         Icon(
             imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
@@ -1050,10 +1058,39 @@ private fun HomeHeroCard(
 }
 
 @Composable
+private fun RecentReportCard(
+    onClick: () -> Unit,
+    processing: Boolean,
+    recentReportTitle: String?,
+    recentReportDate: String?,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Color.White).clickable(onClick = onClick).padding(15.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(modifier = Modifier.size(41.dp).clip(RoundedCornerShape(13.dp)).background(PaleOrange), contentAlignment = Alignment.Center) {
+            Icon(Icons.AutoMirrored.Outlined.Article, null, tint = Orange, modifier = Modifier.size(21.dp))
+        }
+        Spacer(Modifier.width(11.dp))
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(if (processing) "하자 점검 및 리포트 작성 중" else "최근 점검 리포트", color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+            Text(
+                if (processing) "촬영한 사진을 분석하고 리포트를 작성 중이에요"
+                else if (recentReportTitle != null && recentReportDate != null) "$recentReportTitle · $recentReportDate 점검"
+                else "아직 점검 리포트가 없어요",
+                color = Secondary,
+                fontSize = 10.sp,
+            )
+        }
+        Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, tint = Green, modifier = Modifier.size(18.dp))
+    }
+}
+
+@Composable
 private fun HomeQuickActions(onAddProperty: () -> Unit, onOpenChecklist: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        QuickAction(Modifier.weight(1f), Icons.Outlined.AddHome, "매물 등록하기", "직접 정보 입력", PaleGreen, onAddProperty)
-        QuickAction(Modifier.weight(1f), Icons.Outlined.Checklist, "체크리스트 확인", "방문 전 미리 보기", PaleOrange, onOpenChecklist)
+        QuickAction(Modifier.weight(1f), Icons.Outlined.AddHome, "매물 등록하기", "", PaleGreen, onAddProperty)
+        QuickAction(Modifier.weight(1f), Icons.Outlined.Checklist, "체크리스트 확인", "", PaleOrange, onOpenChecklist)
     }
 }
 
@@ -1080,25 +1117,9 @@ private fun QuickAction(
         Spacer(Modifier.height(8.dp))
         Text(title, color = Green, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         Spacer(Modifier.height(5.dp))
-        Text(description, color = Secondary, fontSize = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-    }
-}
-
-@Composable
-private fun RecentReportCard(onClick: () -> Unit, processing: Boolean) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Color.White).clickable(onClick = onClick).padding(15.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(modifier = Modifier.size(41.dp).clip(RoundedCornerShape(13.dp)).background(PaleOrange), contentAlignment = Alignment.Center) {
-            Icon(Icons.AutoMirrored.Outlined.Article, null, tint = Orange, modifier = Modifier.size(21.dp))
+        if (description.isNotBlank()) {
+            Text(description, color = Secondary, fontSize = 12.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
-        Spacer(Modifier.width(11.dp))
-        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(if (processing) "하자 점검 및 리포트 작성 중" else "최근 점검 리포트", color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
-            Text(if (processing) "촬영한 사진을 분석하고 리포트를 작성 중이에요" else "망원동 리버뷰 · 2026. 08. 19 점검", color = Secondary, fontSize = 10.sp)
-        }
-        Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, tint = Green, modifier = Modifier.size(18.dp))
     }
 }
 
@@ -1196,7 +1217,7 @@ private fun HomeTab(icon: ImageVector, label: String, selected: Boolean, onClick
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFF6F4EF)
+@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 private fun CyberGlassStatusCardPreview() {
     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

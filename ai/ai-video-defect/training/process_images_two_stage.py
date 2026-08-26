@@ -324,7 +324,7 @@ def main() -> None:
     parser.add_argument("--merge-iou", type=float, default=0.30)
     parser.add_argument("--defect-verifier", choices=("disabled", "gemini"), default="disabled")
     parser.add_argument("--gemini-defect-model", default="gemini-3.5-flash-lite")
-    parser.add_argument("--gemini-defect-retries", type=int, default=3)
+    parser.add_argument("--gemini-defect-retries", type=int, default=2)
     parser.add_argument("--gemini-reject-confidence", type=float, default=0.90)
     args = parser.parse_args()
     try:

@@ -164,7 +164,12 @@ fun VoiceRecordReviewCard() {
             VoiceTextBlock("음성 메모", state.transcript)
             if (state.summary.isNotBlank()) VoiceTextBlock("짧게 정리하면", state.summary, highlighted = true)
         } else {
-            Text("녹음 파일은 이 휴대전화에 저장됐어요.", color = Secondary, fontSize = 11.sp)
+            Text(
+                if (state.audioPath != null) "녹음 파일은 이 휴대전화에 저장됐어요."
+                else "이번 점검에는 저장된 음성 파일이 없어요.",
+                color = Secondary,
+                fontSize = 11.sp,
+            )
         }
     }
 }

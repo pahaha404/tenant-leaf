@@ -37,17 +37,30 @@ object VoiceRecordSession {
         runCatching {
             recorder = VoiceRecorder(context).also { it.start(inspectionId) }
             result = VoiceRecordResult(inspectionId = inspectionId, recording = true)
+            Log.d(TAG, "Voice file opened for inspection=$inspectionId")
+        }.onFailure { error ->
+            recorder = null
+            result = VoiceRecordResult(inspectionId = inspectionId)
+            Log.w(TAG, "Could not open voice recording file", error)
         }
     }
 
     fun finish(context: Context) {
-        val file = recorder?.stop() ?: return
+        val activeRecorder = recorder
         recorder = null
+        val file = activeRecorder?.stop()
+        if (file == null) {
+            // 중간에 화면을 나가거나 기기 입력이 끊겨도 다음 점검이 이전 세션에 묶이지 않게 정리한다.
+            result = VoiceRecordResult(inspectionId = result.inspectionId)
+            Log.w(TAG, "Voice recording finished without PCM data")
+            return
+        }
         result = VoiceRecordResult(
             inspectionId = result.inspectionId,
             transcribing = true,
             audioPath = file.wavFile.absolutePath,
         )
+        Log.d(TAG, "Voice WAV saved (${file.wavFile.length()} bytes)")
         VoiceRecordArchive.saveResult(context, result)
         transcribe(context, file)
     }

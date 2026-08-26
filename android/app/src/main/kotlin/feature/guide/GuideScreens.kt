@@ -29,7 +29,7 @@ import com.seipseip.app.Secondary
 import com.seipseip.app.feature.common.GuideItem
 import com.seipseip.app.feature.common.UiCatalog
 
-private val GuideBackground = Color(0xFFF6F4EF)
+private val GuideBackground = Color.White
 
 @Composable
 fun GuideZoneScreen(

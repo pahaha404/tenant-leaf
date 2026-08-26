@@ -56,7 +56,7 @@ import androidx.navigation.compose.rememberNavController
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF)).padding(horizontal = 20.dp, vertical = 14.dp),
+        modifier = Modifier.fillMaxSize().background(Color.White).padding(horizontal = 20.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(7.dp),
     ) {
         Row(
@@ -130,7 +130,7 @@ internal fun SignUp(back: () -> Unit, next: (String) -> Unit) {
     var passwordConfirm by remember { mutableStateOf("") }
     var nickname by remember { mutableStateOf("") }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
+    Column(Modifier.fillMaxSize().background(Color.White)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

@@ -118,11 +118,13 @@ class InspectionVideoRecorder(
             encoder.start()
             mediaEncoder = encoder
 
-            // 2. Configure Audio Encoder (AAC) if permission granted
-            setupAudioRecording()
-
+            // Audio pump 작업은 isRecordingState가 true인 동안만 실행된다.
+            // 먼저 상태를 켜지 않으면 작업이 시작하자마자 종료되어 PCM/WAV 음성 기록이 비게 된다.
             isRecordingState.set(true)
             isPausedState.set(false)
+
+            // 2. Configure Audio Encoder (AAC) if permission granted
+            setupAudioRecording()
 
             drainJob = scope.launch {
                 drainVideoEncoder()
@@ -171,6 +173,13 @@ class InspectionVideoRecorder(
             aEncoder.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
             aEncoder.start()
             record.startRecording()
+            if (record.recordingState != AudioRecord.RECORDSTATE_RECORDING) {
+                Log.w(TAG, "AudioRecord did not enter the recording state")
+                runCatching { aEncoder.stop() }
+                runCatching { aEncoder.release() }
+                record.release()
+                return
+            }
 
             audioRecord = record
             audioEncoder = aEncoder

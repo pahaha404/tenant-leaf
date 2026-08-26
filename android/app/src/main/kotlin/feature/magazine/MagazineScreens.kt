@@ -41,7 +41,7 @@ import com.seipseip.app.R
 import com.seipseip.app.Secondary
 
 private val MagazineBackground = Color.White
-private val MagazineTopBackground = Color(0xFFF6F4EF)
+private val MagazineTopBackground = Color.White
 
 private data class ArticlePointData(val title: String, val description: String)
 

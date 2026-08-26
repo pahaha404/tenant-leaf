@@ -238,7 +238,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--gemini-model", default="gemini-3.5-flash-lite")
     parser.add_argument("--room-batch-size", type=int, default=10)
     parser.add_argument("--room-image-size", type=int, default=384)
-    parser.add_argument("--room-retries", type=int, default=3)
+    parser.add_argument("--room-retries", type=int, default=2)
     parser.add_argument("--room-window-size", type=int, default=5)
     parser.add_argument("--room-min-votes", type=int, default=3)
     parser.add_argument("--binary", type=Path, default=Path("models/active/two_stage_negative_rot4/binary/best.pt"))
@@ -250,7 +250,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--merge-iou", type=float, default=0.30)
     parser.add_argument("--defect-verifier", choices=("disabled", "gemini"), default="gemini")
     parser.add_argument("--gemini-defect-model", default="gemini-3.5-flash-lite")
-    parser.add_argument("--gemini-defect-retries", type=int, default=3)
+    parser.add_argument("--gemini-defect-retries", type=int, default=2)
     parser.add_argument("--gemini-reject-confidence", type=float, default=0.90)
     return parser
 

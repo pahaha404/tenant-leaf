@@ -136,7 +136,7 @@ class GeminiRoomClassifier:
         model: str = "gemini-3.5-flash-lite",
         batch_size: int = 10,
         max_image_size: int = 384,
-        retries: int = 3,
+        retries: int = 2,
     ) -> None:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
@@ -146,7 +146,11 @@ class GeminiRoomClassifier:
             from google.genai import types
         except ImportError as error:
             raise RuntimeError("google-genai is not installed; run pip install -r requirements.txt") from error
-        self.client = genai.Client(api_key=api_key)
+        request_timeout_ms = max(1_000, int(os.environ.get("GEMINI_REQUEST_TIMEOUT_MS", "15000")))
+        self.client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(timeout=request_timeout_ms),
+        )
         self.types = types
         self.model = model
         self.batch_size = max(1, batch_size)
