@@ -25,6 +25,8 @@
 
 ## 진행 기록
 
+- 2026-08-26 — 하단 내비게이션 바(`AppBottomNavigation`, `NavigationBarItem`) 포커싱 스타일 수정. 선택 시 표시되던 보라색 배경 인디케이터를 제거(`indicatorColor = Color.Transparent`)하고, 포커싱된 탭의 아이콘과 텍스트 라벨 색상을 주황색(`Orange`)으로 변경함.
+
 - 2026-08-25 — 모바일 데이터 임시 시연용 Cloudflare Quick Tunnel 시작·종료 및 Android APK 생성 스크립트를 추가했다. 외부 HTTPS API·MinIO health 응답과 `judge-a` APK의 외부 API 주소 포함 빌드는 확인했으나, 실제 휴대전화에서 Wi-Fi를 끄고 모바일 데이터만 사용하는 종단 간 임장·JPEG 업로드·리포트는 아직 미검증이다.
 
 - 2026-08-25 — 발표용 다중 휴대전화 LAN 시연을 위해 Debug APK가 `X-Demo-User` 헤더(`judge-a`~`judge-d`)를 전송하도록 추가하고, 노트북 LAN API 주소를 넣은 APK 4종을 생성했다. Core 컴파일·APK 패키징과 API의 A/B 매물 분리 호출을 확인했다. 실제 휴대전화 4대 동시 연결과 방화벽 허용은 발표 네트워크에서 확인이 남아 있다.
