@@ -10,4 +10,4 @@ internal val Orange = Color(0xFFF68B38)
 internal val PaleOrange = Color(0xFFFFF0E4)
 internal val Secondary = Color(0xFF767676)
 internal val Border = Color(0xFFE5E5EA)
-internal val PageBackground = Color(0xFFF7F8FA)
+internal val PageBackground = Color.White

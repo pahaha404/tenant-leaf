@@ -293,7 +293,7 @@ fun PropertyMapOverviewScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(start = 16.dp, top = 36.dp, end = 16.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
@@ -311,7 +311,7 @@ fun PropertyMapOverviewScreen(
                     Text(
                         text = "매물 지도",
                         color = DeepGreen,
-                        fontSize = 16.5.sp,
+                        fontSize = 21.sp,
                         fontWeight = FontWeight.ExtraBold,
                     )
                     StateBadge("매물 ${properties.size}개")

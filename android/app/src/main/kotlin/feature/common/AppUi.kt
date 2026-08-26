@@ -107,6 +107,7 @@ fun Modifier.swipeToChangeTab(
 @OptIn(ExperimentalMaterial3Api::class)
 fun AppPageScaffold(
     title: String,
+    subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     scrollable: Boolean = true,
     selectedTab: AppTab? = null,
@@ -120,6 +121,7 @@ fun AppPageScaffold(
     content: @Composable () -> Unit,
 ) {
     Scaffold(
+        containerColor = PageBackground,
         floatingActionButton = { floatingActionButton?.invoke() },
         bottomBar = {
             Column {
@@ -137,8 +139,13 @@ fun AppPageScaffold(
                     .background(PageBackground)
                     .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                     .imePadding()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                    .padding(
+                        start = 20.dp,
+                        top = if (onBack == null) 36.dp else 12.dp,
+                        end = 20.dp,
+                        bottom = 12.dp,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(if (onBack == null) 16.dp else 10.dp),
             ) {
                 if (onBack != null) {
                     Row(
@@ -173,16 +180,30 @@ fun AppPageScaffold(
                     }
                 } else {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            text = title,
-                            color = DeepGreen,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(3.dp),
+                        ) {
+                            if (subtitle != null) {
+                                Text(
+                                    text = subtitle,
+                                    color = Secondary,
+                                    fontSize = 14.3.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            } else {
+                                Spacer(modifier = Modifier.height(18.dp))
+                            }
+                            Text(
+                                text = title,
+                                color = DeepGreen,
+                                fontSize = 23.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                        }
                         topTrailingAction?.invoke()
                     }
                 }
