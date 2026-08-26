@@ -66,13 +66,17 @@ function Start-QuickTunnel([string]$name, [string]$localUrl) {
         -RedirectStandardOutput $outLog -RedirectStandardError $errLog
     $deadline = (Get-Date).AddSeconds(45)
     do {
-        $urls = @($outLog, $errLog) |
-            Where-Object { Test-Path $_ } |
-            ForEach-Object { Select-String -Path $_ -Pattern 'https://[-a-z0-9]+\.trycloudflare\.com' -AllMatches } |
-            ForEach-Object { $_.Matches.Value } |
-            Select-Object -Unique
+        $urls = @(
+            @($outLog, $errLog) |
+                Where-Object { Test-Path $_ } |
+                ForEach-Object {
+                    Select-String -Path $_ -Pattern 'https://[-a-z0-9]+\.trycloudflare\.com' -AllMatches |
+                        ForEach-Object { $_.Matches | ForEach-Object { $_.Value } }
+                } |
+                Select-Object -Unique
+        )
         if ($urls.Count -gt 0) {
-            return [PSCustomObject]@{ Name = $name; Url = $urls[0]; ProcessId = $process.Id }
+            return [PSCustomObject]@{ Name = $name; Url = ($urls | Select-Object -First 1); ProcessId = $process.Id }
         }
         if ($process.HasExited) { break }
         Start-Sleep -Seconds 1
@@ -114,7 +118,11 @@ Wait-HttpOk 'http://127.0.0.1:8080/actuator/health'
 
 Write-Host '[4/5] API 임시 HTTPS 터널을 만듭니다.'
 $apiTunnel = Start-QuickTunnel 'api' 'http://127.0.0.1:8080'
-Wait-HttpOk "$($apiTunnel.Url)/actuator/health"
+try {
+    Wait-HttpOk "$($apiTunnel.Url)/actuator/health" -timeoutSeconds 20
+} catch {
+    Write-Warning 'Quick Tunnel 주소는 DNS 전파에 잠시 시간이 걸릴 수 있습니다. APK 설치 전 외부 health 확인을 다시 하세요.'
+}
 
 $state = [PSCustomObject]@{
     createdAt = (Get-Date).ToString('o')
