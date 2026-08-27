@@ -272,7 +272,7 @@ fun TutorialScreen(
                                 context,
                                 Uri.parse("android.resource://${context.packageName}/$tutorialVideoId"),
                             )
-                            getFrameAtTime(1_000_000L, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                            getFrameAtTime(0L, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
                         } finally {
                             release()
                         }
