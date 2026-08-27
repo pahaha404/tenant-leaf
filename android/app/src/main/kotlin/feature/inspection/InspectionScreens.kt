@@ -278,18 +278,11 @@ fun TutorialScreen(
         },
     ) {
         Text(
-            "스마트 글래스로 한 번에!\n튜토리얼 영상 어쩌구",
+            "세입세잎, 이렇게 사용해요",
             modifier = Modifier.fillMaxWidth().padding(top = 42.dp),
             color = Green,
             fontSize = 25.sp,
             fontWeight = FontWeight.ExtraBold,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
-        Text(
-            "스마트 글래스 촬영부터 직접 확인까지\n가장 중요한 흐름만 빠르게 알려드려요.",
-            modifier = Modifier.fillMaxWidth(),
-            color = Secondary,
-            fontSize = 13.sp,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
         Box(
@@ -312,7 +305,6 @@ fun TutorialScreen(
                 }
             }
         }
-        StateBadge("◷  60초 영상", Orange)
     }
 
     if (showVideo) {
