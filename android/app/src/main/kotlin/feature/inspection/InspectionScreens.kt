@@ -12,6 +12,7 @@ import android.speech.tts.TextToSpeech
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
+import android.media.MediaMetadataRetriever
 import android.view.Surface
 import android.view.TextureView
 import android.widget.MediaController
@@ -88,16 +89,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
@@ -252,11 +257,36 @@ fun TutorialScreen(
     val tutorialVideoId = remember {
         context.resources.getIdentifier("tutorial_video", "raw", context.packageName)
     }
+    val tutorialThumbnail by produceState<Bitmap?>(
+        initialValue = null,
+        key1 = tutorialVideoId,
+    ) {
+        value = if (tutorialVideoId == 0) {
+            null
+        } else {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    MediaMetadataRetriever().run {
+                        try {
+                            setDataSource(
+                                context,
+                                Uri.parse("android.resource://${context.packageName}/$tutorialVideoId"),
+                            )
+                            getFrameAtTime(1_000_000L, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                        } finally {
+                            release()
+                        }
+                    }
+                }.getOrNull()
+            }
+        }
+    }
     var showVideo by remember { mutableStateOf(false) }
 
     AppPageScaffold(
         title = "튜토리얼",
         onBack = onBack,
+        scrollable = false,
         bottomAction = {
             Column(
                 modifier = Modifier
@@ -277,31 +307,47 @@ fun TutorialScreen(
             }
         },
     ) {
-        Text(
-            "세입세잎, 이렇게 사용해요",
-            modifier = Modifier.fillMaxWidth().padding(top = 42.dp),
-            color = Green,
-            fontSize = 25.sp,
-            fontWeight = FontWeight.ExtraBold,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 18.dp)
-                .clickable { showVideo = true },
-            contentAlignment = Alignment.Center,
+                .fillMaxSize(),
         ) {
+            Text(
+                "세입세잎, 이렇게 사용해요",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .padding(top = 42.dp),
+                color = Green,
+                fontSize = 25.sp,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            )
             Box(
                 modifier = Modifier
-                    .size(width = 218.dp, height = 140.dp)
+                    .fillMaxWidth()
+                    .height(210.dp)
+                    .align(Alignment.Center)
                     .clip(RoundedCornerShape(22.dp))
-                    .background(PaleGreen),
+                    .background(PaleGreen)
+                    .clickable { showVideo = true },
                 contentAlignment = Alignment.Center,
             ) {
-                Text("⌁", modifier = Modifier.align(Alignment.TopStart).padding(18.dp), color = Green, fontSize = 32.sp, fontWeight = FontWeight.Bold)
-                Box(modifier = Modifier.size(66.dp).clip(RoundedCornerShape(99.dp)).background(Green), contentAlignment = Alignment.Center) {
-                    Text("▶", color = Color.White, fontSize = 25.sp)
+                tutorialThumbnail?.let { bitmap ->
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "세입세잎 튜토리얼 영상 썸네일",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(Green.copy(alpha = 0.94f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("▶", color = Color.White, fontSize = 27.sp)
                 }
             }
         }
