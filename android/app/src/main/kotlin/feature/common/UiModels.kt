@@ -20,7 +20,7 @@ object UiCatalog {
     val guideZones = listOf(
         GuideZone(
             id = "entry",
-            title = "현관·공용",
+            title = "현관",
             subtitle = "처음 만나는 공간부터 차근차근 확인해요.",
             items = listOf(
                 guideItem("문과 문틀", "문이 안전하게 닫히고 잠기는지 직접 확인해야 해요.",

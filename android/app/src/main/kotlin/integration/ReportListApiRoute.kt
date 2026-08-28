@@ -72,7 +72,8 @@ class ReportListApiViewModel @Inject constructor(
 @Composable
 fun ReportListApiRoute(
     onOpenReport: (String) -> Unit,
-    onTabSelected: (String) -> Unit,
+    onTabSelected: (String) -> Unit = {},
+    showBottomBar: Boolean = true,
     viewModel: ReportListApiViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
@@ -87,6 +88,7 @@ fun ReportListApiRoute(
             onOpenReport = onOpenReport,
             onRetry = viewModel::refresh,
             onTabSelected = onTabSelected,
+            showBottomBar = showBottomBar,
         )
         is ReportListApiUiState.Ready -> ReportListScreen(
             items = current.items,
@@ -95,6 +97,7 @@ fun ReportListApiRoute(
             onOpenReport = onOpenReport,
             onRetry = viewModel::refresh,
             onTabSelected = onTabSelected,
+            showBottomBar = showBottomBar,
         )
         is ReportListApiUiState.Error -> ReportListScreen(
             items = emptyList(),
@@ -103,6 +106,7 @@ fun ReportListApiRoute(
             onOpenReport = onOpenReport,
             onRetry = viewModel::refresh,
             onTabSelected = onTabSelected,
+            showBottomBar = showBottomBar,
         )
     }
 }
@@ -126,9 +130,14 @@ internal fun Property.toReportListItem(report: ReportSummary?): ReportListItemUi
         detail = detail,
         status = listStatus,
         dateLabel = date.orEmpty(),
-        referenceScore = report?.referenceScore,
+        inspectionEndedAt = report?.inspectionEndedAt,
     )
 }
+
+/** 홈 카드와 리포트 목록에서 같은 '가장 최근 점검' 기준을 사용한다. */
+internal fun latestReportItem(items: List<ReportListItemUiModel>): ReportListItemUiModel? =
+    items.filter { it.inspectionId != null && it.inspectionEndedAt != null }
+        .maxByOrNull { it.inspectionEndedAt!! }
 
 internal fun reportListStatus(statusName: String?): ReportListStatus = when (statusName) {
     "NOT_REQUESTED", "WAITING_FOR_ANALYSIS", "GENERATING" -> ReportListStatus.PROCESSING

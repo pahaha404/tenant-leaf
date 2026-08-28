@@ -1,0 +1,11 @@
+{"kind":"deck","id":"pr/rui9gg","name":"Deck"}
+{"kind":"layout","layoutId":"33423367-820c-4a2a-8cbb-95747b891bb4","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"c92c4c33-e799-44c0-9b87-73257826f758","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/6wn1iq","slide":1,"title":"문제 정의  |  AI 메타 글래스로 해결","textShapes":4}
+{"kind":"shape","id":"sh/ilcnilov","slide":1,"name":"header-band","bbox":[48,34,1184,74]}
+{"kind":"textbox","id":"sh/5o3md07m","slide":1,"name":"header-title","text":"문제 정의  |  AI 메타 글래스로 해결","textPreview":"문제 정의  |  AI 메타 글래스로 해결","textChars":23,"textLines":1,"bbox":[82,50,860,38]}
+{"kind":"textbox","id":"sh/vi1476pk","slide":1,"name":"problem-label","text":"임장에서 생기는 문제","textPreview":"임장에서 생기는 문제","textChars":11,"textLines":1,"bbox":[84,151,252,46]}
+{"kind":"textbox","id":"sh/uxs3eloz","slide":1,"name":"solution-label","text":"Meta Ray-Ban + 세입세잎","textPreview":"Meta Ray-Ban + 세입세잎","textChars":19,"textLines":1,"bbox":[924,151,218,46]}
+{"kind":"textbox","id":"sh/hk3m9g7a","slide":1,"name":"takeaway","text":"손은 자유롭게, 기억은 더 정확하게  ·  영상 기록 + 음성 메모 + 근거 사진","textPreview":"손은 자유롭게, 기억은 더 정확하게  ·  영상 기록 + 음성 메모 + 근거 사진","textChars":45,"textLines":1,"bbox":[208,610,864,64]}
+{"kind":"image","id":"im/5c7m9cfu","slide":1,"name":"","alt":"왼쪽의 임장 문제와 오른쪽의 AI 스마트 글래스 해결 흐름을 보여주는 인포그래픽","bbox":[52,124,1176,466]}
+{"kind":"notes","id":"nt/6wn1iq","slide":1,"text":""}

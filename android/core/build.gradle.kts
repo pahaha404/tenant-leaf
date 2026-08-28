@@ -1,4 +1,5 @@
 import java.net.URI
+import java.util.Properties
 
 plugins {
     id("com.android.library")
@@ -19,12 +20,18 @@ fun String.asApiBaseUrl(name: String): String {
     return normalized
 }
 
-val debugApiBaseUrl = providers.gradleProperty("TENANT_LEAF_DEBUG_API_BASE_URL")
-    .orElse("http://127.0.0.1:8080/api/v1/")
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
+}
+fun localDemoSetting(name: String, fallback: String) = providers.gradleProperty(name)
+    .orElse(localProperties.getProperty(name) ?: fallback)
+
+val debugApiBaseUrl = localDemoSetting("TENANT_LEAF_DEBUG_API_BASE_URL", "http://127.0.0.1:8080/api/v1/")
     .map { it.asApiBaseUrl("TENANT_LEAF_DEBUG_API_BASE_URL") }
-val releaseApiBaseUrl = providers.gradleProperty("TENANT_LEAF_RELEASE_API_BASE_URL")
-    .orElse("https://api.tenant-leaf.invalid/api/v1/")
+val releaseApiBaseUrl = localDemoSetting("TENANT_LEAF_RELEASE_API_BASE_URL", "https://api.tenant-leaf.invalid/api/v1/")
     .map { it.asApiBaseUrl("TENANT_LEAF_RELEASE_API_BASE_URL") }
+val demoUser = localDemoSetting("TENANT_LEAF_DEMO_USER", "judge-a")
+    .map { it.trim().lowercase() }
 
 android {
     namespace = "com.seipseip.core"
@@ -32,8 +39,14 @@ android {
     defaultConfig { minSdk = 24; consumerProguardFiles("consumer-rules.pro") }
     buildFeatures { buildConfig = true }
     buildTypes {
-        debug { buildConfigField("String", "API_BASE_URL", debugApiBaseUrl.get().asBuildConfigString()) }
-        release { buildConfigField("String", "API_BASE_URL", releaseApiBaseUrl.get().asBuildConfigString()) }
+        debug {
+            buildConfigField("String", "API_BASE_URL", debugApiBaseUrl.get().asBuildConfigString())
+            buildConfigField("String", "DEMO_USER", demoUser.get().asBuildConfigString())
+        }
+        release {
+            buildConfigField("String", "API_BASE_URL", releaseApiBaseUrl.get().asBuildConfigString())
+            buildConfigField("String", "DEMO_USER", demoUser.get().asBuildConfigString())
+        }
     }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -60,7 +73,7 @@ openApiGenerate {
     modelPackage.set("com.seipseip.core.network.generated.model")
     globalProperties.set(mapOf(
         "apis" to "Properties,Inspections,Media,Observations,Reports",
-        "models" to "CreatePropertyRequest,UpdatePropertyRequest,Property,PropertyPage,PageMetadata,Inspection,InspectionPage,InspectionStatus,InspectionAnalysisStatus,UpdateInspectionStatusRequest,CreateMediaUploadBatchRequest,CreateMediaUploadRequest,CreateMediaUploadBatchResponse,MediaUploadInstruction,Media,MediaPage,FinalizeInspectionMediaRequest,FinalizeInspectionMediaResponse,Zone,MediaType,CaptureSource,FrameOrigin,MediaUploadStatus,MediaAnalysisStatus,Observation,ObservationPage,ObservationEvidence,EvidenceDetection,ImageDimensions,Bbox,BboxCoordinateSystem,ObservationType,ObservationStatus,AiLabel,UpdateObservationStatusRequest,ReportSummary,ReportDetail,ReportPage,ReportStatus,ReportFailureCode,ErrorResponse,FieldError",
+        "models" to "CreatePropertyRequest,UpdatePropertyRequest,Property,PropertyPage,PageMetadata,Inspection,InspectionPage,InspectionStatus,InspectionAnalysisStatus,UpdateInspectionStatusRequest,CreateMediaUploadBatchRequest,CreateMediaUploadRequest,CreateMediaUploadBatchResponse,MediaUploadInstruction,Media,MediaPage,FinalizeInspectionMediaRequest,FinalizeInspectionMediaResponse,Zone,MediaType,CaptureSource,FrameOrigin,MediaUploadStatus,MediaAnalysisStatus,Observation,ObservationPage,ObservationEvidence,EvidenceDetection,ImageDimensions,Bbox,BboxCoordinateSystem,ObservationType,ObservationStatus,AiLabel,UpdateObservationStatusRequest,ReportSummary,ReportRepresentativePhoto,ReportDetail,ReportPage,ReportStatus,ReportFailureCode,ErrorResponse,FieldError",
         "supportingFiles" to "CollectionFormats.kt", "apiDocs" to "false", "apiTests" to "false",
         "modelDocs" to "false", "modelTests" to "false",
     ))

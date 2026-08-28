@@ -41,7 +41,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * Standard MediaCodec Surface-based MP4 Video Recorder with Audio (AAC) adhering to Android Best Practices.
  */
-class InspectionVideoRecorder(private val context: Context) {
+class InspectionVideoRecorder(
+    private val context: Context,
+    private val onAudioPcm: (bytes: ByteArray, size: Int) -> Unit = { _, _ -> },
+) {
     private val lock = Any()
     private var mediaMuxer: MediaMuxer? = null
     private var mediaEncoder: MediaCodec? = null
@@ -115,11 +118,13 @@ class InspectionVideoRecorder(private val context: Context) {
             encoder.start()
             mediaEncoder = encoder
 
-            // 2. Configure Audio Encoder (AAC) if permission granted
-            setupAudioRecording()
-
+            // Audio pump 작업은 isRecordingState가 true인 동안만 실행된다.
+            // 먼저 상태를 켜지 않으면 작업이 시작하자마자 종료되어 PCM/WAV 음성 기록이 비게 된다.
             isRecordingState.set(true)
             isPausedState.set(false)
+
+            // 2. Configure Audio Encoder (AAC) if permission granted
+            setupAudioRecording()
 
             drainJob = scope.launch {
                 drainVideoEncoder()
@@ -168,6 +173,13 @@ class InspectionVideoRecorder(private val context: Context) {
             aEncoder.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
             aEncoder.start()
             record.startRecording()
+            if (record.recordingState != AudioRecord.RECORDSTATE_RECORDING) {
+                Log.w(TAG, "AudioRecord did not enter the recording state")
+                runCatching { aEncoder.stop() }
+                runCatching { aEncoder.release() }
+                record.release()
+                return
+            }
 
             audioRecord = record
             audioEncoder = aEncoder
@@ -200,6 +212,7 @@ class InspectionVideoRecorder(private val context: Context) {
             val readBytes = record.read(audioBuffer, 0, audioBuffer.size)
             if (readBytes > 0) {
                 try {
+                    onAudioPcm(audioBuffer, readBytes)
                     val inputBufferIndex = encoder.dequeueInputBuffer(10_000)
                     if (inputBufferIndex >= 0) {
                         val inputBuffer = encoder.getInputBuffer(inputBufferIndex)

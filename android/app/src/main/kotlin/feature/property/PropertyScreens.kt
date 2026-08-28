@@ -18,9 +18,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.*
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.material3.Card
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
@@ -35,6 +44,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,10 +60,15 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.automirrored.outlined.Article
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.HomeWork
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -64,11 +79,21 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -88,6 +113,7 @@ import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
 import com.seipseip.app.PaleGreen
+import com.seipseip.app.R
 import com.seipseip.app.Secondary
 import com.seipseip.app.feature.common.AppPageScaffold
 import com.seipseip.app.feature.common.AppTab
@@ -96,6 +122,7 @@ import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SectionTitle
 import com.seipseip.app.feature.common.StateBadge
 import com.seipseip.app.feature.property.location.addressWithDetail
+import com.seipseip.app.feature.property.location.splitAddressForEditing
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
@@ -113,6 +140,7 @@ data class PropertyFormSubmission(
     val address: String,
     val depositAmount: String,
     val monthlyRentAmount: String,
+    val maintenanceFeeAmount: String,
 )
 
 internal fun propertyDeleteRevealOffset(cardWidthPx: Int): Float = -cardWidthPx / 4f
@@ -131,7 +159,8 @@ fun PropertyListScreen(
     onDeleteMultipleProperties: ((List<String>) -> Unit)? = null,
     onRetry: () -> Unit,
     onOpenMapOverview: (() -> Unit)? = null,
-    onTabSelected: (String) -> Unit,
+    onTabSelected: (String) -> Unit = {},
+    showBottomBar: Boolean = true,
 ) {
     var isSelectionMode by rememberSaveable { mutableStateOf(false) }
     var selectedIds by rememberSaveable { mutableStateOf(setOf<String>()) }
@@ -147,37 +176,21 @@ fun PropertyListScreen(
     }
 
     AppPageScaffold(
-        title = if (isSelectionMode) "매물 삭제 (${selectedIds.size})" else "매물",
+        title = if (isSelectionMode) "매물 삭제 (${selectedIds.size})" else "매물 목록",
         selectedTab = AppTab.Property,
+        showBottomBar = showBottomBar,
         isRefreshing = loading,
         onRefresh = onRetry,
         topTrailingAction = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (properties.isNotEmpty()) {
-                    IconButton(
-                        onClick = {
-                            isSelectionMode = !isSelectionMode
-                            selectedIds = emptySet()
-                        },
-                    ) {
-                        Icon(
-                            imageVector = if (isSelectionMode) Icons.Outlined.Close else Icons.Outlined.DeleteOutline,
-                            contentDescription = if (isSelectionMode) "선택 모드 종료" else "매물 다중 삭제",
-                            tint = if (isSelectionMode) Color(0xFFC93B2B) else DeepGreen,
-                            modifier = Modifier.size(24.dp),
-                        )
-                    }
-                }
-                if (onOpenMapOverview != null && !isSelectionMode) {
-                    IconButton(onClick = onOpenMapOverview) {
-                        Icon(
-                            imageVector = Icons.Outlined.Map,
-                            contentDescription = "매물 지도 보기",
-                            tint = DeepGreen,
-                            modifier = Modifier.size(24.dp),
-                        )
-                    }
-                }
+            if (properties.isNotEmpty() || onOpenMapOverview != null) {
+                MapTrashDualPillButton(
+                    isSelectionMode = isSelectionMode,
+                    onMapClick = onOpenMapOverview,
+                    onTrashClick = {
+                        isSelectionMode = !isSelectionMode
+                        selectedIds = emptySet()
+                    },
+                )
             }
         },
         floatingActionButton = if (!isSelectionMode) {
@@ -247,7 +260,9 @@ fun PropertyListScreen(
     ) {
         if (isSelectionMode && properties.isNotEmpty()) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 2.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -279,20 +294,22 @@ fun PropertyListScreen(
             properties.isEmpty() -> InfoCard("등록된 매물이 없어요", "우측 하단 + 버튼으로 첫 매물을 등록해 주세요.", onClick = onAddProperty)
             isSelectionMode -> properties.forEach { property ->
                 val isSelected = property.id in selectedIds
-                Card(
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .shadow(if (isSelected) 0.5.dp else 1.5.dp, RoundedCornerShape(18.dp))
                         .clickable {
                             selectedIds = if (isSelected) selectedIds - property.id else selectedIds + property.id
                         },
-                    colors = CardDefaults.cardColors(containerColor = if (isSelected) PaleGreen else Color.White),
-                    shape = RoundedCornerShape(14.dp),
-                    border = if (isSelected) BorderStroke(1.5.dp, Green) else null,
+                    shape = RoundedCornerShape(18.dp),
+                    color = if (isSelected) Color(0xFFEDEFEF) else Color.White,
+                    border = if (isSelected) BorderStroke(1.5.dp, DeepGreen) else null,
+                    shadowElevation = if (isSelected) 0.5.dp else 1.5.dp,
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 11.dp),
+                            .padding(horizontal = 18.dp, vertical = 15.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Box(
@@ -312,21 +329,21 @@ fun PropertyListScreen(
                                 )
                             }
                         }
-                        Spacer(Modifier.width(12.dp))
+                        Spacer(Modifier.width(14.dp))
                         Column(
                             modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                            verticalArrangement = Arrangement.spacedBy(3.dp),
                         ) {
                             Text(
                                 text = property.name,
                                 color = DeepGreen,
-                                fontSize = 14.5.sp,
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.ExtraBold,
                             )
                             Text(
                                 text = property.address,
                                 color = Secondary,
-                                fontSize = 11.5.sp,
+                                fontSize = 13.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -392,24 +409,26 @@ private fun SwipeToDeletePropertyCard(
     val closeSwipe = { scope.launch { swipeState.animateTo(PropertySwipePosition.Closed) } }
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp)),
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.CenterEnd) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(0.25f)
-                    .background(Color(0xFFC93B2B))
-                    .clickable { showDeleteDialog = true }
-                    .padding(horizontal = 20.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.Delete, contentDescription = null, tint = Color.White)
-                    Spacer(Modifier.width(6.dp))
-                    Text("삭제", color = Color.White, fontWeight = FontWeight.ExtraBold)
+        val currentOffset = runCatching { swipeState.requireOffset() }.getOrDefault(0f)
+        if (currentOffset < -1f) {
+            Box(modifier = Modifier.matchParentSize(), contentAlignment = Alignment.CenterEnd) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.25f)
+                        .background(Color(0xFFC93B2B), RoundedCornerShape(18.dp))
+                        .clip(RoundedCornerShape(18.dp))
+                        .clickable { showDeleteDialog = true }
+                        .padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.Delete, contentDescription = null, tint = Color.White)
+                        Spacer(Modifier.width(6.dp))
+                        Text("삭제", color = Color.White, fontWeight = FontWeight.ExtraBold)
+                    }
                 }
             }
         }
@@ -423,7 +442,7 @@ private fun SwipeToDeletePropertyCard(
                         },
                     )
                 }
-                .offset { IntOffset(swipeState.requireOffset().roundToInt(), 0) }
+                .offset { IntOffset(currentOffset.roundToInt(), 0) }
                 .anchoredDraggable(
                     state = swipeState,
                     orientation = Orientation.Horizontal,
@@ -471,11 +490,15 @@ fun PropertyFormScreen(
     selectedAddress: String,
     initialProperty: PropertyUiModel? = null,
 ) {
+    val initialAddress = remember(initialProperty?.address) {
+        splitAddressForEditing(initialProperty?.address.orEmpty())
+    }
     var propertyName by rememberSaveable { mutableStateOf(initialProperty?.name ?: "") }
-    var address by rememberSaveable { mutableStateOf(initialProperty?.address ?: "") }
-    var addressDetail by rememberSaveable { mutableStateOf("") }
-    var deposit by rememberSaveable { mutableStateOf(initialProperty?.depositAmount?.toString() ?: "") }
-    var monthlyRent by rememberSaveable { mutableStateOf(initialProperty?.monthlyRentAmount?.toString() ?: "") }
+    var address by rememberSaveable { mutableStateOf(initialAddress.address) }
+    var addressDetail by rememberSaveable { mutableStateOf(initialAddress.detail) }
+    var deposit by rememberSaveable { mutableStateOf(wonToManwonInput(initialProperty?.depositAmount)) }
+    var monthlyRent by rememberSaveable { mutableStateOf(wonToManwonInput(initialProperty?.monthlyRentAmount)) }
+    var maintenanceFee by rememberSaveable { mutableStateOf(wonToManwonInput(initialProperty?.maintenanceFeeAmount)) }
     var housingType by remember { mutableStateOf("원룸") }
     var showDatePicker by rememberSaveable { mutableStateOf(false) }
     var showTimePicker by rememberSaveable { mutableStateOf(false) }
@@ -483,13 +506,21 @@ fun PropertyFormScreen(
     var visitHour by rememberSaveable { mutableStateOf(14) }
     var visitMinute by rememberSaveable { mutableStateOf(0) }
     var visitTimeSelected by rememberSaveable { mutableStateOf(false) }
+    val propertyNameFocus = remember { FocusRequester() }
+    val addressDetailFocus = remember { FocusRequester() }
+    val depositFocus = remember { FocusRequester() }
+    val monthlyRentFocus = remember { FocusRequester() }
+    val maintenanceFeeFocus = remember { FocusRequester() }
 
     LaunchedEffect(initialProperty) {
         if (initialProperty != null) {
+            val editAddress = splitAddressForEditing(initialProperty.address)
             if (propertyName.isBlank()) propertyName = initialProperty.name
-            if (address.isBlank()) address = initialProperty.address
-            if (deposit.isBlank()) deposit = initialProperty.depositAmount?.toString() ?: ""
-            if (monthlyRent.isBlank()) monthlyRent = initialProperty.monthlyRentAmount?.toString() ?: ""
+            if (address.isBlank()) address = editAddress.address
+            if (addressDetail.isBlank()) addressDetail = editAddress.detail
+            if (deposit.isBlank()) deposit = wonToManwonInput(initialProperty.depositAmount)
+            if (monthlyRent.isBlank()) monthlyRent = wonToManwonInput(initialProperty.monthlyRentAmount)
+            if (maintenanceFee.isBlank()) maintenanceFee = wonToManwonInput(initialProperty.maintenanceFeeAmount)
         }
     }
 
@@ -513,17 +544,36 @@ fun PropertyFormScreen(
                 fontWeight = FontWeight.ExtraBold,
             )
         }
-        Text("기본 정보는 리포트 제목과 증거 정리에 사용돼요.", color = Secondary, fontSize = 13.sp)
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            FormTextField("매물 이름", "예: 연남동 햇살 원룸", propertyName, { propertyName = it })
+            FormTextField(
+                "매물 이름", "예: 연남동 햇살 원룸", propertyName, { propertyName = it },
+                focusRequester = propertyNameFocus,
+                nextFocusRequester = addressDetailFocus,
+            )
             AddressFormField(
                 value = address,
                 onOpenAddressPicker = onOpenAddressPicker,
                 onUseCurrentLocation = onOpenLocationPicker,
             )
-            FormTextField("상세 주소", "예: 101동 202호", addressDetail, { addressDetail = it })
-            FormTextField("보증금(원)", "예: 5000000", deposit, { deposit = it })
-            FormTextField("월세(원)", "예: 450000", monthlyRent, { monthlyRent = it })
+            FormTextField(
+                "상세 주소", "예: 101동 202호", addressDetail, { addressDetail = it },
+                focusRequester = addressDetailFocus,
+                nextFocusRequester = depositFocus,
+            )
+            FormTextField(
+                "보증금(만원)", "예: 5000", deposit, { deposit = it },
+                focusRequester = depositFocus,
+                nextFocusRequester = monthlyRentFocus,
+            )
+            FormTextField(
+                "월세(만원)", "예: 45", monthlyRent, { monthlyRent = it },
+                focusRequester = monthlyRentFocus,
+                nextFocusRequester = maintenanceFeeFocus,
+            )
+            FormTextField(
+                "관리비(만원)", "예: 8", maintenanceFee, { maintenanceFee = it },
+                focusRequester = maintenanceFeeFocus,
+            )
             Text("주거 형태", color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 HousingOption("원룸", housingType, { housingType = it }, Modifier.weight(1f))
@@ -540,18 +590,20 @@ fun PropertyFormScreen(
                 Text("⌄", color = Secondary, fontSize = 18.sp)
             }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color(0xFFFFF0E4)).padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("✦", color = Orange, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.width(9.dp))
-            Text("점검 중 놓치기 쉬운 흔적은 AI가 함께 관찰해요.", color = Color(0xFF78472C), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-        }
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
         PrimaryButton(
             if (saving) "저장 중..." else if (isEditing) "수정 완료" else "매물 등록하기",
-            { onSaved(PropertyFormSubmission(propertyName, addressWithDetail(address, addressDetail), deposit, monthlyRent)) },
+            {
+                onSaved(
+                    PropertyFormSubmission(
+                        name = propertyName,
+                        address = addressWithDetail(address, addressDetail),
+                        depositAmount = manwonInputToWon(deposit),
+                        monthlyRentAmount = manwonInputToWon(monthlyRent),
+                        maintenanceFeeAmount = manwonInputToWon(maintenanceFee),
+                    ),
+                )
+            },
             enabled = propertyName.isNotBlank() && !saving,
         )
     }
@@ -629,17 +681,33 @@ private fun FormTextField(
     value: String,
     onChange: (String) -> Unit,
     onClick: (() -> Unit)? = null,
+    focusRequester: FocusRequester? = null,
+    nextFocusRequester: FocusRequester? = null,
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
     Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Text(label, color = DeepGreen, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         Box(modifier = Modifier.fillMaxWidth().height(68.dp)) {
             OutlinedTextField(
                 value = value,
                 onValueChange = onChange,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .bringIntoViewRequester(bringIntoViewRequester)
+                    .then(focusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)
+                    .onFocusChanged { state ->
+                        if (state.isFocused) coroutineScope.launch { bringIntoViewRequester.bringIntoView() }
+                    },
                 placeholder = { Text(placeholder, color = Secondary, fontSize = 14.sp) },
                 singleLine = true,
                 readOnly = onClick != null,
+                keyboardOptions = KeyboardOptions(imeAction = if (nextFocusRequester != null) ImeAction.Next else ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onNext = { nextFocusRequester?.requestFocus() },
+                    onDone = { focusManager.clearFocus() },
+                ),
                 shape = RoundedCornerShape(14.dp),
             )
             onClick?.let { openAddressPicker ->
@@ -694,32 +762,44 @@ fun PropertyDetailScreen(
 
     AppPageScaffold(
         title = "매물 상세",
+        titleContent = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = "매물 상세",
+                    color = DeepGreen,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+                Box(
+                    modifier = Modifier
+                        .width(1.2.dp)
+                        .height(16.dp)
+                        .background(Color(0xFFD1D5DB)),
+                )
+                Text(
+                    text = property?.name ?: "매물 정보",
+                    color = DeepGreen,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        },
         onBack = onBack,
+        scrollable = false,
         selectedTab = AppTab.Property,
         isRefreshing = loading,
         onRefresh = onRefresh,
         topTrailingAction = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (property != null && onEditProperty != null) {
-                    IconButton(onClick = onEditProperty) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = "매물 수정",
-                            tint = DeepGreen,
-                            modifier = Modifier.size(22.dp),
-                        )
-                    }
-                }
-                if (property != null && onDeleteProperty != null) {
-                    IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = "매물 삭제",
-                            tint = Color(0xFFC93B2B),
-                            modifier = Modifier.size(22.dp),
-                        )
-                    }
-                }
+            if (property != null && (onEditProperty != null || onDeleteProperty != null)) {
+                EditTrashDualPillButton(
+                    onEditClick = onEditProperty,
+                    onTrashClick = onDeleteProperty?.let { { showDeleteDialog = true } },
+                )
             }
         },
         onTabSelected = { tab ->
@@ -753,30 +833,24 @@ fun PropertyDetailScreen(
         if (loading) Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
 
-        // 1. Hero Title & Address
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = property?.name ?: "매물 정보",
-                color = DeepGreen,
-                fontSize = 19.sp,
-                fontWeight = FontWeight.ExtraBold,
+        // 1. Address Row (매물 이름은 상단 타이틀 바 | 옆에 연동)
+        Row(
+            modifier = Modifier.padding(bottom = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.MyLocation,
+                contentDescription = null,
+                tint = Green,
+                modifier = Modifier.size(16.dp),
             )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.MyLocation,
-                    contentDescription = null,
-                    tint = Green,
-                    modifier = Modifier.size(14.dp),
-                )
-                Text(
-                    text = property?.address ?: "주소 미입력",
-                    color = Secondary,
-                    fontSize = 12.sp,
-                )
-            }
+            Text(
+                text = property?.address ?: "주소 미입력",
+                color = Secondary,
+                fontSize = 13.5.sp,
+                fontWeight = FontWeight.Medium,
+            )
         }
 
         // 2. Financial KPI Metric Stat Grid (보증금 · 월세 · 관리비 3단 타일)
@@ -802,11 +876,9 @@ fun PropertyDetailScreen(
             )
         }
 
-        // 3. Report Action Card
-        InfoCard(
+        // 3. Report Action Card (시그니처 오렌지 3D 카드로 변경 - 설명 텍스트 제거)
+        ReportActionOrangeCard(
             title = "점검 결과 리포트",
-            description = "촬영한 현장 기록과 AI 분석 결과를 확인해요.",
-            accent = PaleGreen,
             onClick = onOpenReport,
         )
 
@@ -816,8 +888,75 @@ fun PropertyDetailScreen(
             address = property?.address ?: "주소 미입력",
         )
 
-        // 5. Start Inspection CTA Button
-        PrimaryButton("이 매물 임장 시작", onStartInspection)
+        // 하단 플로팅 뒤로가기 버튼과 지도가 겹치거나 짤리지 않도록 하단 여백 추가
+        Spacer(Modifier.height(84.dp))
+    }
+}
+
+@Composable
+private fun ReportActionOrangeCard(
+    title: String,
+    description: String? = null,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(18.dp),
+        color = Color(0xFFF28A3A),
+        shadowElevation = 1.5.dp,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 11.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.White.copy(alpha = 0.22f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.Article,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+
+            Spacer(Modifier.width(12.dp))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = title,
+                    color = Color.White,
+                    fontSize = 14.5.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                if (!description.isNullOrBlank()) {
+                    Text(
+                        text = description,
+                        color = Color.White.copy(alpha = 0.90f),
+                        fontSize = 12.sp,
+                    )
+                }
+            }
+
+            Spacer(Modifier.width(8.dp))
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(18.dp),
+            )
+        }
     }
 }
 
@@ -838,15 +977,17 @@ private fun PropertyKakaoMapCard(
     }
 
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(1.5.dp, RoundedCornerShape(18.dp)),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF3F4F6)),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, Color(0xFFEBE8E1)),
+        shape = RoundedCornerShape(18.dp),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(170.dp),
+                .height(210.dp)
+                .clip(RoundedCornerShape(18.dp)),
             contentAlignment = Alignment.Center,
         ) {
             val coords = coordinates
@@ -966,29 +1107,29 @@ private fun FinancialMetricTile(
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = if (isHighlight) PaleGreen.copy(alpha = 0.55f) else Color.White,
+            containerColor = if (isHighlight) PaleGreen else Color.White,
         ),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, if (isHighlight) Green.copy(alpha = 0.3f) else Color(0xFFEBE8E1)),
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.5.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 11.dp),
+                .padding(horizontal = 8.dp, vertical = 13.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = label,
                 color = Secondary,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = value,
                 color = if (isHighlight) DeepGreen else Color(0xFF234B38),
-                fontSize = 13.sp,
+                fontSize = 14.5.sp,
                 fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
             )
@@ -1019,18 +1160,30 @@ fun PropertySelectScreen(
     AppPageScaffold(
         title = "점검할 매물 선택",
         onBack = onBack,
-        bottomAction = {
-            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
-                PrimaryButton(
-                    label = "선택한 매물로 계속하기",
-                    onClick = { selectedId?.let(onSelected) },
-                    enabled = selectedId != null,
-                )
+        bottomAction = if (!loading) {
+            {
+                Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
+                    PrimaryButton(
+                        label = "선택한 매물로 계속하기",
+                        onClick = { selectedId?.let(onSelected) },
+                        enabled = selectedId != null,
+                    )
+                }
             }
+        } else {
+            null
         },
     ) {
-        SectionTitle("어느 매물을 점검할까요?", "점검 기록은 선택한 매물에 저장돼요.")
-        if (loading) Text("매물 정보를 불러오고 있어요.", color = Secondary, fontSize = 13.sp)
+        if (loading) {
+            PropertySelectLoadingContent()
+        } else {
+            Column(
+                modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text("어느 매물을 점검할까요?", color = DeepGreen, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+            }
+        }
         if (properties.isEmpty() && !loading) {
             InfoCard(
                 title = "다른 매물이 없나요?",
@@ -1046,31 +1199,91 @@ fun PropertySelectScreen(
 }
 
 @Composable
+private fun PropertySelectLoadingContent() {
+    val transition = rememberInfiniteTransition(label = "property_select_loading")
+    val rotation by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(1100, easing = LinearEasing), RepeatMode.Restart),
+        label = "property_select_loading_rotation",
+    )
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(top = 56.dp, bottom = 44.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(18.dp),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(R.drawable.loading),
+                contentDescription = "매물 정보를 불러오는 중",
+                modifier = Modifier.size(190.dp),
+            )
+            CircularProgressIndicator(
+                color = Green,
+                strokeWidth = 4.dp,
+                modifier = Modifier.size(208.dp).rotate(rotation),
+            )
+        }
+        Text("매물 정보를 불러오고 있어요", color = DeepGreen, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+    }
+}
+
+@Composable
 private fun PropertyCard(property: PropertyUiModel, selected: Boolean = false, onClick: () -> Unit) {
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = if (selected) PaleGreen else Color.White),
-        shape = RoundedCornerShape(14.dp),
+            .shadow(if (selected) 0.5.dp else 1.5.dp, RoundedCornerShape(18.dp))
+            .background(if (selected) PaleGreen else Color.White, RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 15.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(if (selected) Green.copy(alpha = 0.15f) else Color(0xFFF4F6F5)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.HomeWork,
+                contentDescription = null,
+                tint = Green,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+
+        Spacer(Modifier.width(14.dp))
+
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 9.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Text(
                 text = property.name,
                 color = DeepGreen,
-                fontSize = 14.5.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.ExtraBold,
             )
             Text(
                 text = property.address,
                 color = Secondary,
-                fontSize = 11.5.sp,
+                fontSize = 13.sp,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
+
+        Spacer(Modifier.width(8.dp))
+
+        Icon(
+            imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+            contentDescription = null,
+            tint = Green,
+            modifier = Modifier.size(18.dp),
+        )
     }
 }
 
@@ -1104,5 +1317,174 @@ internal fun formatWon(value: Long): String {
             }
         }
         else -> "%,d원".format(Locale.KOREAN, value)
+    }
+}
+
+internal fun wonToManwonInput(value: Long?): String = value?.let { amount ->
+    if (amount % 10_000L == 0L) (amount / 10_000L).toString()
+    else java.math.BigDecimal.valueOf(amount).movePointLeft(4).stripTrailingZeros().toPlainString()
+}.orEmpty()
+
+internal fun manwonInputToWon(value: String): String {
+    if (value.isBlank()) return ""
+    return runCatching {
+        java.math.BigDecimal(value.trim()).movePointRight(4).toBigIntegerExact().toString()
+    }.getOrElse { value }
+}
+
+@Composable
+private fun MapTrashDualPillButton(
+    isSelectionMode: Boolean,
+    onMapClick: (() -> Unit)?,
+    onTrashClick: () -> Unit,
+) {
+    Surface(
+        shape = CircleShape,
+        color = Color.White,
+        shadowElevation = 1.5.dp,
+        modifier = Modifier.height(44.dp),
+    ) {
+        Row(
+            modifier = Modifier.height(44.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (onMapClick != null && !isSelectionMode) {
+                val mapInteraction = remember { MutableInteractionSource() }
+                val isMapPressed by mapInteraction.collectIsPressedAsState()
+
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(topStart = 22.dp, bottomStart = 22.dp))
+                        .background(if (isMapPressed) Color(0xFFF2F4F7) else Color.White)
+                        .clickable(
+                            interactionSource = mapInteraction,
+                            indication = null,
+                            onClick = onMapClick,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Map,
+                        contentDescription = "매물 지도 보기",
+                        tint = DeepGreen,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(18.dp)
+                        .background(Color(0xFFE5E7EB)),
+                )
+            }
+
+            val trashInteraction = remember { MutableInteractionSource() }
+            val isTrashPressed by trashInteraction.collectIsPressedAsState()
+
+            val trashShape = if (onMapClick != null && !isSelectionMode) {
+                RoundedCornerShape(topEnd = 22.dp, bottomEnd = 22.dp)
+            } else {
+                CircleShape
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(trashShape)
+                    .background(if (isTrashPressed) Color(0xFFF2F4F7) else Color.White)
+                    .clickable(
+                        interactionSource = trashInteraction,
+                        indication = null,
+                        onClick = onTrashClick,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = if (isSelectionMode) Icons.Outlined.Close else Icons.Outlined.DeleteOutline,
+                    contentDescription = if (isSelectionMode) "선택 모드 종료" else "매물 다중 삭제",
+                    tint = if (isSelectionMode) Color(0xFFC93B2B) else DeepGreen,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EditTrashDualPillButton(
+    onEditClick: (() -> Unit)?,
+    onTrashClick: (() -> Unit)?,
+) {
+    Surface(
+        shape = CircleShape,
+        color = Color.White,
+        shadowElevation = 1.5.dp,
+        modifier = Modifier.height(44.dp),
+    ) {
+        Row(
+            modifier = Modifier.height(44.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (onEditClick != null) {
+                val editInteraction = remember { MutableInteractionSource() }
+                val isEditPressed by editInteraction.collectIsPressedAsState()
+
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(if (onTrashClick != null) RoundedCornerShape(topStart = 22.dp, bottomStart = 22.dp) else CircleShape)
+                        .background(if (isEditPressed) Color(0xFFF2F4F7) else Color.White)
+                        .clickable(
+                            interactionSource = editInteraction,
+                            indication = null,
+                            onClick = onEditClick,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = "매물 수정",
+                        tint = DeepGreen,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+
+            if (onEditClick != null && onTrashClick != null) {
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(18.dp)
+                        .background(Color(0xFFE5E7EB)),
+                )
+            }
+
+            if (onTrashClick != null) {
+                val trashInteraction = remember { MutableInteractionSource() }
+                val isTrashPressed by trashInteraction.collectIsPressedAsState()
+
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(if (onEditClick != null) RoundedCornerShape(topEnd = 22.dp, bottomEnd = 22.dp) else CircleShape)
+                        .background(if (isTrashPressed) Color(0xFFF2F4F7) else Color.White)
+                        .clickable(
+                            interactionSource = trashInteraction,
+                            indication = null,
+                            onClick = onTrashClick,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.DeleteOutline,
+                        contentDescription = "매물 삭제",
+                        tint = Color(0xFFC93B2B),
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+        }
     }
 }

@@ -30,6 +30,7 @@ class MediaEntity(
     @Column(name = "zone_confidence") var zoneConfidence: Double? = null,
     @Column(name = "zone_uncertain") var zoneUncertain: Boolean? = null,
     @Column(name = "zone_model_version", length = 128) var zoneModelVersion: String? = null,
+    @Column(name = "contains_person") var containsPerson: Boolean? = null,
     @Enumerated(EnumType.STRING) @Column(name = "user_corrected_zone", length = 32) var userCorrectedZone: MediaZone? = null,
     @Column(name = "corrected_at") var correctedAt: OffsetDateTime? = null,
     @Column(name = "media_type", nullable = false, length = 16) val mediaType: String = "PHOTO",

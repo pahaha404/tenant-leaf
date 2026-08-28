@@ -9,6 +9,7 @@ import com.tenantleaf.api.generated.model.Bbox
 import com.tenantleaf.api.generated.model.BboxCoordinateSystem
 import com.tenantleaf.api.generated.model.AiLabel
 import com.tenantleaf.api.generated.model.CaptureSource
+import com.tenantleaf.api.generated.model.CreateMediaUploadRequest
 import com.tenantleaf.api.generated.model.CreatePropertyRequest
 import com.tenantleaf.api.generated.model.FrameOrigin
 import com.tenantleaf.api.generated.model.InspectionAnalysisStatus
@@ -23,6 +24,8 @@ import com.tenantleaf.api.generated.model.ZoneAnalysisStatus
 import jakarta.validation.Validation
 import org.junit.jupiter.api.Test
 import java.io.File
+import java.time.OffsetDateTime
+import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -118,6 +121,26 @@ class OpenApiGeneratedContractTests {
 	}
 
 	@Test
+	fun `JPEG 등록 요청은 초기 구역을 반드시 포함한다`() {
+		val request = CreateMediaUploadRequest(
+			clientMediaId = UUID.randomUUID(),
+			zone = Zone.UNKNOWN,
+			contentType = CreateMediaUploadRequest.ContentType.imageSlashJpeg,
+			fileSize = 123,
+			width = 640,
+			height = 480,
+			sourceVideoId = UUID.randomUUID(),
+			sourceVideoOffsetMs = 3_000,
+			frameOrigin = CreateMediaUploadRequest.FrameOrigin.POST_RECORDING_EXTRACTION,
+			captureSource = CaptureSource.META_GLASS,
+			capturedAt = OffsetDateTime.parse("2026-08-19T10:00:00+09:00"),
+		)
+
+		assertTrue(validator.validate(request).isEmpty())
+		assertEquals(Zone.UNKNOWN, request.zone)
+	}
+
+	@Test
 	fun `관찰과 리포트 상태 공통 타입을 생성한다`() {
 		assertEquals(listOf("ACTIVE", "VIEWED", "DISMISSED"), ObservationStatus.entries.map { it.value })
 		assertEquals(13, ObservationType.entries.size)
@@ -145,8 +168,14 @@ class OpenApiGeneratedContractTests {
 		assertTrue(specification.contains("/inspections/{inspectionId}/report"))
 		assertTrue(specification.contains("coordinateSystem:"))
 		assertTrue(specification.contains("PIXEL_XYXY"))
-		assertTrue(specification.contains("scoreIsProvisional"))
+		assertFalse(specification.contains("referenceScore"))
+		assertFalse(specification.contains("scorePolicyVersion"))
+		assertFalse(specification.contains("scoreIsProvisional"))
 		assertTrue(specification.contains("totalMediaCount"))
+		assertTrue(specification.contains("ReportRepresentativePhoto"))
+		assertTrue(specification.contains("representativePhotos"))
+		assertTrue(specification.contains("zoneModelVersion"))
+		assertTrue(specification.contains("zoneUncertain"))
 		assertTrue(specification.contains("maxItems: 20"))
 		assertTrue(specification.contains("maximum: 2097152"))
 		assertFalse(specification.contains("maximum: 1048576"))

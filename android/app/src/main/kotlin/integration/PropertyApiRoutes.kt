@@ -29,7 +29,8 @@ fun PropertyListApiRoute(
     onAddProperty: () -> Unit,
     onOpenProperty: (String) -> Unit,
     onOpenMapOverview: () -> Unit = {},
-    onTabSelected: (String) -> Unit,
+    onTabSelected: (String) -> Unit = {},
+    showBottomBar: Boolean = true,
     viewModel: PropertyListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -49,6 +50,7 @@ fun PropertyListApiRoute(
         onRetry = viewModel::refresh,
         onOpenMapOverview = onOpenMapOverview,
         onTabSelected = onTabSelected,
+        showBottomBar = showBottomBar,
     )
 }
 
@@ -94,6 +96,7 @@ fun PropertyFormApiRoute(
                 address = state.fields.addressSummary,
                 depositAmount = state.fields.depositAmount?.toLongOrNull(),
                 monthlyRentAmount = state.fields.monthlyRentAmount?.toLongOrNull(),
+                maintenanceFeeAmount = state.fields.maintenanceFeeAmount?.toLongOrNull(),
             )
         } else null
     }
@@ -112,6 +115,7 @@ fun PropertyFormApiRoute(
                     addressSummary = input.address,
                     depositAmount = input.depositAmount,
                     monthlyRentAmount = input.monthlyRentAmount,
+                    maintenanceFeeAmount = input.maintenanceFeeAmount,
                 )
             }
             viewModel.save()

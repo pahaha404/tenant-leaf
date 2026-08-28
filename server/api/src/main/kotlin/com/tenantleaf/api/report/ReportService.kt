@@ -13,6 +13,7 @@ import com.tenantleaf.api.generated.model.ObservationType
 import com.tenantleaf.api.generated.model.ReportDetail
 import com.tenantleaf.api.generated.model.ReportFailureCode
 import com.tenantleaf.api.generated.model.ReportPage
+import com.tenantleaf.api.generated.model.ReportRepresentativePhoto
 import com.tenantleaf.api.generated.model.ReportStatus
 import com.tenantleaf.api.generated.model.ReportSummary
 import com.tenantleaf.api.generated.model.UpdateObservationStatusRequest
@@ -20,6 +21,10 @@ import com.tenantleaf.api.generated.model.Zone
 import com.tenantleaf.api.inspection.InspectionNotFoundException
 import com.tenantleaf.api.inspection.InspectionRepository
 import com.tenantleaf.api.media.MediaRepository
+import com.tenantleaf.api.media.MediaAnalysisState
+import com.tenantleaf.api.media.MediaEntity
+import com.tenantleaf.api.media.MediaUploadState
+import com.tenantleaf.api.media.MediaZone
 import com.tenantleaf.api.media.ObjectStorageGateway
 import com.tenantleaf.api.property.DemoUserContext
 import com.tenantleaf.api.property.PropertyNotFoundException
@@ -52,11 +57,13 @@ class ReportService(
             ?: throw PropertyNotFoundException()
         val observations = observationRepository
             .findAllByInspectionIdAndStatusNot(inspectionId, ObservationState.DISMISSED)
+        val media = mediaRepository.findAllByInspectionIdAndDeletedAtIsNull(inspectionId)
         return report.toDetail(
             propertyName = property.name,
             inspectionEndedAt = inspection.endedAt ?: inspection.startedAt,
             totalMediaCount = inspection.expectedMediaCount
                 ?: (report.successfulMediaCount + report.failedMediaCount),
+            representativePhotos = mapRepresentativePhotos(media),
             observations = mapObservations(observations),
         )
     }
@@ -196,6 +203,7 @@ class ReportService(
         propertyName: String,
         inspectionEndedAt: OffsetDateTime,
         totalMediaCount: Int,
+        representativePhotos: List<ReportRepresentativePhoto>,
         observations: List<Observation>,
     ) = ReportDetail(
         id = id,
@@ -208,17 +216,30 @@ class ReportService(
         observationCount = observations.size,
         propertyDisplayName = propertyName,
         inspectionEndedAt = inspectionEndedAt,
-        referenceScore = referenceScore,
-        scorePolicyVersion = scorePolicyVersion,
-        scoreIsProvisional = scoreIsProvisional,
         failureCode = failureCode?.let(ReportFailureCode::forValue),
         templateVersion = templateVersion,
         generatedAt = generatedAt,
         createdAt = createdAt,
         updatedAt = updatedAt,
         emptyObservationMessage = if (status == ReportState.COMPLETED && observations.isEmpty()) EMPTY_MESSAGE else null,
+        representativePhotos = representativePhotos,
         observations = observations,
     )
+
+    private fun mapRepresentativePhotos(media: List<MediaEntity>): List<ReportRepresentativePhoto> =
+        selectReportRepresentativeMedia(media).map { item ->
+            val signed = storage.createViewUrl(item.storageKey)
+            ReportRepresentativePhoto(
+                mediaId = item.id,
+                zone = Zone.valueOf((item.aiZone ?: MediaZone.UNKNOWN).name),
+                zoneUncertain = item.zoneUncertain != false || item.aiZone == null || item.aiZone == MediaZone.UNKNOWN,
+                zoneModelVersion = item.zoneModelVersion,
+                sourceVideoOffsetMs = item.sourceVideoOffsetMs,
+                image = ImageDimensions(item.width, item.height),
+                viewUrl = signed.url,
+                viewUrlExpiresAt = signed.expiresAt,
+            )
+        }
 
     private fun ReportEntity.toSummary(
         propertyName: String,
@@ -235,9 +256,6 @@ class ReportService(
         observationCount = observationCount,
         propertyDisplayName = propertyName,
         inspectionEndedAt = inspectionEndedAt,
-        referenceScore = referenceScore,
-        scorePolicyVersion = scorePolicyVersion,
-        scoreIsProvisional = scoreIsProvisional,
         failureCode = failureCode?.let(ReportFailureCode::forValue),
         templateVersion = templateVersion,
         generatedAt = generatedAt,
@@ -257,4 +275,53 @@ class ReportService(
     companion object {
         const val EMPTY_MESSAGE = "현재 촬영 근거에서 확인 필요 관찰이 생성되지 않았습니다."
     }
+}
+
+internal fun selectReportRepresentativeMedia(
+    media: List<MediaEntity>,
+    limit: Int = 12,
+    perZoneLimit: Int = 3,
+    minimumOffsetGapMs: Long = 6_000,
+): List<MediaEntity> {
+    val completed = media
+        .filter {
+            it.uploadStatus == MediaUploadState.UPLOADED &&
+                it.analysisStatus == MediaAnalysisState.COMPLETED &&
+                it.containsPerson == false
+        }
+        .sortedWith(compareBy<MediaEntity> { it.sourceVideoOffsetMs }.thenBy { it.id })
+    if (completed.isEmpty() || limit <= 0) return emptyList()
+
+    require(perZoneLimit > 0) { "perZoneLimit must be greater than zero" }
+    require(minimumOffsetGapMs >= 0) { "minimumOffsetGapMs must not be negative" }
+
+    val classifiedRepresentatives = completed
+        .filter { it.aiZone != null && it.aiZone != MediaZone.UNKNOWN && it.zoneUncertain != true }
+        .groupBy { it.aiZone!! }
+        .values
+        .flatMap { sameZone ->
+            selectTemporallyDistinct(sameZone, perZoneLimit, minimumOffsetGapMs)
+        }
+        .sortedBy { it.sourceVideoOffsetMs }
+
+    if (classifiedRepresentatives.isNotEmpty()) return classifiedRepresentatives.take(limit)
+    if (completed.size <= 3) return completed.take(limit)
+
+    return listOf(completed.first(), completed[(completed.lastIndex) / 2], completed.last())
+        .distinctBy { it.id }
+        .take(limit)
+}
+
+private fun selectTemporallyDistinct(
+    media: List<MediaEntity>,
+    limit: Int,
+    minimumOffsetGapMs: Long,
+): List<MediaEntity> {
+    val selected = mutableListOf<MediaEntity>()
+    media.sortedBy { it.sourceVideoOffsetMs }.forEach { candidate ->
+        if (selected.none { kotlin.math.abs(it.sourceVideoOffsetMs - candidate.sourceVideoOffsetMs) < minimumOffsetGapMs }) {
+            selected += candidate
+        }
+    }
+    return selected.take(limit)
 }

@@ -14,11 +14,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Article
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
@@ -31,16 +35,26 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,6 +62,7 @@ import com.seipseip.app.Border
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
+import com.seipseip.app.PageBackground
 import com.seipseip.app.PaleGreen
 import com.seipseip.app.Secondary
 
@@ -62,10 +77,13 @@ enum class AppTab(val label: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 fun AppPageScaffold(
     title: String,
+    titleContent: (@Composable () -> Unit)? = null,
+    subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     scrollable: Boolean = true,
     selectedTab: AppTab? = null,
     onTabSelected: ((AppTab) -> Unit)? = null,
+    showBottomBar: Boolean = true,
     bottomAction: (@Composable () -> Unit)? = null,
     topTrailingAction: (@Composable () -> Unit)? = null,
     floatingActionButton: (@Composable () -> Unit)? = null,
@@ -74,11 +92,12 @@ fun AppPageScaffold(
     content: @Composable () -> Unit,
 ) {
     Scaffold(
+        containerColor = PageBackground,
         floatingActionButton = { floatingActionButton?.invoke() },
         bottomBar = {
             Column {
                 bottomAction?.invoke()
-                if (selectedTab != null && onTabSelected != null) {
+                if (showBottomBar && selectedTab != null && onTabSelected != null) {
                     AppBottomNavigation(selectedTab, onTabSelected)
                 }
             }
@@ -88,47 +107,48 @@ fun AppPageScaffold(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFFCFBF8))
+                    .background(PageBackground)
                     .then(if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier)
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                    .imePadding()
+                    .padding(
+                        start = 20.dp,
+                        top = 36.dp,
+                        end = 20.dp,
+                        bottom = 12.dp,
+                    ),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                if (onBack != null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 0.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.ArrowBack,
-                                contentDescription = "뒤로",
-                                modifier = Modifier.clickable(onClick = onBack),
-                                tint = Green,
-                            )
+                        if (subtitle != null) {
                             Text(
-                                text = title,
-                                modifier = Modifier.padding(start = 12.dp),
-                                color = DeepGreen,
+                                text = subtitle,
+                                color = Secondary,
+                                fontSize = 14.3.sp,
                                 fontWeight = FontWeight.Bold,
                             )
+                        } else if (onBack == null && titleContent == null) {
+                            Spacer(modifier = Modifier.height(18.dp))
                         }
-                        topTrailingAction?.invoke()
+                        if (titleContent != null) {
+                            titleContent()
+                        } else {
+                            Text(
+                                text = title,
+                                color = DeepGreen,
+                                fontSize = 23.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                        }
                     }
-                } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = title,
-                            color = DeepGreen,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                        )
-                        topTrailingAction?.invoke()
-                    }
+                    topTrailingAction?.invoke()
                 }
                 content()
             }
@@ -161,6 +181,27 @@ fun AppPageScaffold(
             } else {
                 pageContent()
             }
+
+            if (onBack != null) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(start = 20.dp, bottom = 20.dp)
+                        .size(56.dp)
+                        .shadow(3.dp, CircleShape)
+                        .background(Green, CircleShape)
+                        .clip(CircleShape)
+                        .clickable(onClick = onBack),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                        contentDescription = "뒤로가기",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            }
         }
     }
 }
@@ -171,7 +212,7 @@ fun AppBottomNavigation(
     onTabSelected: (AppTab) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    NavigationBar(modifier = modifier, containerColor = Color.White) {
+    NavigationBar(modifier = modifier.shadow(3.dp), containerColor = Color.White) {
         AppTab.entries.forEach { tab ->
             NavigationBarItem(
                 selected = tab == selectedTab,
@@ -190,6 +231,13 @@ fun AppBottomNavigation(
                     )
                 },
                 label = { Text(tab.label, fontSize = 10.sp) },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = Orange,
+                    selectedTextColor = Orange,
+                    unselectedIconColor = Secondary,
+                    unselectedTextColor = Secondary,
+                    indicatorColor = Color.Transparent,
+                ),
             )
         }
     }
@@ -204,7 +252,7 @@ fun PrimaryButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(50.dp),
+        modifier = modifier.fillMaxWidth().height(50.dp).shadow(1.5.dp, RoundedCornerShape(12.dp)),
         enabled = enabled,
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
@@ -223,7 +271,7 @@ fun SecondaryButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(50.dp),
+        modifier = Modifier.fillMaxWidth().height(50.dp).shadow(1.5.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.White,
@@ -247,7 +295,8 @@ fun InfoCard(
             if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier,
         ),
         colors = CardDefaults.cardColors(containerColor = accent),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(18.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.5.dp),
     ) {
         Column(
             modifier = Modifier.padding(13.dp),

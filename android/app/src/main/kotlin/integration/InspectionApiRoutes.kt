@@ -5,9 +5,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.platform.LocalContext
 import com.seipseip.app.feature.inspection.FinishConfirmScreen
 import com.seipseip.app.feature.inspection.InspectionPrepScreen
 import com.seipseip.app.feature.inspection.LiveInspectionScreen
+import com.seipseip.app.feature.inspection.voice.VoiceRecordArchive
 import com.seipseip.core.ui.ContentState
 import com.seipseip.feature.inspection.domain.model.InspectionStatus
 import com.seipseip.feature.inspection.presentation.InspectionDetailEvent
@@ -23,9 +25,19 @@ fun InspectionPrepApiRoute(
     viewModel: InspectionListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
-            if (event is InspectionListEvent.Created) onCreated(event.inspectionId.toString())
+            if (event is InspectionListEvent.Created) {
+                viewModel.selectedPropertyId?.let { propertyId ->
+                    VoiceRecordArchive.linkInspectionToProperty(
+                        context = context,
+                        inspectionId = event.inspectionId.toString(),
+                        propertyId = propertyId,
+                    )
+                }
+                onCreated(event.inspectionId.toString())
+            }
         }
     }
     InspectionPrepScreen(
@@ -39,6 +51,7 @@ fun InspectionPrepApiRoute(
 
 @Composable
 fun LiveInspectionApiRoute(
+    inspectionId: String,
     zoneId: String,
     startedAt: Long,
     onCancelled: () -> Unit,
@@ -47,17 +60,24 @@ fun LiveInspectionApiRoute(
     onFinish: (Long) -> Unit,
     viewModel: InspectionDetailViewModel = hiltViewModel(),
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             if (event is InspectionDetailEvent.StatusChanged && event.status == InspectionStatus.CANCELLED) {
+                com.seipseip.app.feature.inspection.voice.VoiceRecordSession.discard()
                 onCancelled()
             }
         }
     }
     LiveInspectionScreen(
+        inspectionId = inspectionId,
         zoneId = zoneId,
         startedAt = startedAt,
-        onBack = viewModel::cancel,
+        onBack = {
+            viewModel.cancel()
+        },
+        canceling = state.updating,
+        cancelErrorMessage = state.content.errorMessage(),
         onOpenGuide = onOpenGuide,
         onNextZone = onNextZone,
         onFinish = onFinish,

@@ -1,29 +1,24 @@
 package com.seipseip.app.feature.state
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.seipseip.app.DeepGreen
-import com.seipseip.app.Green
 import com.seipseip.app.Orange
-import com.seipseip.app.Secondary
+import com.seipseip.app.R
 import com.seipseip.app.feature.home.TenantLeafHomeLayout
 import com.seipseip.app.feature.common.AppPageScaffold
 import com.seipseip.app.feature.common.AppTab
@@ -41,24 +36,27 @@ fun LoadingScreen(onFinished: () -> Unit) {
     }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF)).padding(24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(modifier = Modifier.size(150.dp), contentAlignment = Alignment.Center) {
-            Box(modifier = Modifier.size(132.dp).background(Green, RoundedCornerShape(66.dp)), contentAlignment = Alignment.Center) {
-                Icon(Icons.Outlined.Home, contentDescription = "세입세잎 로고", tint = Color.White, modifier = Modifier.size(68.dp))
-            }
-            Box(modifier = Modifier.size(150.dp).background(Color.Transparent))
-        }
-        Text(
+        Image(
+            painter = painterResource(R.drawable.ic_launcher_seipseip),
+            contentDescription = "세입세잎 캐릭터",
+            modifier = Modifier.size(260.dp),
+            contentScale = ContentScale.Fit,
+        )
+        androidx.compose.material3.Text(
             text = "세입세잎",
-            modifier = Modifier.padding(top = 24.dp),
+            modifier = Modifier.padding(top = 22.dp),
             color = Orange,
             fontSize = 38.sp,
             fontWeight = FontWeight.ExtraBold,
         )
-        Text(
+        androidx.compose.material3.Text(
             text = "초보 세입자를 위한 SAFE GUIDE",
             modifier = Modifier.padding(top = 8.dp),
             color = Color(0xFF7A795C),
@@ -70,14 +68,14 @@ fun LoadingScreen(onFinished: () -> Unit) {
 
 @Composable
 fun HomeProcessingScreen(
-    onOpenProperties: () -> Unit,
+    onAddProperty: () -> Unit,
     onOpenReports: () -> Unit,
     onOpenMagazine: () -> Unit,
     onTabSelected: (String) -> Unit,
 ) {
     TenantLeafHomeLayout(
         selectedTab = AppTab.Home,
-        onOpenProperties = onOpenProperties,
+        onAddProperty = onAddProperty,
         onOpenReports = onOpenReports,
         onOpenMagazine = onOpenMagazine,
         onTabSelected = onTabSelected,

@@ -1,6 +1,7 @@
 package com.seipseip.app.feature.report
 
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
@@ -24,6 +25,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,8 +40,6 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.ExpandLess
-import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.HourglassTop
 import androidx.compose.material.icons.outlined.Image
@@ -68,6 +71,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -97,13 +101,15 @@ import com.seipseip.app.feature.common.AppTab
 import com.seipseip.app.feature.common.PrimaryButton
 import com.seipseip.app.feature.common.SecondaryButton
 import com.seipseip.app.feature.common.StateBadge
+import com.seipseip.app.feature.inspection.voice.PropertyVoiceRecordCard
 import java.net.URL
+import java.net.HttpURLConnection
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private val ReportBackground = Color(0xFFFCFBF8)
+private val ReportBackground = Color.White
 private val SuccessGreen = Color(0xFF28B264)
 private val MutedGreen = Color(0xFF73877B)
 private val DarkViewer = Color(0xFF0C2B1D)
@@ -129,8 +135,21 @@ data class ReportEvidenceUiModel(
     val useSamplePlaceholder: Boolean = false,
     val imageWidth: Int = 1080,
     val imageHeight: Int = 1440,
+    val sourceVideoOffsetMs: Long = 0,
     val boxes: List<EvidenceBoxUiModel> = emptyList(),
     val pageLabel: String = "1 / 1",
+)
+
+data class ReportRepresentativePhotoUiModel(
+    val id: String,
+    val zoneLabel: String,
+    val zoneUncertain: Boolean = false,
+    val imageUrl: String? = null,
+    @DrawableRes val placeholderRes: Int = R.drawable.guide_bath_mold,
+    val useSamplePlaceholder: Boolean = false,
+    val imageWidth: Int = 1080,
+    val imageHeight: Int = 1440,
+    val sourceVideoOffsetMs: Long = 0,
 )
 
 data class ReportObservationUiModel(
@@ -155,14 +174,12 @@ data class ReportDetailUiModel(
     val completedPhotoCount: Int = 0,
     val totalPhotoCount: Int = 0,
     val failedPhotoCount: Int = 0,
-    val serverReferenceScore: Int? = null,
-    val scoreIsProvisional: Boolean = false,
+    val representativePhotos: List<ReportRepresentativePhotoUiModel> = emptyList(),
     val zones: List<ReportZoneUiModel> = emptyList(),
     val errorMessage: String? = null,
 ) {
     val observations: List<ReportObservationUiModel> get() = zones.flatMap(ReportZoneUiModel::observations)
     val processedPhotoCount: Int get() = completedPhotoCount + failedPhotoCount
-    val referenceScore: Int get() = serverReferenceScore ?: reportReferenceScore(observations.size)
 }
 
 enum class ReportListStatus { NONE, PROCESSING, COMPLETED, PARTIAL, FAILED }
@@ -175,10 +192,8 @@ data class ReportListItemUiModel(
     val detail: String,
     val status: ReportListStatus,
     val dateLabel: String = "",
-    val referenceScore: Int? = null,
+    val inspectionEndedAt: java.time.OffsetDateTime? = null,
 )
-
-fun reportReferenceScore(observationCount: Int): Int = max(0, 100 - observationCount.coerceAtLeast(0) * 5)
 
 @Composable
 fun ReportListScreen(
@@ -187,7 +202,8 @@ fun ReportListScreen(
     errorMessage: String?,
     onOpenReport: (String) -> Unit,
     onRetry: () -> Unit,
-    onTabSelected: (String) -> Unit,
+    onTabSelected: (String) -> Unit = {},
+    showBottomBar: Boolean = true,
 ) {
     var selectedInspectionId by rememberSaveable(items) {
         mutableStateOf(items.firstOrNull { it.inspectionId != null }?.inspectionId)
@@ -197,10 +213,11 @@ fun ReportListScreen(
     AppPageScaffold(
         title = "리포트 선택",
         selectedTab = AppTab.Report,
+        showBottomBar = showBottomBar,
         bottomAction = {
             Box(Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
                 PrimaryButton(
-                    "선택한 매물 리포트 확인하기",
+                    "리포트 확인하기",
                     onClick = { selectedReport?.inspectionId?.let(onOpenReport) },
                     enabled = selectedReport?.inspectionId != null,
                 )
@@ -217,8 +234,13 @@ fun ReportListScreen(
             )
         },
     ) {
-        Text("어느 매물의 리포트를 볼까요?", color = Green, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
-        Text("점검을 마친 매물을 선택하면 결과를 확인할 수 있어요.", color = Secondary, fontSize = 12.sp)
+        Text(
+            text = "어느 매물의 리포트를 볼까요?",
+            color = Green,
+            fontSize = 16.5.sp,
+            fontWeight = FontWeight.ExtraBold,
+            modifier = Modifier.offset(y = (-5).dp),
+        )
         StateBadge("완료 리포트 ${completedReportCount}개", Green)
         when {
             loading -> Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), contentAlignment = Alignment.Center) {
@@ -256,25 +278,74 @@ private fun ReportPropertyCard(item: ReportListItemUiModel, selected: Boolean, o
         ReportListStatus.NONE -> Secondary
         else -> Green
     }
-    Card(
-        modifier = Modifier.fillMaxWidth().height(78.dp).clickable(enabled = available, onClick = onClick),
-        shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(containerColor = if (selected) PaleGreen else Color.White),
-        border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) Green else Border),
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(if (selected) 0.5.dp else 1.5.dp, RoundedCornerShape(18.dp))
+            .clickable(enabled = available, onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
+        color = if (selected) Color(0xFFEDEFEF) else Color.White,
+        border = if (selected) BorderStroke(1.5.dp, DeepGreen) else null,
+        shadowElevation = if (selected) 0.5.dp else 1.5.dp,
     ) {
-        Row(Modifier.fillMaxSize().padding(horizontal = 11.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(42.dp).background(PaleGreen, RoundedCornerShape(13.dp)), contentAlignment = Alignment.Center) {
-                Icon(if (available) Icons.Outlined.Home else Icons.Outlined.RealEstateAgent, null, tint = Green, modifier = Modifier.size(21.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 15.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(13.dp))
+                    .background(PaleGreen),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = if (available) Icons.Outlined.Home else Icons.Outlined.RealEstateAgent,
+                    contentDescription = null,
+                    tint = Green,
+                    modifier = Modifier.size(22.dp),
+                )
             }
-            Spacer(Modifier.width(10.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Row(Modifier.fillMaxWidth()) {
-                    Text(item.propertyName, color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+            Spacer(Modifier.width(12.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(1.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = item.propertyName,
+                        color = DeepGreen,
+                        fontSize = 14.5.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
                     Spacer(Modifier.weight(1f))
-                    Text(statusLabel, color = statusColor, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(
+                        text = statusLabel,
+                        color = statusColor,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
                 }
-                Text(item.address, color = Secondary, fontSize = 10.sp)
-                Text(item.detail, color = Secondary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = item.address,
+                    color = Secondary,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (item.detail.isNotBlank()) {
+                    Text(
+                        text = item.detail,
+                        color = Secondary,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
     }
@@ -288,14 +359,25 @@ fun ReportDetailScreen(
     uiModel: ReportDetailUiModel,
     onRetry: () -> Unit = {},
     onMarkObservationViewed: (String) -> Unit = {},
+    propertyId: String? = null,
+    onOpenVoiceRecord: (String) -> Unit = {},
 ) {
     var selectedObservationId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedRepresentativePhotoId by rememberSaveable { mutableStateOf<String?>(null) }
     selectedObservationId?.let { observationId ->
         ReportEvidenceViewer(
             observations = uiModel.observations,
             initialObservationId = observationId,
             onClose = { selectedObservationId = null },
             onMarkReviewed = onMarkObservationViewed,
+        )
+        return
+    }
+    selectedRepresentativePhotoId?.let { photoId ->
+        ReportPhotoViewer(
+            photos = uiModel.representativePhotos,
+            initialPhotoId = photoId,
+            onClose = { selectedRepresentativePhotoId = null },
         )
         return
     }
@@ -325,10 +407,29 @@ fun ReportDetailScreen(
         when (uiModel.status) {
             ReportDetailStatus.WAITING_FOR_ANALYSIS -> ProcessingReport(uiModel, waitingForAnalysis = true)
             ReportDetailStatus.GENERATING -> ProcessingReport(uiModel, waitingForAnalysis = false)
-            ReportDetailStatus.COMPLETED -> CompletedReport(nickname, uiModel) { selectedObservationId = it.id }
-            ReportDetailStatus.EMPTY -> EmptyReport(uiModel)
-            ReportDetailStatus.PARTIAL -> PartialReport(nickname, uiModel) { selectedObservationId = it.id }
+            ReportDetailStatus.COMPLETED -> CompletedReport(
+                nickname = nickname,
+                uiModel = uiModel,
+                onEvidenceClick = { selectedObservationId = it.id },
+                onPhotoClick = { selectedRepresentativePhotoId = it.id },
+            )
+            ReportDetailStatus.EMPTY -> EmptyReport(uiModel) { selectedRepresentativePhotoId = it.id }
+            ReportDetailStatus.PARTIAL -> PartialReport(
+                nickname = nickname,
+                uiModel = uiModel,
+                onEvidenceClick = { selectedObservationId = it.id },
+                onPhotoClick = { selectedRepresentativePhotoId = it.id },
+            )
             ReportDetailStatus.ERROR -> ErrorReport(uiModel)
+        }
+        if (
+            propertyId != null &&
+            uiModel.status in setOf(ReportDetailStatus.COMPLETED, ReportDetailStatus.EMPTY, ReportDetailStatus.PARTIAL)
+        ) {
+            PropertyVoiceRecordCard(
+                propertyId = propertyId,
+                onOpenSummary = onOpenVoiceRecord,
+            )
         }
     }
 }
@@ -387,26 +488,41 @@ private fun ProcessingReport(uiModel: ReportDetailUiModel, waitingForAnalysis: B
 }
 
 @Composable
-private fun CompletedReport(nickname: String, uiModel: ReportDetailUiModel, onEvidenceClick: (ReportObservationUiModel) -> Unit) {
+private fun CompletedReport(
+    nickname: String,
+    uiModel: ReportDetailUiModel,
+    onEvidenceClick: (ReportObservationUiModel) -> Unit,
+    onPhotoClick: (ReportRepresentativePhotoUiModel) -> Unit,
+) {
     Text("AI 사진 분석과 ${nickname}님의 촬영 기록을 바탕으로 정리했어요.", color = Secondary, fontSize = 12.sp, lineHeight = 18.sp)
-    ReportSummaryCard(uiModel, "확인 필요 관찰 ${uiModel.observations.size}건을 찾았어요")
+    RepresentativePhotoGallery(uiModel.representativePhotos, onPhotoClick)
+    ReportSummaryCard("확인 필요 관찰 ${uiModel.observations.size}건을 찾았어요")
     ReportMetrics(uiModel)
     ObservationSections(uiModel.zones, onEvidenceClick)
     AiDisclaimer()
 }
 
 @Composable
-private fun PartialReport(nickname: String, uiModel: ReportDetailUiModel, onEvidenceClick: (ReportObservationUiModel) -> Unit) {
+private fun PartialReport(
+    nickname: String,
+    uiModel: ReportDetailUiModel,
+    onEvidenceClick: (ReportObservationUiModel) -> Unit,
+    onPhotoClick: (ReportRepresentativePhotoUiModel) -> Unit,
+) {
     InfoNotice("일부 사진을 분석하지 못했어요. 완료된 ${uiModel.completedPhotoCount}장의 결과만 먼저 보여드려요.", PaleOrange, Orange)
     Text("AI 사진 분석과 ${nickname}님의 촬영 기록을 바탕으로 정리했어요.", color = Secondary, fontSize = 12.sp)
-    ReportSummaryCard(uiModel, "확인 가능한 관찰 ${uiModel.observations.size}건이 있어요")
+    RepresentativePhotoGallery(uiModel.representativePhotos, onPhotoClick)
+    ReportSummaryCard("확인 가능한 관찰 ${uiModel.observations.size}건이 있어요")
     ReportMetrics(uiModel)
     ObservationSections(uiModel.zones, onEvidenceClick)
     AiDisclaimer()
 }
 
 @Composable
-private fun EmptyReport(uiModel: ReportDetailUiModel) {
+private fun EmptyReport(
+    uiModel: ReportDetailUiModel,
+    onPhotoClick: (ReportRepresentativePhotoUiModel) -> Unit,
+) {
     Column(Modifier.fillMaxWidth().padding(top = 34.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(Modifier.size(72.dp).background(PaleGreen, CircleShape), contentAlignment = Alignment.Center) {
             Icon(Icons.Outlined.CheckCircle, null, tint = Green, modifier = Modifier.size(38.dp))
@@ -414,9 +530,9 @@ private fun EmptyReport(uiModel: ReportDetailUiModel) {
         Text("사진 분석을 완료했어요", color = DeepGreen, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
         Text("현재 촬영 근거에서 확인 필요 관찰이\n생성되지 않았어요.", color = Secondary, fontSize = 13.sp, lineHeight = 19.sp, textAlign = TextAlign.Center)
     }
-    ReportSummaryCard(uiModel, "확인 필요 관찰이 생성되지 않았어요")
+    RepresentativePhotoGallery(uiModel.representativePhotos, onPhotoClick)
+    ReportSummaryCard("확인 필요 관찰이 생성되지 않았어요")
     ReportMetrics(uiModel)
-    InfoNotice("이 결과는 하자가 없음을 보장하지 않아요. 촬영되지 않은 부분과 작은 흔적은 직접 확인해 주세요.", PaleOrange, Orange)
 }
 
 @Composable
@@ -436,49 +552,201 @@ private fun ErrorReport(uiModel: ReportDetailUiModel) {
 }
 
 @Composable
-private fun ReportSummaryCard(uiModel: ReportDetailUiModel, title: String) {
-    Row(Modifier.fillMaxWidth().background(PaleGreen, RoundedCornerShape(18.dp)).padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Text("리포트 요약", color = Green, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
-            Text(title, color = DeepGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-            Text(
-                if (uiModel.scoreIsProvisional) "일부 사진 분석 실패로 현재 점수는 잠정값이에요."
-                else "참고 점수는 확인 필요 관찰 1건당 5점씩 차감해 계산해요.",
-                color = Secondary, fontSize = 9.sp, lineHeight = 13.sp,
-            )
-        }
-        Column(horizontalAlignment = Alignment.End) {
-            Text("${uiModel.referenceScore}", color = Green, fontSize = 30.sp, fontWeight = FontWeight.Black)
-            Text("/ 100 참고 점수", color = Secondary, fontSize = 9.sp)
-        }
+private fun ReportSummaryCard(title: String) {
+    Column(
+        Modifier.fillMaxWidth().background(PaleGreen, RoundedCornerShape(18.dp)).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        Text("리포트 요약", color = Green, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+        Text(title, color = DeepGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+        Text(
+            "AI 관찰은 사진 근거를 정리한 결과이며 직접 확인이 필요해요.",
+            color = Secondary,
+            fontSize = 10.sp,
+            lineHeight = 14.sp,
+        )
     }
 }
 
 @Composable
 private fun ReportMetrics(uiModel: ReportDetailUiModel) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        ReportMetric(uiModel.observations.size.toString(), "확인 필요\n관찰", PaleOrange, Orange, Modifier.weight(1f))
         ReportMetric(uiModel.completedPhotoCount.toString(), "분석 완료\n사진", PaleGreen, Green, Modifier.weight(1f))
+        ReportMetric(uiModel.observations.size.toString(), "확인 필요\n관찰", PaleOrange, Orange, Modifier.weight(1f))
         ReportMetric(uiModel.failedPhotoCount.toString(), "분석 실패\n사진", Color.White, if (uiModel.failedPhotoCount > 0) Orange else DeepGreen, Modifier.weight(1f))
     }
 }
 
 @Composable
-private fun ObservationSections(zones: List<ReportZoneUiModel>, onEvidenceClick: (ReportObservationUiModel) -> Unit) {
-    Text("구역별 확인 필요 관찰", color = DeepGreen, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
-    Text("항목을 펼쳐 AI가 참고한 사진과 위치를 확인할 수 있어요.", color = Secondary, fontSize = 11.sp)
-    zones.forEachIndexed { index, zone ->
-        var expanded by rememberSaveable(zone.name) { mutableStateOf(index == 0) }
-        Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), border = BorderStroke(1.dp, Border)) {
-            Column {
-                Row(Modifier.fillMaxWidth().clickable { expanded = !expanded }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(zone.name, color = DeepGreen, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
-                    Spacer(Modifier.weight(1f))
-                    StateBadge("${zone.observations.size}건", Orange)
-                    Spacer(Modifier.width(6.dp))
-                    Icon(if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, null, tint = Green)
+private fun RepresentativePhotoGallery(
+    photos: List<ReportRepresentativePhotoUiModel>,
+    onPhotoClick: (ReportRepresentativePhotoUiModel) -> Unit,
+) {
+    if (photos.isEmpty()) return
+    val groupedPhotos = photos.groupBy { photo ->
+        if (photo.zoneUncertain) "공간 확인 필요" else photo.zoneLabel
+    }.toSortedMap(compareBy<String> { representativeZoneOrder(it) }.thenBy { it })
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        groupedPhotos.forEach { (zoneLabel, zonePhotos) ->
+            Text(
+                if (zoneLabel == "공간 확인 필요") zoneLabel else "$zoneLabel 대표 사진",
+                color = DeepGreen,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.ExtraBold,
+            )
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                itemsIndexed(zonePhotos, key = { _, photo -> photo.id }) { index, photo ->
+                    Card(
+                        modifier = Modifier.width(146.dp).clickable { onPhotoClick(photo) },
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        border = BorderStroke(1.dp, Border),
+                    ) {
+                        Column {
+                            RepresentativePhotoImage(
+                                photo = photo,
+                                modifier = Modifier.fillMaxWidth().height(104.dp),
+                                contentScale = ContentScale.Crop,
+                            )
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text("$zoneLabel ${index + 1}", color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                                Spacer(Modifier.weight(1f))
+                                Text(formatVideoOffset(photo.sourceVideoOffsetMs).removePrefix("촬영 "), color = Secondary, fontSize = 9.sp)
+                            }
+                        }
+                    }
                 }
-                if (expanded) zone.observations.forEach { observation -> ObservationCard(observation) { onEvidenceClick(observation) } }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReportPhotoViewer(
+    photos: List<ReportRepresentativePhotoUiModel>,
+    initialPhotoId: String,
+    onClose: () -> Unit,
+) {
+    if (photos.isEmpty()) return
+    BackHandler(onBack = onClose)
+    val initialIndex = photos.indexOfFirst { it.id == initialPhotoId }.coerceAtLeast(0)
+    val pagerState = rememberPagerState(initialPage = initialIndex, pageCount = { photos.size })
+    Scaffold(
+        containerColor = DarkViewer,
+        topBar = {
+            Row(
+                Modifier.fillMaxWidth().background(DarkViewer).statusBarsPadding().height(70.dp).padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onClose, modifier = Modifier.size(48.dp)) {
+                    Icon(Icons.Outlined.Close, "대표 사진 닫기", tint = Color.White, modifier = Modifier.size(31.dp))
+                }
+                val currentPhoto = photos[pagerState.currentPage]
+                Text(
+                    if (currentPhoto.zoneUncertain) "공간 확인 필요" else "${currentPhoto.zoneLabel} 대표 사진",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
+                Spacer(Modifier.weight(1f))
+                Surface(color = Color.White.copy(alpha = 0.18f), shape = RoundedCornerShape(22.dp)) {
+                    Text(
+                        "${pagerState.currentPage + 1} / ${photos.size}장",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 13.dp, vertical = 7.dp),
+                    )
+                }
+            }
+        },
+        bottomBar = {
+            val currentPhoto = photos[pagerState.currentPage]
+            Row(
+                Modifier.fillMaxWidth().background(DarkViewer).navigationBarsPadding().padding(horizontal = 20.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    if (currentPhoto.zoneUncertain) "공간 확인 필요" else currentPhoto.zoneLabel,
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(Modifier.weight(1f))
+                Text(formatVideoOffset(currentPhoto.sourceVideoOffsetMs), color = Color.White.copy(alpha = 0.78f), fontSize = 12.sp)
+            }
+        },
+    ) { innerPadding ->
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize().padding(innerPadding).background(Color.Black),
+            verticalAlignment = Alignment.CenterVertically,
+        ) { page ->
+            RepresentativePhotoImage(
+                photo = photos[page],
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit,
+            )
+        }
+    }
+}
+
+@Composable
+private fun RepresentativePhotoImage(
+    photo: ReportRepresentativePhotoUiModel,
+    modifier: Modifier,
+    contentScale: ContentScale,
+) {
+    val remoteBitmap by produceState<ImageBitmap?>(initialValue = null, key1 = photo.imageUrl) {
+        value = photo.imageUrl?.let { signedUrl ->
+            withContext(Dispatchers.IO) {
+                loadRemoteReportImage(signedUrl)
+            }
+        }
+    }
+    val bitmap = remoteBitmap
+    val accessibleZoneLabel = if (photo.zoneUncertain) "공간 확인 필요" else photo.zoneLabel
+    when {
+        bitmap != null -> Image(bitmap = bitmap, contentDescription = "$accessibleZoneLabel 대표 사진", modifier = modifier, contentScale = contentScale)
+        photo.useSamplePlaceholder -> Image(
+            painter = painterResource(photo.placeholderRes),
+            contentDescription = "$accessibleZoneLabel 대표 사진",
+            modifier = modifier,
+            contentScale = contentScale,
+        )
+        else -> Box(modifier.background(Color(0xFF202A24)), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Outlined.Image, null, tint = Color.White.copy(alpha = 0.72f))
+                Text("사진을 불러올 수 없어요", color = Color.White.copy(alpha = 0.72f), fontSize = 10.sp)
+            }
+        }
+    }
+}
+
+private fun representativeZoneOrder(label: String): Int = when (label) {
+    "주방" -> 0
+    "거실·방" -> 1
+    "화장실" -> 2
+    else -> 3
+}
+
+@Composable
+private fun ObservationSections(zones: List<ReportZoneUiModel>, onEvidenceClick: (ReportObservationUiModel) -> Unit) {
+    val observations = zones.flatMap(ReportZoneUiModel::observations)
+        .sortedWith(compareBy<ReportObservationUiModel> { it.evidence.sourceVideoOffsetMs }.thenBy { it.id })
+    if (observations.isEmpty()) return
+    Text("촬영 순서별 확인 필요 관찰", color = DeepGreen, fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
+    Text("AI가 확인이 필요하다고 본 사진과 위치를 촬영 순서대로 보여드려요.", color = Secondary, fontSize = 11.sp)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = BorderStroke(1.dp, Border),
+    ) {
+        Column {
+            observations.forEachIndexed { index, observation ->
+                ObservationCard(observation) { onEvidenceClick(observation) }
+                if (index < observations.lastIndex) HorizontalDivider(color = Border)
             }
         }
     }
@@ -490,12 +758,17 @@ private fun ObservationCard(observation: ReportObservationUiModel, onClick: () -
         EvidenceThumbnail(observation, Modifier.size(width = 104.dp, height = 82.dp))
         Spacer(Modifier.width(11.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Text(formatVideoOffset(observation.evidence.sourceVideoOffsetMs), color = Secondary, fontSize = 9.sp, fontWeight = FontWeight.Bold)
             Text(observation.label, color = DeepGreen, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
-            StateBadge("AI 신뢰도 ${observation.confidencePercent}%", Orange)
             Text(observation.description, color = Secondary, fontSize = 10.sp, lineHeight = 14.sp, maxLines = 3)
             Text("근거 사진 분석", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
         }
     }
+}
+
+private fun formatVideoOffset(offsetMs: Long): String {
+    val totalSeconds = (offsetMs.coerceAtLeast(0) / 1_000).toInt()
+    return "촬영 %02d:%02d".format(totalSeconds / 60, totalSeconds % 60)
 }
 
 @Composable
@@ -608,7 +881,7 @@ private fun EvidenceWithBboxes(observation: ReportObservationUiModel, modifier: 
                 )
                 if (showLabels) {
                     Text(
-                        "${box.displayLabel} ${box.confidencePercent}%${if (isSelected) " (선택됨)" else ""}",
+                        "${box.displayLabel}${if (isSelected) " (선택됨)" else ""}",
                         color = Color.White,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.ExtraBold,
@@ -628,10 +901,7 @@ private fun EvidenceImage(observation: ReportObservationUiModel, modifier: Modif
     val remoteBitmap by produceState<ImageBitmap?>(initialValue = null, key1 = observation.evidence.imageUrl) {
         value = observation.evidence.imageUrl?.let { signedUrl ->
             withContext(Dispatchers.IO) {
-                runCatching {
-                    URL(signedUrl).openConnection().apply { connectTimeout = 8_000; readTimeout = 8_000 }
-                        .getInputStream().use { BitmapFactory.decodeStream(it)?.asImageBitmap() }
-                }.getOrNull()
+                loadRemoteReportImage(signedUrl)
             }
         }
     }
@@ -651,6 +921,35 @@ private fun EvidenceImage(observation: ReportObservationUiModel, modifier: Modif
             }
         }
     }
+}
+
+private fun loadRemoteReportImage(signedUrl: String): ImageBitmap? {
+    repeat(2) { attempt ->
+        runCatching {
+            val connection = (URL(signedUrl).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 12_000
+                readTimeout = 12_000
+                instanceFollowRedirects = true
+                setRequestProperty("User-Agent", "TenantLeaf-Android/1.0")
+            }
+            try {
+                val responseCode = connection.responseCode
+                check(responseCode in 200..299) { "image request returned HTTP $responseCode" }
+                connection.inputStream.use { input ->
+                    requireNotNull(BitmapFactory.decodeStream(input)) { "image decoder returned null" }.asImageBitmap()
+                }
+            } finally {
+                connection.disconnect()
+            }
+        }.onSuccess { return it }
+            .onFailure { error ->
+                Log.w(
+                    "ReportImage",
+                    "Report image attempt ${attempt + 1} failed from ${signedUrl.substringBefore('?')}: ${error.message}",
+                )
+            }
+    }
+    return null
 }
 
 @Composable
@@ -753,7 +1052,6 @@ private object ReportPreviewData {
         inspectionDate = "2026.08.25",
         completedPhotoCount = 21,
         totalPhotoCount = 21,
-        serverReferenceScore = 95,
         zones = listOf(ReportZoneUiModel("구역 확인 필요", listOf(observation))),
     )
 }

@@ -17,11 +17,22 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.seipseip.app.feature.common.AppTab
+import com.seipseip.app.feature.common.AppBottomNavigation
 import com.seipseip.app.Complete
 import com.seipseip.app.Consent
 import com.seipseip.app.Denied
@@ -43,6 +54,7 @@ import com.seipseip.app.feature.inspection.LiveInspectionScreen
 import com.seipseip.app.feature.inspection.ObservationScreen
 import com.seipseip.app.feature.inspection.TutorialChecklistScreen
 import com.seipseip.app.feature.inspection.TutorialScreen
+import com.seipseip.app.feature.inspection.voice.VoiceSummaryScreen
 import com.seipseip.app.feature.magazine.MagazineDetailScreen
 import com.seipseip.app.feature.magazine.MagazineScreen
 import com.seipseip.app.feature.profile.ProfileScreen
@@ -67,13 +79,17 @@ import com.seipseip.app.integration.PropertyListApiRoute
 import com.seipseip.app.integration.PropertyMapApiRoute
 import com.seipseip.app.integration.PropertySelectApiRoute
 import com.seipseip.app.integration.ReportApiRoute
+import com.seipseip.app.integration.ReportListApiUiState
 import com.seipseip.app.integration.ReportListApiRoute
+import com.seipseip.app.integration.ReportListApiViewModel
+import com.seipseip.app.integration.latestReportItem
 
 object Route {
     const val Loading = "loading"
     const val Login = "login"
     const val SignUp = "signup"
     const val SignupOnboarding = "signup_onboarding"
+    const val SignupConsent = "signup_consent"
     const val FirstUse = "first_use"
     const val Welcome = "welcome"
     const val Consent = "consent"
@@ -90,6 +106,7 @@ object Route {
     const val PropertyDetail = "property_detail/{propertyId}"
     const val PropertyEdit = "property_edit/{propertyId}"
     const val PropertyInfo = "property_info/{propertyId}"
+    const val VoiceSummary = "voice_summary/{propertyId}"
     const val PropertySelect = "property_select"
     const val PropertyEmpty = "property_empty"
     const val InspectionPrep = "inspection_prep/{propertyId}"
@@ -114,6 +131,7 @@ object Route {
     fun propertyDetail(propertyId: String) = "property_detail/$propertyId"
     fun propertyEdit(propertyId: String) = "property_edit/$propertyId"
     fun propertyInfo(propertyId: String) = "property_info/$propertyId"
+    fun voiceSummary(propertyId: String) = "voice_summary/$propertyId"
     fun inspectionPrep(propertyId: String) = "inspection_prep/$propertyId"
     fun inspectionPermission(inspectionId: String) = "inspection_permission_warning/$inspectionId"
     fun liveInspection(inspectionId: String, zone: String, startedAt: Long) = "live/$inspectionId/$zone/$startedAt"
@@ -128,10 +146,16 @@ object Route {
 private const val SESSION_PREFERENCES = "tenant_leaf_session"
 private const val KEY_LOGGED_IN = "logged_in"
 private const val KEY_TUTORIAL_COMPLETED = "tutorial_completed"
+private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
 
-internal fun initialRouteFor(isLoggedIn: Boolean, isTutorialCompleted: Boolean): String = when {
+internal fun initialRouteFor(
+    isLoggedIn: Boolean,
+    isTutorialCompleted: Boolean,
+    isOnboardingCompleted: Boolean,
+): String = when {
+    !isOnboardingCompleted -> Route.Welcome
     isTutorialCompleted && isLoggedIn -> Route.Home
-    isLoggedIn -> Route.Welcome
+    isLoggedIn -> Route.Consent
     else -> Route.Login
 }
 
@@ -187,8 +211,8 @@ fun AppNavGraph(
             LoadingScreen {
                 val isLoggedIn = sessionPreferences.getBoolean(KEY_LOGGED_IN, false)
                 val isTutorialCompleted = sessionPreferences.getBoolean(KEY_TUTORIAL_COMPLETED, false)
-                val nextRoute = initialRouteFor(isLoggedIn, isTutorialCompleted)
-                navController.navigate(nextRoute) {
+                val isOnboardingCompleted = sessionPreferences.getBoolean(KEY_ONBOARDING_COMPLETED, false)
+                navController.navigate(initialRouteFor(isLoggedIn, isTutorialCompleted, isOnboardingCompleted)) {
                     popUpTo(Route.Loading) { inclusive = true }
                 }
             }
@@ -198,8 +222,11 @@ fun AppNavGraph(
                 if (destination == "signup") {
                     navController.navigate(Route.SignUp)
                 } else {
+                    if (destination == "guest") {
+                        onNicknameChanged("게스트")
+                    }
                     sessionPreferences.edit().putBoolean(KEY_LOGGED_IN, true).apply()
-                    navController.navigate(Route.Welcome)
+                    navController.navigate(Route.Consent)
                 }
             }
         }
@@ -208,7 +235,16 @@ fun AppNavGraph(
                 back = navController::popBackStack,
                 next = { newNickname ->
                     onNicknameChanged(newNickname)
-                    navController.navigate(Route.SignupOnboarding)
+                    navController.navigate(Route.SignupConsent)
+                },
+            )
+        }
+        composable(Route.SignupConsent) {
+            Consent(
+                back = navController::popBackStack,
+                next = {
+                    sessionPreferences.edit().putBoolean(KEY_LOGGED_IN, true).apply()
+                    navController.navigate(Route.FirstUse)
                 },
             )
         }
@@ -221,13 +257,18 @@ fun AppNavGraph(
         composable(Route.FirstUse) {
             FirstUse(
                 back = navController::popBackStack,
-                next = { navController.navigate(Route.Consent) },
+                next = { navController.navigate(Route.Permissions) },
             )
         }
         composable(Route.Welcome) {
             Welcome(
                 back = navController::popBackStack,
-                next = { navController.navigate(Route.Consent) },
+                next = {
+                    sessionPreferences.edit().putBoolean(KEY_ONBOARDING_COMPLETED, true).apply()
+                    navController.navigate(Route.Login) {
+                        popUpTo(Route.Welcome) { inclusive = true }
+                    }
+                },
             )
         }
         composable(Route.Consent) {
@@ -254,25 +295,12 @@ fun AppNavGraph(
             }
         }
         composable(Route.Home) {
-            HomeScreen(
-                processing = false,
-                onOpenProperties = { navController.navigate(Route.PropertyList) },
-                onOpenReports = { navController.navigate(Route.Reports) },
-                onOpenRecentReport = { navController.navigate(Route.Reports) },
-                onOpenMagazine = { navController.navigate(Route.Magazine) },
-                onOpenMagazineArticle = { articleId -> navController.navigate(Route.magazineDetail(articleId)) },
-                onStartInspection = { navController.navigate(Route.PropertySelect) },
-                onOpenChecklist = { navController.navigate(Route.ChecklistOverview) },
-                onTabSelected = { tab ->
-                    goToTab(
-                        when (tab) {
-                            "property" -> Route.PropertyList
-                            "report" -> Route.Reports
-                            "profile" -> Route.Profile
-                            else -> Route.Home
-                        },
-                    )
-                },
+            MainTabsPagerScreen(
+                navController = navController,
+                initialTab = AppTab.Home,
+                nickname = nickname,
+                onNicknameChanged = onNicknameChanged,
+                sessionPreferences = sessionPreferences,
             )
         }
         composable(Route.ChecklistOverview) {
@@ -283,7 +311,7 @@ fun AppNavGraph(
         }
         composable(Route.HomeProcessing) {
             HomeProcessingScreen(
-                onOpenProperties = { navController.navigate(Route.PropertyList) },
+                onAddProperty = { navController.navigate(Route.PropertyForm) },
                 onOpenReports = { navController.navigate(Route.Reports) },
                 onOpenMagazine = { navController.navigate(Route.Magazine) },
                 onTabSelected = { tab ->
@@ -299,20 +327,12 @@ fun AppNavGraph(
             )
         }
         composable(Route.PropertyList) {
-            PropertyListApiRoute(
-                onAddProperty = { navController.navigate(Route.PropertyForm) },
-                onOpenProperty = { navController.navigate(Route.propertyDetail(it)) },
-                onOpenMapOverview = { navController.navigate(Route.PropertyMap) },
-                onTabSelected = { tab ->
-                    goToTab(
-                        when (tab) {
-                            "home" -> Route.Home
-                            "report" -> Route.Reports
-                            "profile" -> Route.Profile
-                            else -> Route.PropertyList
-                        },
-                    )
-                },
+            MainTabsPagerScreen(
+                navController = navController,
+                initialTab = AppTab.Property,
+                nickname = nickname,
+                onNicknameChanged = onNicknameChanged,
+                sessionPreferences = sessionPreferences,
             )
         }
         composable(Route.PropertyMap) {
@@ -411,6 +431,15 @@ fun AppNavGraph(
             arguments = listOf(navArgument("propertyId") { type = NavType.StringType }),
         ) {
             PropertyInfoApiRoute(onBack = navController::popBackStack)
+        }
+        composable(
+            route = Route.VoiceSummary,
+            arguments = listOf(navArgument("propertyId") { type = NavType.StringType }),
+        ) { entry ->
+            VoiceSummaryScreen(
+                propertyId = entry.arguments?.getString("propertyId").orEmpty(),
+                onBack = navController::popBackStack,
+            )
         }
         composable(Route.PropertySelect) {
             PropertySelectApiRoute(
@@ -530,6 +559,7 @@ fun AppNavGraph(
             val zone = it.arguments?.getString("zone") ?: "entry"
             val startedAt = it.arguments?.getLong("startedAt") ?: android.os.SystemClock.elapsedRealtime()
             LiveInspectionApiRoute(
+                inspectionId = inspectionId,
                 zoneId = zone,
                 startedAt = startedAt,
                 onCancelled = { navController.navigate(Route.Home) { popUpTo(Route.Home) { inclusive = true } } },
@@ -585,18 +615,12 @@ fun AppNavGraph(
             )
         }
         composable(Route.Reports) {
-            ReportListApiRoute(
-                onOpenReport = { inspectionId -> navController.navigate(Route.inspectionReport(inspectionId)) },
-                onTabSelected = { tab ->
-                    goToTab(
-                        when (tab) {
-                            "home" -> Route.Home
-                            "property" -> Route.PropertyList
-                            "profile" -> Route.Profile
-                            else -> Route.Reports
-                        },
-                    )
-                },
+            MainTabsPagerScreen(
+                navController = navController,
+                initialTab = AppTab.Report,
+                nickname = nickname,
+                onNicknameChanged = onNicknameChanged,
+                sessionPreferences = sessionPreferences,
             )
         }
         composable(
@@ -607,27 +631,16 @@ fun AppNavGraph(
                 nickname = nickname,
                 onBack = navController::popBackStack,
                 onOpenProperty = { propertyId -> navController.navigate(Route.propertyDetail(propertyId)) },
+                onOpenVoiceRecord = { propertyId -> navController.navigate(Route.voiceSummary(propertyId)) },
             )
         }
         composable(Route.Profile) {
-            ProfileScreen(
+            MainTabsPagerScreen(
+                navController = navController,
+                initialTab = AppTab.Profile,
                 nickname = nickname,
-                onLogout = {
-                    sessionPreferences.edit().putBoolean(KEY_LOGGED_IN, false).apply()
-                    navController.navigate(Route.Login) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                },
-                onTabSelected = { tab ->
-                    goToTab(
-                        when (tab) {
-                            "home" -> Route.Home
-                            "property" -> Route.PropertyList
-                            "report" -> Route.Reports
-                            else -> Route.Profile
-                        },
-                    )
-                },
+                onNicknameChanged = onNicknameChanged,
+                sessionPreferences = sessionPreferences,
             )
         }
         composable(Route.Magazine) {
@@ -642,6 +655,124 @@ fun AppNavGraph(
         ) {
             val articleId = it.arguments?.getString("articleId") ?: "first_essentials"
             MagazineDetailScreen(articleId = articleId, onBack = navController::popBackStack)
+        }
+    }
+}
+
+@Composable
+private fun MainTabsPagerScreen(
+    navController: NavHostController,
+    initialTab: AppTab = AppTab.Home,
+    nickname: String,
+    onNicknameChanged: (String) -> Unit = {},
+    sessionPreferences: android.content.SharedPreferences,
+) {
+    val initialPage = when (initialTab) {
+        AppTab.Home -> 0
+        AppTab.Property -> 1
+        AppTab.Report -> 2
+        AppTab.Profile -> 3
+    }
+    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { 4 })
+    val coroutineScope = rememberCoroutineScope()
+
+    val currentTab = when (pagerState.currentPage) {
+        0 -> AppTab.Home
+        1 -> AppTab.Property
+        2 -> AppTab.Report
+        else -> AppTab.Profile
+    }
+
+    Scaffold(
+        bottomBar = {
+            AppBottomNavigation(
+                selectedTab = currentTab,
+                onTabSelected = { tab ->
+                    val page = when (tab) {
+                        AppTab.Home -> 0
+                        AppTab.Property -> 1
+                        AppTab.Report -> 2
+                        AppTab.Profile -> 3
+                    }
+                    coroutineScope.launch {
+                        pagerState.animateScrollToPage(page)
+                    }
+                },
+            )
+        },
+    ) { innerPadding ->
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = innerPadding.calculateBottomPadding()),
+        ) { page ->
+            when (page) {
+                0 -> {
+                    val reportListViewModel: ReportListApiViewModel = hiltViewModel()
+                    val reportListState by reportListViewModel.state.collectAsState()
+                    LaunchedEffect(Unit) { reportListViewModel.refresh() }
+                    val recentReport = (reportListState as? ReportListApiUiState.Ready)
+                        ?.items
+                        ?.let(::latestReportItem)
+                    HomeScreen(
+                        processing = false,
+                        onAddProperty = { navController.navigate(Route.PropertyForm) },
+                        onOpenReports = { navController.navigate(Route.Reports) },
+                        onOpenRecentReport = {
+                            recentReport?.inspectionId?.let { navController.navigate(Route.inspectionReport(it)) }
+                                ?: navController.navigate(Route.Reports)
+                        },
+                        recentReportTitle = recentReport?.propertyName,
+                        recentReportDate = recentReport?.dateLabel,
+                        onOpenMagazine = { navController.navigate(Route.Magazine) },
+                        onOpenMagazineArticle = { articleId -> navController.navigate(Route.magazineDetail(articleId)) },
+                        onStartInspection = { navController.navigate(Route.PropertySelect) },
+                        onOpenChecklist = { navController.navigate(Route.ChecklistOverview) },
+                        onTabSelected = {},
+                        showBottomBar = false,
+                    )
+                }
+                1 -> {
+                    PropertyListApiRoute(
+                        onAddProperty = { navController.navigate(Route.PropertyForm) },
+                        onOpenProperty = { navController.navigate(Route.propertyDetail(it)) },
+                        onOpenMapOverview = { navController.navigate(Route.PropertyMap) },
+                        onTabSelected = {},
+                        showBottomBar = false,
+                    )
+                }
+                2 -> {
+                    ReportListApiRoute(
+                        onOpenReport = { inspectionId -> navController.navigate(Route.inspectionReport(inspectionId)) },
+                        onTabSelected = {},
+                        showBottomBar = false,
+                    )
+                }
+                3 -> {
+                    ProfileScreen(
+                        nickname = nickname,
+                        onNicknameChanged = onNicknameChanged,
+                        onLogout = {
+                            sessionPreferences.edit().putBoolean(KEY_LOGGED_IN, false).apply()
+                            navController.navigate(Route.Login) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        },
+                        onOpenProperties = {
+                            coroutineScope.launch { pagerState.animateScrollToPage(1) }
+                        },
+                        onOpenReports = {
+                            coroutineScope.launch { pagerState.animateScrollToPage(2) }
+                        },
+                        onOpenGuide = { navController.navigate(Route.ChecklistOverview) },
+                        onOpenMagazine = { navController.navigate(Route.Magazine) },
+                        onOpenMap = { navController.navigate(Route.PropertyMap) },
+                        onTabSelected = {},
+                        showBottomBar = false,
+                    )
+                }
+            }
         }
     }
 }

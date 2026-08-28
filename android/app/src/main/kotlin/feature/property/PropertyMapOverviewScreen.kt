@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Add
@@ -293,46 +295,58 @@ fun PropertyMapOverviewScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(start = 20.dp, top = 36.dp, end = 16.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
+                Text(
+                    text = "매물 지도",
+                    color = DeepGreen,
+                    fontSize = 23.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    IconButton(onClick = onBack, modifier = Modifier.size(32.dp)) {
+                    StateBadge("매물 ${properties.size}개")
+                    IconButton(onClick = onAddProperty, modifier = Modifier.size(32.dp)) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "뒤로 가기",
+                            imageVector = Icons.Outlined.Add,
+                            contentDescription = "매물 추가",
                             tint = DeepGreen,
                         )
                     }
-                    Text(
-                        text = "매물 지도",
-                        color = DeepGreen,
-                        fontSize = 16.5.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-                    StateBadge("매물 ${properties.size}개")
-                }
-                IconButton(onClick = onAddProperty, modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        imageVector = Icons.Outlined.Add,
-                        contentDescription = "새 매물 등록",
-                        tint = Green,
-                        modifier = Modifier.size(24.dp),
-                    )
                 }
             }
         }
 
-        // 3. Recenter to My Location FAB Button (Instant 0ms response!)
+        // 3. Floating Back Button (Bottom Start, 100% identical to Property Detail Screen!)
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 20.dp, bottom = if (selectedProperty != null) 250.dp else 24.dp)
+                .size(56.dp)
+                .shadow(3.dp, CircleShape)
+                .background(Green, CircleShape)
+                .clip(CircleShape)
+                .clickable(onClick = onBack),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                contentDescription = "뒤로가기",
+                tint = Color.White,
+                modifier = Modifier.size(24.dp),
+            )
+        }
+
+        // 4. Recenter to My Location FAB Button (Instant 0ms response!)
         FloatingActionButton(
             onClick = moveToMyLocation,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = if (selectedProperty != null) 210.dp else 24.dp)
+                .padding(end = 16.dp, bottom = if (selectedProperty != null) 250.dp else 24.dp)
                 .size(46.dp),
             containerColor = Color.White,
             contentColor = DeepGreen,

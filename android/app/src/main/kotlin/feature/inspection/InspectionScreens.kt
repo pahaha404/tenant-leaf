@@ -1,44 +1,63 @@
 package com.seipseip.app.feature.inspection
 
 import android.app.Activity
+import android.Manifest
 import android.content.Context
 import android.content.res.Configuration
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.SystemClock
 import android.speech.tts.TextToSpeech
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
+import android.media.MediaMetadataRetriever
 import android.view.Surface
 import android.view.TextureView
 import android.widget.MediaController
 import android.widget.VideoView
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.seipseip.app.R
 import com.seipseip.app.feature.home.GlassConnectionViewModel
 import com.seipseip.app.feature.home.rememberGlassConnectionViewModel
 import com.seipseip.app.feature.inspection.preview.PhoneCameraPreviewHelper
+import com.seipseip.app.feature.inspection.voice.VoiceRecordSection
+import com.seipseip.app.feature.inspection.voice.VoiceRecordReviewCard
+import com.seipseip.app.feature.inspection.voice.VoiceRecordSession
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import com.seipseip.app.feature.guide.guideImageResource
 import com.meta.wearable.dat.camera.types.VideoQuality
+import com.meta.wearable.dat.core.Wearables
+import com.meta.wearable.dat.core.types.Permission
+import com.meta.wearable.dat.core.types.PermissionStatus
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -55,6 +74,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
@@ -69,16 +89,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.seipseip.app.DeepGreen
 import com.seipseip.app.Green
 import com.seipseip.app.Orange
@@ -113,17 +137,6 @@ fun InspectionPrepScreen(
             }
         },
     ) {
-        Card(
-            modifier = Modifier.fillMaxWidth().border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(18.dp)),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF241A1A)),
-        ) {
-            Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                Text("⚠  촬영 허가를 반드시 받아주세요", color = Color(0xFFFFD6D2), fontSize = 17.sp, fontWeight = FontWeight.ExtraBold)
-                Text("임대인과 기존 세입자에게 허가를 받고 촬영을 해야 합니다.", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, lineHeight = 18.sp)
-                Text("허가 없이 촬영을 진행하지 마세요. 촬영·녹음에 동의하지 않은 사람이 포함되면 법적 책임이 발생할 수 있습니다.", color = Color(0xFFFFB4AB), fontSize = 11.sp, lineHeight = 17.sp)
-            }
-        }
         SectionTitle("점검을 시작하기 전이에요", "망원동 리버뷰 · 오늘 오후 4:00")
         InfoCard(title = "점검할 매물", description = "망원동 리버뷰 · 서울시 마포구 망원동", onClick = onSelectProperty)
         InfoCard(title = "촬영 전 확인", description = "휴대전화 카메라와 마이크 권한을 허용해 주세요.", accent = PaleGreen)
@@ -134,6 +147,10 @@ fun InspectionPrepScreen(
 @Composable
 fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit) {
     val context = LocalContext.current
+    var landlordConsent by remember { mutableStateOf(false) }
+    var occupantConsent by remember { mutableStateOf(false) }
+    var recordingScopeConfirmed by remember { mutableStateOf(false) }
+    val canContinue = landlordConsent && occupantConsent && recordingScopeConfirmed
     LaunchedEffect(Unit) {
         VoiceGuideManager.warmUp(context)
     }
@@ -146,47 +163,62 @@ fun InspectionPermissionWarningScreen(onBack: () -> Unit, onContinue: () -> Unit
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 10.dp),
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(Color(0xFFB42318))
-                        .clickable {
-                            VoiceGuideManager.speak(context, "3초 뒤 촬영이 시작됩니다.")
+                PrimaryButton(
+                    label = "허가를 확인했고 촬영을 계속합니다",
+                    enabled = canContinue,
+                    onClick = {
+                        if (canContinue) {
                             onContinue()
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        "허가를 확인했고 촬영을 계속합니다",
-                        color = Color.White,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                    )
-                }
+                        }
+                    },
+                )
             }
         },
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth().border(2.dp, Color(0xFF8B1E1E), RoundedCornerShape(18.dp)),
+            modifier = Modifier.fillMaxWidth().border(1.dp, Orange, RoundedCornerShape(18.dp)),
             shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF241A1A)),
+            colors = CardDefaults.cardColors(containerColor = PaleOrange),
         ) {
-            Column(modifier = Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text("⚠  촬영 전 반드시 확인", color = Color(0xFFFFD6D2), fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
-                Text("허가를 받고 촬영을 해야 합니다.", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
-                Text("임대인과 기존 세입자 모두에게 촬영·녹음 허가를 명확히 받으세요. 허가를 받지 못했다면 촬영을 시작하지 마세요.", color = Color(0xFFFFB4AB), fontSize = 12.sp, lineHeight = 19.sp)
-                Text("공개되지 않은 타인 간 대화의 녹음·청취는 통신비밀보호법의 제한을 받을 수 있습니다. 위반 시 상황에 따라 민·형사상 책임이 발생할 수 있습니다.", color = Color(0xFFFFE4E1), fontSize = 11.sp, lineHeight = 17.sp)
+            Column(modifier = Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Text("촬영 전 꼭 확인해 주세요", color = DeepGreen, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold)
+                Text("촬영과 녹음은 상대방이 알 수 있게 안내하고, 허가를 받은 뒤에만 시작합니다.", color = Secondary, fontSize = 13.sp, lineHeight = 20.sp)
+                Text("집을 보여주는 임대인·중개인뿐 아니라, 기존 세입자나 동행자가 화면 또는 음성에 포함될 수 있다면 모두에게 먼저 알려야 합니다. 허가를 받지 못했거나 누가 포함되는지 확실하지 않다면 촬영하지 마세요.", color = Secondary, fontSize = 12.sp, lineHeight = 19.sp)
             }
         }
+        Spacer(Modifier.height(18.dp))
+        Text("촬영을 시작하기 전에 아래 항목을 직접 확인해 주세요.", color = DeepGreen, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        ConsentCheckRow(landlordConsent, { landlordConsent = it }, "임대인 또는 중개인에게 촬영 사실을 알리고 허가를 받았습니다.")
+        ConsentCheckRow(occupantConsent, { occupantConsent = it }, "현장에 있는 사람에게 영상과 음성 녹음 여부를 알렸습니다.")
+        ConsentCheckRow(recordingScopeConfirmed, { recordingScopeConfirmed = it }, "촬영이 필요 없는 사람·사적인 대화·문서는 담지 않겠습니다.")
+    }
+}
+
+@Composable
+private fun ConsentCheckRow(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    text: String,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = checked, onCheckedChange = onCheckedChange)
+        Text(text, modifier = Modifier.padding(end = 10.dp), color = DeepGreen, fontSize = 13.sp, lineHeight = 19.sp)
     }
 }
 @Composable
 fun InspectionCountdownScreen(onFinished: () -> Unit) {
+    val context = LocalContext.current
     var count by remember { mutableStateOf(3) }
 
     LaunchedEffect(Unit) {
+        VoiceGuideManager.speakWithPauses(context, INSPECTION_START_VOICE_GUIDE, 2_000)
         count = 3
         kotlinx.coroutines.delay(1_000)
         count = 2
@@ -208,6 +240,14 @@ fun InspectionCountdownScreen(onFinished: () -> Unit) {
     }
 }
 
+internal val INSPECTION_START_VOICE_GUIDE = listOf(
+    "3초 뒤 촬영이 시작됩니다.",
+    "현관과 복도에서는 신발장 곰팡이와 벽·바닥 습기를, 거실에서는 천장, 벽지의 하자를 확인해 주세요.",
+    "주방에서는 싱크대 아래 누수와 배수, 찬장 안쪽을 확인해 주세요.",
+    "화장실에서는 누수·곰팡이와 배수 상태를 확인해 주세요.",
+    "마지막으로 창틀에서는 창문 틈새와 결로, 곰팡이 흔적과 방충망을 확인해 주세요.",
+)
+
 @Composable
 fun TutorialScreen(
     onBack: () -> Unit,
@@ -217,16 +257,41 @@ fun TutorialScreen(
     val tutorialVideoId = remember {
         context.resources.getIdentifier("tutorial_video", "raw", context.packageName)
     }
+    val tutorialThumbnail by produceState<Bitmap?>(
+        initialValue = null,
+        key1 = tutorialVideoId,
+    ) {
+        value = if (tutorialVideoId == 0) {
+            null
+        } else {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    MediaMetadataRetriever().run {
+                        try {
+                            setDataSource(
+                                context,
+                                Uri.parse("android.resource://${context.packageName}/$tutorialVideoId"),
+                            )
+                            getFrameAtTime(0L, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                        } finally {
+                            release()
+                        }
+                    }
+                }.getOrNull()
+            }
+        }
+    }
     var showVideo by remember { mutableStateOf(false) }
 
     AppPageScaffold(
         title = "튜토리얼",
         onBack = onBack,
+        scrollable = false,
         bottomAction = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFFCFBF8))
+                    .background(Color.White)
                     .padding(horizontal = 20.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -242,42 +307,50 @@ fun TutorialScreen(
             }
         },
     ) {
-        Text(
-            "스마트 글래스로 한 번에!\n튜토리얼 영상 어쩌구",
-            modifier = Modifier.fillMaxWidth().padding(top = 42.dp),
-            color = Green,
-            fontSize = 25.sp,
-            fontWeight = FontWeight.ExtraBold,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
-        Text(
-            "스마트 글래스 촬영부터 직접 확인까지\n가장 중요한 흐름만 빠르게 알려드려요.",
-            modifier = Modifier.fillMaxWidth(),
-            color = Secondary,
-            fontSize = 13.sp,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-        )
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 18.dp)
-                .clickable { showVideo = true },
-            contentAlignment = Alignment.Center,
+                .fillMaxSize(),
         ) {
+            Text(
+                "세입세잎, 이렇게 사용해요",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .padding(top = 42.dp),
+                color = Green,
+                fontSize = 25.sp,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            )
             Box(
                 modifier = Modifier
-                    .size(width = 218.dp, height = 140.dp)
+                    .fillMaxWidth()
+                    .height(210.dp)
+                    .align(Alignment.Center)
                     .clip(RoundedCornerShape(22.dp))
-                    .background(PaleGreen),
+                    .background(PaleGreen)
+                    .clickable { showVideo = true },
                 contentAlignment = Alignment.Center,
             ) {
-                Text("⌁", modifier = Modifier.align(Alignment.TopStart).padding(18.dp), color = Green, fontSize = 32.sp, fontWeight = FontWeight.Bold)
-                Box(modifier = Modifier.size(66.dp).clip(RoundedCornerShape(99.dp)).background(Green), contentAlignment = Alignment.Center) {
-                    Text("▶", color = Color.White, fontSize = 25.sp)
+                tutorialThumbnail?.let { bitmap ->
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "세입세잎 튜토리얼 영상 썸네일",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(Green.copy(alpha = 0.94f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("▶", color = Color.White, fontSize = 27.sp)
                 }
             }
         }
-        StateBadge("◷  60초 영상", Orange)
     }
 
     if (showVideo) {
@@ -416,7 +489,7 @@ fun TutorialChecklistScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFFCFBF8))
+                    .background(Color.White)
                     .padding(horizontal = 20.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -487,8 +560,8 @@ private data class LiveInspectionContent(
 
 private fun liveInspectionContent(zoneId: String): LiveInspectionContent = when (zoneId) {
     "entry" -> LiveInspectionContent(
-        voiceGuide = "현관문과 공용 설비를 천천히 비춰주세요.",
-        checkTitle = "현관·공용 확인 안내",
+        voiceGuide = "현관문과 설비를 천천히 비춰주세요.",
+        checkTitle = "현관 확인 안내",
         checkDescription = "문과 문틀부터 도어락, 신발장, 인터폰 순서로 확인해요.",
         items = listOf("문과 문틀", "도어락 비밀번호", "신발장 내부", "인터폰과 공용 복도"),
     )
@@ -534,25 +607,67 @@ enum class CameraSource {
 
 @Composable
 fun LiveInspectionScreen(
+    inspectionId: String,
     zoneId: String,
     startedAt: Long,
     onBack: () -> Unit,
     onOpenGuide: (Int) -> Unit,
     onNextZone: (String) -> Unit,
     onFinish: (Long) -> Unit,
+    canceling: Boolean = false,
+    cancelErrorMessage: String? = null,
     glassViewModel: GlassConnectionViewModel = rememberGlassConnectionViewModel(),
 ) {
-    val zone = UiCatalog.zone(zoneId)
-    val nextZone = UiCatalog.nextZone(zoneId)
-    val zoneRows = UiCatalog.guideZones
-    val liveContent = liveInspectionContent(zoneId)
+    var currentZoneId by remember(zoneId) { mutableStateOf(zoneId) }
+    val nextZone = UiCatalog.nextZone(currentZoneId)
+    val liveContent = liveInspectionContent(currentZoneId)
     val previewState by glassViewModel.previewUiState.collectAsState()
     val connectionState by glassViewModel.uiState.collectAsState()
 
     val context = LocalContext.current
+    var microphonePermissionGranted by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED,
+        )
+    }
+    var microphonePermissionResolved by remember { mutableStateOf(microphonePermissionGranted) }
+    val microphonePermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        microphonePermissionGranted = granted
+        microphonePermissionResolved = true
+    }
+    var cameraPermissionRequested by remember { mutableStateOf(false) }
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = Wearables.RequestPermissionContract(),
+    ) { result ->
+        result.fold(
+            onSuccess = { status ->
+                if (status == PermissionStatus.Granted) glassViewModel.startPreview()
+            },
+            onFailure = { _, _ -> Unit },
+        )
+    }
+    LaunchedEffect(previewState.needsCameraPermission) {
+        if (previewState.needsCameraPermission && !cameraPermissionRequested) {
+            cameraPermissionRequested = true
+            cameraPermissionLauncher.launch(Permission.CAMERA)
+        } else if (!previewState.needsCameraPermission) {
+            cameraPermissionRequested = false
+        }
+    }
+    LaunchedEffect(inspectionId, microphonePermissionGranted, microphonePermissionResolved) {
+        if (!microphonePermissionGranted && !microphonePermissionResolved) {
+            microphonePermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
     val coroutineScope = rememberCoroutineScope()
     var isFinishing by remember { mutableStateOf(false) }
-    val recorder = remember(context) { com.seipseip.app.feature.inspection.preview.InspectionVideoRecorder(context) }
+    val recorder = remember(context) {
+        com.seipseip.app.feature.inspection.preview.InspectionVideoRecorder(context) { bytes, size ->
+            VoiceRecordSession.appendPcm(bytes, size)
+        }
+    }
     val isGlassConnected = connectionState.isConnected
     var cameraSource by remember(isGlassConnected) {
         mutableStateOf(if (isGlassConnected) CameraSource.GLASS else CameraSource.PHONE)
@@ -574,8 +689,12 @@ fun LiveInspectionScreen(
         }
     }
 
-    DisposableEffect(glassViewModel, cameraSource) {
-        if (!recorder.isRecording) {
+    DisposableEffect(glassViewModel, cameraSource, inspectionId, microphonePermissionGranted, microphonePermissionResolved) {
+        // PCM 콜백보다 먼저 파일을 열어 두어 첫 음성 프레임부터 저장한다.
+        if (microphonePermissionGranted) {
+            VoiceRecordSession.start(context, inspectionId)
+        }
+        if (microphonePermissionResolved && !recorder.isRecording) {
             recorder.startRecording()
         }
         val surface = activeSurface
@@ -600,11 +719,16 @@ fun LiveInspectionScreen(
     }
 
     var showFinishDialog by remember { mutableStateOf(false) }
+    var showExitDialog by remember { mutableStateOf(false) }
     var activeGuideIndex by remember { mutableStateOf<Int?>(null) }
     var isPaused by remember { mutableStateOf(false) }
     var nowElapsed by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
     var accumulatedPausedTime by remember { mutableStateOf(0L) }
     var lastPauseTimestamp by remember { mutableStateOf(0L) }
+
+    BackHandler(enabled = !isFinishing && !canceling) {
+        showExitDialog = true
+    }
 
     val togglePause = {
         if (isPaused) {
@@ -644,18 +768,37 @@ fun LiveInspectionScreen(
 
     var showQualityMenu by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
+    val infiniteTransition = rememberInfiniteTransition(label = "rec_pulse")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(700),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "rec_alpha",
+    )
+
+    Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Column(modifier = Modifier.fillMaxSize()) {
             Row(
-                modifier = Modifier.fillMaxWidth().height(54.dp).padding(horizontal = 20.dp),
+                modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
-                    modifier = Modifier.size(40.dp).clip(RoundedCornerShape(20.dp)).background(Color.White).clickable(onClick = onBack),
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color.White)
+                        .clickable { showExitDialog = true },
                     contentAlignment = Alignment.Center,
                 ) { Text("‹", color = DeepGreen, fontSize = 28.sp, fontWeight = FontWeight.Medium) }
-                Spacer(Modifier.width(8.dp))
-                Text("실시간 점검", color = DeepGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+
+                Spacer(Modifier.width(10.dp))
+                Column {
+                    Text("실시간 점검", color = DeepGreen, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold)
+                    Text("안경·스마트폰 동시 녹화 중", color = Secondary, fontSize = 10.5.sp)
+                }
                 Spacer(Modifier.weight(1f))
 
                 if (isGlassConnected) {
@@ -751,16 +894,20 @@ fun LiveInspectionScreen(
                     StateBadge("핸드폰 촬영", Green)
                 }
             }
+
             Column(
-                modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(156.dp)
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(Color(0xFF2F4437))
+                        .height(230.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(Color(0xFF1E2E25))
                         .clickable(onClick = togglePause),
                 ) {
                     AndroidView(
@@ -819,19 +966,44 @@ fun LiveInspectionScreen(
                             applyCenterCropTransform(textureView, previewState.videoWidth, previewState.videoHeight)
                         },
                     )
+
                     Row(
                         modifier = Modifier
                             .align(Alignment.TopStart)
                             .padding(10.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.Black.copy(alpha = 0.55f))
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.Black.copy(alpha = 0.65f))
                             .clickable(onClick = togglePause)
                             .padding(horizontal = 9.dp, vertical = 5.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Box(Modifier.size(7.dp).clip(RoundedCornerShape(9.dp)).background(if (isPaused) Green else Color(0xFFE53935)))
-                        Spacer(Modifier.width(5.dp))
-                        Text(if (isPaused) "일시정지" else "녹화 중", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                        Box(
+                            Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(if (isPaused) Orange else Color(0xFFE53935).copy(alpha = if (isPaused) 1f else pulseAlpha))
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(if (isPaused) "일시정지" else "REC", color = Color.White, fontSize = 10.5.sp, fontWeight = FontWeight.ExtraBold)
+                        Spacer(Modifier.width(6.dp))
+                        Text(formatInspectionDuration(durationSeconds), color = Color.White, fontSize = 10.5.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(10.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.Black.copy(alpha = 0.55f))
+                            .padding(horizontal = 9.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            if (cameraSource == CameraSource.GLASS) "👓 AI 안경" else "📱 스마트폰",
+                            color = Color.White.copy(alpha = 0.9f),
+                            fontSize = 10.5.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
                     }
 
                     if (isPaused) {
@@ -845,8 +1017,22 @@ fun LiveInspectionScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
-                                Text("⏸️ 스트리밍 및 녹화가 일시 중지됨", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                                Text("탭하여 다시 시작하기", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
+                                Box(
+                                    modifier = Modifier
+                                        .size(46.dp)
+                                        .clip(CircleShape)
+                                        .background(Green),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.PlayArrow,
+                                        contentDescription = "촬영 재개",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(24.dp),
+                                    )
+                                }
+                                Text("촬영이 일시 중지되었습니다", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text("화면이나 아래 버튼을 탭하여 다시 시작", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp)
                             }
                         }
                     } else if (cameraSource == CameraSource.GLASS && !previewState.hasFirstFrame) {
@@ -866,40 +1052,129 @@ fun LiveInspectionScreen(
                             }
                         }
                     }
-
-                    Text(formatInspectionDuration(durationSeconds), modifier = Modifier.align(Alignment.BottomEnd).padding(13.dp), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
-                Column(
-                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White).padding(15.dp),
-                    verticalArrangement = Arrangement.spacedBy(9.dp),
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(29.dp).clip(RoundedCornerShape(10.dp)).background(PaleGreen), contentAlignment = Alignment.Center) { Text("✓", color = Green, fontWeight = FontWeight.ExtraBold) }
-                        Spacer(Modifier.width(8.dp))
-                        Text(liveContent.checkTitle, color = DeepGreen, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
-                    }
-                    Text(liveContent.checkDescription, color = Secondary, fontSize = 11.sp, lineHeight = 16.sp)
-                    liveContent.items.forEachIndexed { index, item ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(if (index == 0) PaleGreen else Color(0xFFF8F8F6)).clickable { activeGuideIndex = index }.padding(horizontal = 11.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+                    UiCatalog.guideZones.forEach { gz ->
+                        val isSelected = gz.id == currentZoneId
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (isSelected) Green else Color.White)
+                                .border(
+                                    width = 1.dp,
+                                    color = if (isSelected) Green else Color(0xFFE2E8E0),
+                                    shape = RoundedCornerShape(12.dp),
+                                )
+                                .clickable {
+                                    if (currentZoneId != gz.id) {
+                                        currentZoneId = gz.id
+                                    }
+                                }
+                                .padding(horizontal = 13.dp, vertical = 8.dp),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            Text(if (index == 0) "●" else "○", color = if (index == 0) Green else Secondary, fontSize = 11.sp)
-                            Spacer(Modifier.width(8.dp))
-                            Text(item, color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                            Spacer(Modifier.weight(1f))
-                            Text("가이드", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                gz.title,
+                                color = if (isSelected) Color.White else DeepGreen,
+                                fontSize = 11.5.sp,
+                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                            )
                         }
                     }
                 }
-                Spacer(Modifier.height(6.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(Color.White)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier.size(28.dp).clip(RoundedCornerShape(9.dp)).background(PaleGreen),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text("💡", fontSize = 14.sp)
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text(liveContent.checkTitle, color = DeepGreen, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                            Text(liveContent.checkDescription, color = Secondary, fontSize = 11.sp, lineHeight = 15.sp)
+                        }
+                    }
+
+                    Spacer(Modifier.height(2.dp))
+
+                    liveContent.items.forEachIndexed { index, item ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(11.dp))
+                                .background(Color(0xFFF8F9F8))
+                                .clickable { activeGuideIndex = index }
+                                .padding(horizontal = 11.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clip(CircleShape)
+                                    .background(PaleGreen),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text("${index + 1}", color = Green, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
+                            }
+                            Spacer(Modifier.width(9.dp))
+                            Text(
+                                item,
+                                color = DeepGreen,
+                                fontSize = 11.5.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color.White)
+                                    .border(0.8.dp, Color(0xFFD6E4DB), RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 7.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text("가이드", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.width(2.dp))
+                                Text("›", color = Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+
+                VoiceRecordSection()
+
+                Spacer(Modifier.height(4.dp))
             }
+
             Row(
-                modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 20.dp, vertical = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Box(
-                    modifier = Modifier.weight(1f).height(48.dp).clip(RoundedCornerShape(14.dp)).background(Green).clickable(onClick = togglePause),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(if (isPaused) Orange else Green)
+                        .clickable(onClick = togglePause),
                     contentAlignment = Alignment.Center,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -910,20 +1185,33 @@ fun LiveInspectionScreen(
                             modifier = Modifier.size(20.dp),
                         )
                         Spacer(Modifier.width(7.dp))
-                        Text(if (isPaused) "촬영 재개" else "일시정지", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(
+                            if (isPaused) "촬영 재개" else "일시정지",
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                        )
                     }
                 }
                 Box(
-                    modifier = Modifier.width(92.dp).height(48.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFFFFF0E4)).clickable { showFinishDialog = true },
+                    modifier = Modifier
+                        .width(96.dp)
+                        .height(50.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color(0xFFFFF0E4))
+                        .clickable { showFinishDialog = true },
                     contentAlignment = Alignment.Center,
-                ) { Text("점검 종료", color = Orange, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold) }
+                ) {
+                    Text("점검 종료", color = Orange, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
+                }
             }
         }
+
         activeGuideIndex?.let { guideIdx ->
-            val zone = UiCatalog.zone(zoneId)
+            val zone = UiCatalog.zone(currentZoneId)
             val item = zone.items.getOrElse(guideIdx) { zone.items.first() }
             val steps = item.steps
-            val imageRes = guideImageResource(zoneId, guideIdx)
+            val imageRes = guideImageResource(currentZoneId, guideIdx)
             val progress = "${zone.title} ${guideIdx + 1} / ${zone.items.size}"
 
             Box(
@@ -1007,6 +1295,78 @@ fun LiveInspectionScreen(
                 }
             }
         }
+
+        if (showExitDialog) {
+            Box(
+                modifier = Modifier.fillMaxSize().background(Color(0x8A173426)).padding(horizontal = 28.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(22.dp))
+                        .background(Color.White)
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Box(
+                        modifier = Modifier.size(46.dp).clip(RoundedCornerShape(14.dp)).background(PaleOrange),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.WarningAmber,
+                            contentDescription = "경고",
+                            tint = Orange,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                    Text(
+                        "점검을 중단하시겠습니까?",
+                        color = DeepGreen,
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                    Text(
+                        "점검을 종료하지 않고 나가면 현재까지의 실시간 촬영 및 음성 녹음 내용이 저장되지 않고 취소됩니다.",
+                        color = Secondary,
+                        fontSize = 12.sp,
+                        lineHeight = 17.sp,
+                    )
+                    cancelErrorMessage?.let {
+                        Text(it, color = Color(0xFFB3261E), fontSize = 12.sp, lineHeight = 17.sp)
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Green)
+                            .clickable { showExitDialog = false },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("계속 점검하기", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0xFFF2F4F2))
+                            .clickable(enabled = !canceling, onClick = onBack),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            if (canceling) "취소 처리 중..." else "점검 나가기 (취소)",
+                            color = Secondary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+            }
+        }
+
         if (showFinishDialog) {
             Box(
                 modifier = Modifier.fillMaxSize().background(Color(0x8A173426)).padding(horizontal = 28.dp),
@@ -1038,10 +1398,11 @@ fun LiveInspectionScreen(
                         modifier = Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(13.dp)).background(if (isFinishing) Secondary else Orange).clickable(enabled = !isFinishing) {
                             if (!isFinishing) {
                                 isFinishing = true
-                                VoiceGuideManager.speak(context, "촬영을 종료합니다. 해당 영상을 업로드해주세요.")
                                 coroutineScope.launch {
                                     val finalDuration = recorder.getRecordedDurationSeconds().coerceAtLeast(durationSeconds)
                                     recorder.stopRecording()
+                                    VoiceRecordSession.finish(context)
+                                    VoiceGuideManager.speak(context, "촬영을 종료합니다. 해당 영상을 업로드해주세요.")
                                     onFinish(finalDuration)
                                 }
                             }
@@ -1060,7 +1421,8 @@ object VoiceGuideManager {
     private var tts: TextToSpeech? = null
     @Volatile
     private var isInitialized = false
-    private var pendingText: String? = null
+    private var pendingTexts: List<String>? = null
+    private var pendingPauseMillis = 0L
 
     fun warmUp(context: Context) {
         if (tts != null) return
@@ -1078,9 +1440,10 @@ object VoiceGuideManager {
                             tts?.setSpeechRate(1.05f)
                         } catch (_: Exception) {}
                         isInitialized = true
-                        pendingText?.let { text ->
-                            speakInternal(text)
-                            pendingText = null
+                        pendingTexts?.let { texts ->
+                            speakInternal(texts, pendingPauseMillis)
+                            pendingTexts = null
+                            pendingPauseMillis = 0L
                         }
                     }
                 }
@@ -1088,27 +1451,40 @@ object VoiceGuideManager {
         }
     }
 
-    private fun speakInternal(text: String) {
-        try {
-            val params = android.os.Bundle().apply {
-                putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, android.media.AudioManager.STREAM_MUSIC)
+    private fun speakInternal(texts: List<String>, pauseMillis: Long) {
+        val params = android.os.Bundle().apply {
+            putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, android.media.AudioManager.STREAM_MUSIC)
+        }
+        texts.forEachIndexed { index, text ->
+            val queueMode = if (index == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
+            val utteranceId = "voice_guide_${System.currentTimeMillis()}_$index"
+            try {
+                tts?.speak(text, queueMode, params, utteranceId)
+            } catch (_: Exception) {
+                tts?.speak(text, queueMode, null, utteranceId)
             }
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "voice_guide_${System.currentTimeMillis()}")
-        } catch (_: Exception) {
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "voice_guide_${System.currentTimeMillis()}")
+            if (index < texts.lastIndex && pauseMillis > 0) {
+                tts?.playSilentUtterance(pauseMillis, TextToSpeech.QUEUE_ADD, "${utteranceId}_pause")
+            }
         }
     }
 
     fun speak(context: Context, text: String) {
+        speakWithPauses(context, listOf(text), 0)
+    }
+
+    fun speakWithPauses(context: Context, texts: List<String>, pauseMillis: Long) {
         val appContext = context.applicationContext
         synchronized(lock) {
             if (tts == null) {
-                pendingText = text
+                pendingTexts = texts
+                pendingPauseMillis = pauseMillis
                 warmUp(appContext)
             } else if (isInitialized) {
-                speakInternal(text)
+                speakInternal(texts, pauseMillis)
             } else {
-                pendingText = text
+                pendingTexts = texts
+                pendingPauseMillis = pauseMillis
             }
         }
     }
@@ -1125,7 +1501,8 @@ object VoiceGuideManager {
             tts?.shutdown()
             tts = null
             isInitialized = false
-            pendingText = null
+            pendingTexts = null
+            pendingPauseMillis = 0L
         }
     }
 }
@@ -1190,7 +1567,7 @@ fun FinishConfirmScreen(
                         fontWeight = FontWeight.ExtraBold,
                     )
                 }
-                Text("현관·공용  ·  주방  ·  창틀·환기\n거실·방  ·  화장실", color = Color(0xFFDCE9D6), fontSize = 13.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold)
+                Text("현관  ·  주방  ·  창틀·환기\n거실·방  ·  화장실", color = Color(0xFFDCE9D6), fontSize = 13.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold)
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = .11f)).padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -1202,24 +1579,7 @@ fun FinishConfirmScreen(
             }
         }
 
-        Text("촬영 구역 상세", color = DeepGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-        Column(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White).padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            zones.forEachIndexed { index, zone ->
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(32.dp).clip(RoundedCornerShape(9.dp)).background(if (index % 2 == 0) PaleGreen else Color(0xFFF8F8F6)).padding(horizontal = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("✓", color = Green, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold)
-                    Spacer(Modifier.width(8.dp))
-                    Text(zone.title, color = DeepGreen, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                    Spacer(Modifier.weight(1f))
-                    Text("촬영 완료", color = Green, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
+        VoiceRecordReviewCard()
 
         Row(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(PaleOrange).padding(12.dp),
@@ -1227,10 +1587,10 @@ fun FinishConfirmScreen(
         ) {
             Text("ⓘ", color = Orange, fontSize = 15.sp)
             Spacer(Modifier.width(8.dp))
-            Text("분석 결과는 확인이 필요한 관찰 결과이며, 최종 상태는 사용자가 결정해요.", color = Color(0xFF8B542D), fontSize = 11.sp, lineHeight = 16.sp)
+            Text("분석 결과는 확인이 필요한 내용이에요. 사진을 확인하고 직접 결정하세요!", color = Color(0xFF8B542D), fontSize = 11.sp, lineHeight = 16.sp)
         }
         errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
-        PrimaryButton(if (updating) "촬영 종료 처리 중..." else "촬영 종료하고 사진 준비", onConfirm, enabled = !updating)
+        PrimaryButton(if (updating) "촬영 종료 처리 중..." else "다음", onConfirm, enabled = !updating)
     }
 }
 @Composable
@@ -1242,49 +1602,59 @@ fun AnalysisProgressScreen(
     primaryActionLabel: String,
     onPrimaryAction: () -> Unit,
 ) {
-    AppPageScaffold(title = "분석 진행", onBack = onBackToHome) {
-        SectionTitle("구역별 기록을 정리하고 있어요", "촬영한 사진과 메모를 점검 구역별로 묶는 중이에요.")
-        LinearProgressIndicator(
-            progress = { progress.coerceIn(0f, 1f) },
-            modifier = Modifier.fillMaxWidth(),
-            color = Green,
-            trackColor = PaleGreen,
-        )
-        Text(statusMessage, color = Secondary, fontSize = 12.sp)
-        errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
-        UiCatalog.guideZones.forEachIndexed { index, zone ->
-            val completedZoneCount = (progress.coerceIn(0f, 1f) * UiCatalog.guideZones.size).toInt()
-            val isComplete = index < completedZoneCount
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(74.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(if (isComplete) PaleGreen else Color.White)
-                    .padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text(zone.title, color = DeepGreen, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-                    Text(if (isComplete) "기록 정리 완료" else "확인 중", color = Secondary, fontSize = 11.sp)
-                }
-                if (isComplete) {
-                    Icon(
-                        Icons.Outlined.CheckCircle,
-                        contentDescription = "정리 완료",
-                        tint = Green,
-                        modifier = Modifier.size(22.dp),
-                    )
-                } else {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(21.dp),
-                        color = Green,
-                        strokeWidth = 2.5.dp,
-                    )
-                }
+    val uploadCompleted = progress >= 1f && errorMessage == null
+    AppPageScaffold(
+        title = "분석 진행",
+        onBack = onBackToHome,
+        scrollable = false,
+        bottomAction = {
+            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+                PrimaryButton(primaryActionLabel, onPrimaryAction)
             }
+        },
+    ) {
+        Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                SectionTitle(
+                    if (uploadCompleted) "사진 전송을 완료했어요" else "촬영 내용을 분석하고 있어요",
+                    if (uploadCompleted) "리포트에서 AI 분석 진행 상태를 확인할 수 있어요."
+                    else "촬영한 영상에서 분석할 사진을 준비하는 중이에요.",
+                )
+                LinearProgressIndicator(
+                    progress = { progress.coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Green,
+                    trackColor = PaleGreen,
+                )
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth().weight(1f).clip(RoundedCornerShape(20.dp)).background(Color.White).padding(vertical = 30.dp, horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.analysis_loading),
+                    contentDescription = "촬영 내용 분석 준비",
+                    modifier = Modifier.size(240.dp),
+                    contentScale = ContentScale.Fit,
+                )
+                Spacer(Modifier.height(20.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (!uploadCompleted) {
+                        CircularProgressIndicator(modifier = Modifier.size(28.dp), color = Green, strokeWidth = 3.dp)
+                    }
+                    Text(
+                        if (uploadCompleted) "사진 전송을 완료했어요" else "촬영 내용을 준비하고 있어요",
+                        color = DeepGreen,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                    )
+                }
+                Spacer(Modifier.height(14.dp))
+                Text(statusMessage, color = Secondary, fontSize = 14.sp, lineHeight = 20.sp)
+            }
+            errorMessage?.let { Text(it, color = Color(0xFFC93B2B), fontSize = 12.sp) }
         }
-        PrimaryButton(primaryActionLabel, onPrimaryAction)
     }
 }
 
@@ -1309,7 +1679,7 @@ fun CaptureResultsScreen(
     onOpenObservation: (String) -> Unit,
     onHome: () -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
+    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Row(
             modifier = Modifier.fillMaxWidth().height(54.dp).padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -1418,7 +1788,7 @@ fun ObservationScreen(
     val zone = UiCatalog.zone(zoneId)
     val observations = observationItems(zoneId)
 
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFFF6F4EF))) {
+    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
         Row(
             modifier = Modifier.fillMaxWidth().height(54.dp).padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,

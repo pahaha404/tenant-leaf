@@ -50,6 +50,7 @@ class BatchImageResult:
     zone: str
     zone_uncertain: bool
     zone_model_version: str
+    contains_person: bool
     detections: tuple[DetectionResult, ...]
 
 
@@ -133,6 +134,9 @@ def parse_batch_result(
         uncertain = room.get("uncertain")
         if not isinstance(uncertain, bool):
             raise ValueError("AI batch room uncertain flag is required")
+        contains_person = room.get("containsPerson", True)
+        if not isinstance(contains_person, bool):
+            raise ValueError("AI batch room containsPerson flag must be boolean")
         zone_model = room.get("model") or default_zone_model
         if not isinstance(zone_model, str) or not zone_model.strip():
             raise ValueError("AI batch room model is required")
@@ -149,6 +153,7 @@ def parse_batch_result(
             zone=ROOM_TO_ZONE[stable_room],
             zone_uncertain=uncertain or stable_room == "unknown",
             zone_model_version=zone_model.strip(),
+            contains_person=contains_person,
             detections=detections,
         ))
 

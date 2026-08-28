@@ -23,8 +23,9 @@ For every supplied image, choose exactly one room label:
 
 Images are supplied in sequence_id order. Return one item for every sequence_id using it as frameId.
 Return JSON only in this shape:
-{"frames":[{"frameId":123,"room":"bathroom","uncertain":false}]}
+{"frames":[{"frameId":123,"room":"bathroom","uncertain":false,"containsPerson":false}]}
 Do not invent another label. Set uncertain=true whenever the visual evidence is weak.
+Set containsPerson=true when any person, face, or recognizable human body part appears in the image.
 """
 
 
@@ -59,10 +60,16 @@ def parse_room_response(text: str, expected_frame_ids: list[int]) -> list[dict[s
         room = str(item.get("room", "unknown")).strip().lower()
         if room not in ROOM_LABELS:
             room = "unknown"
+        raw_contains_person = item.get("containsPerson")
         parsed[frame_id] = {
             "frameId": frame_id,
             "room": room,
             "uncertain": bool(item.get("uncertain", room == "unknown")),
+            # Missing privacy metadata is treated conservatively so an older or
+            # malformed provider response cannot become a representative photo.
+            "containsPerson": (
+                raw_contains_person if isinstance(raw_contains_person, bool) else True
+            ),
         }
 
     missing = [frame_id for frame_id in expected_frame_ids if frame_id not in parsed]
@@ -129,7 +136,7 @@ class GeminiRoomClassifier:
         model: str = "gemini-3.5-flash-lite",
         batch_size: int = 10,
         max_image_size: int = 384,
-        retries: int = 3,
+        retries: int = 2,
     ) -> None:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
@@ -139,7 +146,11 @@ class GeminiRoomClassifier:
             from google.genai import types
         except ImportError as error:
             raise RuntimeError("google-genai is not installed; run pip install -r requirements.txt") from error
-        self.client = genai.Client(api_key=api_key)
+        request_timeout_ms = max(1_000, int(os.environ.get("GEMINI_REQUEST_TIMEOUT_MS", "15000")))
+        self.client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(timeout=request_timeout_ms),
+        )
         self.types = types
         self.model = model
         self.batch_size = max(1, batch_size)
@@ -218,6 +229,7 @@ class GeminiRoomClassifier:
                         "filename": row["filename"],
                         "room": "unknown",
                         "uncertain": True,
+                        "containsPerson": True,
                         "provider": "gemini_error_fallback",
                         "model": self.model,
                     })

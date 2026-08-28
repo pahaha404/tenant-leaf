@@ -100,6 +100,7 @@ class ResultContractTests(unittest.TestCase):
                         "room": {
                             "stable": "bathroom",
                             "uncertain": False,
+                            "containsPerson": False,
                             "model": "gemini-3.5-flash-lite",
                         },
                         "detections": [{
@@ -115,6 +116,7 @@ class ResultContractTests(unittest.TestCase):
                         "room": {
                             "stable": "unknown",
                             "uncertain": False,
+                            "containsPerson": True,
                             "model": "gemini-3.5-flash-lite",
                         },
                         "detections": [],
@@ -125,6 +127,7 @@ class ResultContractTests(unittest.TestCase):
                         "room": {
                             "stable": "kitchen",
                             "uncertain": False,
+                            "containsPerson": False,
                             "model": "gemini-3.5-flash-lite",
                         },
                         "detections": [],
@@ -135,6 +138,7 @@ class ResultContractTests(unittest.TestCase):
                         "room": {
                             "stable": "living_room",
                             "uncertain": False,
+                            "containsPerson": False,
                             "model": "gemini-3.5-flash-lite",
                         },
                         "detections": [],
@@ -147,9 +151,11 @@ class ResultContractTests(unittest.TestCase):
         self.assertEqual("two_stage_negative_rot4", model_version)
         self.assertEqual("BATHROOM", images[0].zone)
         self.assertFalse(images[0].zone_uncertain)
+        self.assertFalse(images[0].contains_person)
         self.assertEqual("mold", images[0].detections[0].label)
         self.assertEqual("UNKNOWN", images[1].zone)
         self.assertTrue(images[1].zone_uncertain)
+        self.assertTrue(images[1].contains_person)
         self.assertEqual("KITCHEN", images[2].zone)
         self.assertEqual("LIVING_ROOM", images[3].zone)
 

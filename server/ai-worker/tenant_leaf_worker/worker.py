@@ -187,7 +187,7 @@ class MediaAnalysisWorker:
                         JOIN media m ON m.id = j.media_id
                         WHERE m.inspection_id = i.id
                           AND j.status = 'QUEUED'
-                    )
+                    ) DESC
                     FOR UPDATE OF i SKIP LOCKED
                     LIMIT 1
                     """,
@@ -370,13 +370,14 @@ class MediaAnalysisWorker:
                         UPDATE media
                         SET analysis_status = 'COMPLETED', ai_zone = %s,
                             zone_uncertain = %s, zone_model_version = %s,
-                            zone_confidence = NULL, updated_at = NOW()
+                            zone_confidence = NULL, contains_person = %s, updated_at = NOW()
                         WHERE id = %s
                         """,
                         (
                             result.zone,
                             result.zone_uncertain,
                             result.zone_model_version,
+                            result.contains_person,
                             result.media_id,
                         ),
                     )

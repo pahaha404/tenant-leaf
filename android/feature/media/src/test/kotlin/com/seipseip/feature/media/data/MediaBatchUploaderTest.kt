@@ -71,7 +71,8 @@ class MediaBatchUploaderTest {
         val registration = server.takeRequest()
         assertEquals("/api/v1/inspections/$inspectionId/media/upload-requests", registration.path)
         assertTrue(registration.body.readUtf8().let { body ->
-            body.contains(clientMediaId.toString()) && !body.contains("content://") && !body.contains(file.absolutePath)
+            body.contains(clientMediaId.toString()) && body.contains("\"zone\":\"UNKNOWN\"") &&
+                !body.contains("content://") && !body.contains(file.absolutePath)
         })
         assertEquals("PUT", server.takeRequest().method)
         assertEquals("/api/v1/media/$mediaId/upload-complete", server.takeRequest().path)

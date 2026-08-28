@@ -9,6 +9,7 @@ import com.seipseip.core.network.generated.model.CreateMediaUploadBatchRequest
 import com.seipseip.core.network.generated.model.CreateMediaUploadRequest
 import com.seipseip.core.network.generated.model.FinalizeInspectionMediaRequest
 import com.seipseip.core.network.generated.model.MediaUploadInstruction
+import com.seipseip.core.network.generated.model.Zone
 import com.seipseip.feature.media.domain.ExtractedJpeg
 import com.seipseip.feature.media.domain.MediaPlanning
 import com.seipseip.feature.media.domain.MediaUploadProgress
@@ -116,6 +117,7 @@ class MediaBatchUploader @Inject constructor(
 
     private fun ExtractedJpeg.toRequest() = CreateMediaUploadRequest(
         clientMediaId = clientMediaId,
+        zone = Zone.UNKNOWN,
         contentType = CreateMediaUploadRequest.ContentType.imageSlashJpeg,
         fileSize = file.length(),
         width = width,

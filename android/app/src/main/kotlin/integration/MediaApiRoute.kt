@@ -24,16 +24,31 @@ fun MediaUploadApiRoute(
 ) {
     val context = LocalContext.current
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val permission = if (Build.VERSION.SDK_INT >= 33) Manifest.permission.READ_MEDIA_VIDEO
-    else Manifest.permission.READ_EXTERNAL_STORAGE
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-        viewModel.onPermissionResult(it)
+    val permissions = mediaRuntimePermissions()
+    fun hasPermission() = hasMediaAccess { permission ->
+        ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
     }
-    val hasPermission = ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
-    LaunchedEffect(Unit) { viewModel.start(hasPermission) }
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        viewModel.onPermissionResult(hasPermission())
+    }
+    fun requestMissingPermissions() {
+        val missing = permissions.filter {
+            ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isEmpty()) {
+            viewModel.onPermissionResult(true)
+        } else {
+            permissionLauncher.launch(missing.toTypedArray())
+        }
+    }
+    LaunchedEffect(Unit) {
+        val granted = hasPermission()
+        viewModel.start(granted)
+        if (!granted) requestMissingPermissions()
+    }
 
     val presentation = state.toPresentation(
-        requestPermission = { permissionLauncher.launch(permission) },
+        requestPermission = ::requestMissingPermissions,
         useNewest = viewModel::useNewest,
         retry = viewModel::retry,
         finish = onOpenReport,
@@ -46,6 +61,30 @@ fun MediaUploadApiRoute(
         primaryActionLabel = presentation.primaryLabel,
         onPrimaryAction = presentation.primaryAction,
     )
+}
+
+internal fun mediaRuntimePermissions(sdkInt: Int = Build.VERSION.SDK_INT): Array<String> =
+    if (sdkInt >= 34) {
+        arrayOf(
+            Manifest.permission.READ_MEDIA_IMAGES,
+            Manifest.permission.READ_MEDIA_VIDEO,
+            Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED,
+        )
+    } else if (sdkInt >= 33) {
+        arrayOf(Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO)
+    } else {
+        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+    }
+
+internal fun hasMediaAccess(
+    sdkInt: Int = Build.VERSION.SDK_INT,
+    isGranted: (String) -> Boolean,
+): Boolean = when {
+    sdkInt >= 34 ->
+        isGranted(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED) ||
+            isGranted(Manifest.permission.READ_MEDIA_IMAGES) && isGranted(Manifest.permission.READ_MEDIA_VIDEO)
+    sdkInt >= 33 -> isGranted(Manifest.permission.READ_MEDIA_IMAGES) && isGranted(Manifest.permission.READ_MEDIA_VIDEO)
+    else -> isGranted(Manifest.permission.READ_EXTERNAL_STORAGE)
 }
 
 private data class MediaPresentation(
@@ -62,7 +101,7 @@ private fun MediaUploadUiState.toPresentation(
     retry: () -> Unit,
     finish: () -> Unit,
 ): MediaPresentation = when (this) {
-    MediaUploadUiState.PermissionRequired -> MediaPresentation(0f, "동영상 접근 권한이 필요해요.", primaryLabel = "권한 허용", primaryAction = requestPermission)
+    MediaUploadUiState.PermissionRequired -> MediaPresentation(0f, "사진과 동영상 접근 권한이 필요해요.", primaryLabel = "권한 허용", primaryAction = requestPermission)
     MediaUploadUiState.FindingVideo -> MediaPresentation(.05f, "갤러리에서 촬영된 영상을 자동으로 찾고 있어요.", primaryLabel = "영상 검색 중", primaryAction = {})
     MediaUploadUiState.NoVideo -> MediaPresentation(0f, "갤러리에서 촬영된 영상을 찾는 중이에요.", primaryLabel = "다시 확인", primaryAction = retry)
     is MediaUploadUiState.ConfirmNewest -> MediaPresentation(.1f, "가장 최근 촬영 영상을 처리 중이에요.", primaryLabel = "최근 영상 분석", primaryAction = useNewest)
@@ -83,7 +122,7 @@ private fun MediaUploadUiState.toPresentation(
         progress = if (total == 0) 0f else completed.toFloat() / total,
         message = "사진 준비 또는 전송을 완료하지 못했어요.",
         error = message,
-        primaryLabel = "다시 시도",
-        primaryAction = retry,
+        primaryLabel = "리포트로 이동",
+        primaryAction = finish,
     )
 }
